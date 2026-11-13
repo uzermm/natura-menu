@@ -1,0 +1,29 @@
+services:
+  menu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_URL: https://natura.beyoglumutfagi.com
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in Dokploy Environment}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in Dokploy Environment}
+      DATA_DIR: /app/data
+    volumes:
+      - natura_data:/app/data
+    expose:
+      - "3000"
+    networks:
+      - dokploy-network
+    init: true
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  natura_data:
+networks:
+  dokploy-network:
+    external: true

@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env*
+data
+backups
+test-results
+tests
+*.tsbuildinfo
+scripts/*.local.json
+docs/screenshots

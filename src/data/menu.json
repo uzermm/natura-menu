@@ -1,0 +1,1145 @@
+[
+  {
+    "id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+    "name": "BAŞLANGIÇ & KAHVALTILIK",
+    "display_order": 0,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:14.941351+00:00",
+    "image_url": "/menu/78b86132dc5fd48f3e64.webp",
+    "items": [
+      {
+        "id": "5ceab487-e810-4f52-9ebf-55aeef2864e5",
+        "name": "İçli Köfte",
+        "price": "130",
+        "image_url": "/menu/e79355b203573adcedb8.webp",
+        "is_active": false,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 0
+      },
+      {
+        "id": "1a595057-ad8b-4dda-be2e-a01bc0e9f8d2",
+        "name": "Parmak Patates Kızartması",
+        "price": "95",
+        "image_url": "/menu/835ede6a258ea430d65c.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "2aff4452-7e4a-40a3-b194-3c9169729941",
+        "name": "Mantarlı Omlet",
+        "price": "240",
+        "image_url": "/menu/13f19493fa677d7b3919.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 7
+      },
+      {
+        "id": "4b50fd9c-dc08-4eb6-ae2c-1f6ea5f56829",
+        "name": "Serpme Kahvaltı",
+        "price": "420",
+        "image_url": "/menu/generated-1.webp",
+        "is_active": true,
+        "created_at": "2026-07-26T18:52:23.704154+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "Kişi başı ücrettir.En az iki kişilik servis alınır.",
+        "display_order": 10,
+        "image_generated": true
+      },
+      {
+        "id": "7b81b427-6fa4-4106-a3d8-0a811c5e8fc2",
+        "name": "Fırında Tereyağlı Kaşarlı Mantar",
+        "price": "230",
+        "image_url": "/menu/8af872d86c8b5ca58986.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 9
+      },
+      {
+        "id": "57957ad9-d282-4e0e-9180-016a6637c184",
+        "name": "Kaşarlı Omlet",
+        "price": "240",
+        "image_url": "/menu/2b1785231399554baef3.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "e92e018e-59ba-46d2-a4d2-9bc5aa5465f1",
+        "name": "Menemen",
+        "price": "180",
+        "image_url": "/menu/a5684a9776b57849ab4c.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 6
+      },
+      {
+        "id": "e792ed93-de32-4063-ae62-abcbdc8b1267",
+        "name": "Pişi Tabağı",
+        "price": "150",
+        "image_url": "/menu/d1055e0120c088a42a6b.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "2 adet sade pişi, domates, salatalık, zeytin ile servis edilir.",
+        "display_order": 5
+      },
+      {
+        "id": "d77be5b5-def9-45db-825b-7e783b9d01ed",
+        "name": "Sigara Böreği",
+        "price": "120",
+        "image_url": "/menu/f0dc5f8e4513face741c.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "909c33e2-86e8-4be5-bc0d-90e73a194811",
+        "name": "Soğan Halkası 10 Adet",
+        "price": "120",
+        "image_url": "/menu/d3f37fcef3d73bdb8fe0.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.056383+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "0b03d884-1eba-487f-8b58-a099c6e3af1a",
+        "name": "Karışık Peynirli Pişi Tabağı",
+        "price": "200",
+        "image_url": "/menu/7f6683d29c07584b2d67.webp",
+        "is_active": true,
+        "created_at": "2026-08-14T19:20:50.34205+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "2 adet karışık peynirli pişi, domates, salatalık ve zeytin ile servis edilir.",
+        "display_order": 13
+      },
+      {
+        "id": "84e93dae-c6f4-491f-a00b-d68ba0fe9cb0",
+        "name": "Kaşarlı Pişi Tabağı",
+        "price": "200",
+        "image_url": "/menu/8162adf29788f26888e5.webp",
+        "is_active": true,
+        "created_at": "2026-08-14T19:20:22.463752+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "2 adet kaşar peynirli pişi, domates, salatalık ve zeytin ile servis edilir.",
+        "display_order": 12
+      },
+      {
+        "id": "50f770aa-a52d-4118-8e91-686f9ebb1a86",
+        "name": "Sucuklu Peynirli Pişi Tabağı",
+        "price": "250",
+        "image_url": "/menu/880e4b7710f0ad516fce.webp",
+        "is_active": true,
+        "created_at": "2026-08-14T19:22:12.91272+00:00",
+        "category_id": "a15f9524-03ec-483d-9de4-bd1256e89d52",
+        "description": "2 adet karışık pişi (sucuk, peynir çeşitleri), domates, salatalık ve zeytin ile servis edilir.",
+        "display_order": 14
+      }
+    ]
+  },
+  {
+    "id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+    "name": "TOST & SANDVİÇ",
+    "display_order": 1,
+    "is_active": true,
+    "created_at": "2026-08-11T15:53:34.825231+00:00",
+    "image_url": "/menu/3d5f3615a79e64585598.webp",
+    "items": [
+      {
+        "id": "9b0f1a13-3516-4fa2-b2af-4532b7b9cf49",
+        "name": "Bazlama Tost Sebzeli Karışık",
+        "price": "240",
+        "image_url": "/menu/generated-2.webp",
+        "is_active": true,
+        "created_at": "2026-08-11T16:08:43.071828+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "Sucuk, Kaşar, Domates, Biber",
+        "display_order": 4,
+        "image_generated": true
+      },
+      {
+        "id": "31cfe9b9-96c7-4188-8614-87772a283d4e",
+        "name": "Bazlama Tost Kaşarlı",
+        "price": "180",
+        "image_url": "/menu/generated-3.webp",
+        "is_active": true,
+        "created_at": "2026-08-11T15:56:00.632435+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "Kaşar, Domates, Biber",
+        "display_order": 0,
+        "image_generated": true
+      },
+      {
+        "id": "5e666986-91ac-4733-a7cf-61f5bb7d61cc",
+        "name": "Bazlama Tost Sebzeli Kaşarlı",
+        "price": "200",
+        "image_url": "/menu/generated-4.webp",
+        "is_active": true,
+        "created_at": "2026-09-02T20:08:28.09621+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "",
+        "display_order": 3,
+        "image_generated": true
+      },
+      {
+        "id": "dc309a90-a849-4a2e-8993-54b2004e7873",
+        "name": "Bazlama Tost Kavurmalı",
+        "price": "290",
+        "image_url": "/menu/generated-5.webp",
+        "is_active": true,
+        "created_at": "2026-08-11T15:57:23.511853+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "Kavurma, Kaşar, Biber, Domates",
+        "display_order": 5,
+        "image_generated": true
+      },
+      {
+        "id": "8749d8b2-a4b0-48a1-8c93-2806e31cc92a",
+        "name": "Bazlama Tost Karışık",
+        "price": "210",
+        "image_url": "/menu/344557e7870c7a585aef.webp",
+        "is_active": true,
+        "created_at": "2026-08-11T15:54:38.573721+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "Sucuk ve kaşar",
+        "display_order": 2
+      },
+      {
+        "id": "1098c704-12d3-4e42-95d5-601f421e9836",
+        "name": "Bazlama Tost Sucuklu",
+        "price": "200",
+        "image_url": "/menu/generated-6.webp",
+        "is_active": true,
+        "created_at": "2026-08-11T15:55:07.982085+00:00",
+        "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
+        "description": "Sucuk, Domates, Biber",
+        "display_order": 1,
+        "image_generated": true
+      }
+    ]
+  },
+  {
+    "id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+    "name": "TAVUK TABAKLARI",
+    "display_order": 2,
+    "is_active": true,
+    "created_at": "2026-07-23T15:18:44.931344+00:00",
+    "image_url": "/menu/5aa9c1705690d2dd04c7.webp",
+    "items": [
+      {
+        "id": "a9340772-d6c9-423f-afaa-4f14e9455824",
+        "name": "Soya Soslu Tavuk",
+        "price": "350",
+        "image_url": "/menu/c1f78ef831c53b686618.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:19:40.272113+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 5
+      },
+      {
+        "id": "5ffab96f-42ac-403c-b41d-8d89abba39c2",
+        "name": "Köri Soslu Tavuk",
+        "price": "350",
+        "image_url": "/menu/6adc2543e4d793d3f9da.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:19:18.908708+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "034680e4-527d-4e30-b1e7-5a20aeeb28a8",
+        "name": "Kaşarlı Çıtır Tavuk",
+        "price": "420",
+        "image_url": "/menu/f788e9c9c20461f5a625.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:20:18.464153+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "d3b20eeb-c8de-4a9c-bf66-b39b63705472",
+        "name": "Kremalı Tavuk",
+        "price": "350",
+        "image_url": "/menu/aff08c893424f56767ed.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:19:05.574906+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "e8171897-b600-4cf1-a18d-d5618a6280a8",
+        "name": "Acılı Tavuk",
+        "price": "350",
+        "image_url": "/menu/e710d030967314df6451.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:19:29.464703+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "8b75f5eb-d55f-47b9-b760-adde5fc7c2f3",
+        "name": "Barbekü Soslu Tavuk",
+        "price": "350",
+        "image_url": "/menu/6fc85984bba7c86bfbc7.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:20:29.629938+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 6
+      },
+      {
+        "id": "2833a7ea-c830-4a0d-9406-e1a1f9ffbb1f",
+        "name": "Çıtır Tavuk",
+        "price": "360",
+        "image_url": "/menu/d470688bfaa2444338f6.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:19:49.941598+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "",
+        "display_order": 0
+      },
+      {
+        "id": "ffc76b30-24e9-4367-b14b-2bd38038aa34",
+        "name": "Dağ Kekikli Tavuk",
+        "price": "350",
+        "image_url": "/menu/13452d3037182665b9f8.webp",
+        "is_active": true,
+        "created_at": "2026-08-01T20:06:27.879386+00:00",
+        "category_id": "b9cb55f4-1a31-4412-acd1-e6f9e7367e3e",
+        "description": "Dağ kekikli, kremalı tavuk. Kremalı makarna ve mevsim yeşillikleri ile servis edilir",
+        "display_order": 7
+      }
+    ]
+  },
+  {
+    "id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+    "name": "WRAP & DÜRÜM",
+    "display_order": 4,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:15.798975+00:00",
+    "image_url": "/menu/b6fe68e69e3af1bc114f.webp",
+    "items": [
+      {
+        "id": "b8cc1577-3590-49e8-a63c-53e356075081",
+        "name": "Salam Sosis Wrap",
+        "price": "330",
+        "image_url": "/menu/0afaa1115aa059313fdd.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.899599+00:00",
+        "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "cdc71527-0e52-4d97-8e35-71d34ce83cee",
+        "name": "Tavuk Wrap",
+        "price": "270",
+        "image_url": "/menu/811834be73d2cbe47193.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.899599+00:00",
+        "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "d4490b25-7628-4694-ba94-fcf42e85251d",
+        "name": "Tavuk Dürüm",
+        "price": "270",
+        "image_url": "/menu/99162c40fa18c6d47d6b.webp",
+        "is_active": true,
+        "created_at": "2026-07-30T20:36:46.775349+00:00",
+        "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+        "description": "",
+        "display_order": 0
+      },
+      {
+        "id": "bc00adba-bed0-4d42-aa73-f8d72522f227",
+        "name": "Dana Wrap",
+        "price": "390",
+        "image_url": "/menu/671003960653d242e3c5.webp",
+        "is_active": false,
+        "created_at": "2026-07-23T08:56:15.899599+00:00",
+        "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+        "description": "Kavurma, salam, sucuk, sosis",
+        "display_order": 4
+      },
+      {
+        "id": "bbef97a9-8749-4133-a919-9fa6d718c97e",
+        "name": "Köfte Wrap Kaşarlı",
+        "price": "350",
+        "image_url": "/menu/1ac9e7fbaef0e81709fd.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.899599+00:00",
+        "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
+        "description": "",
+        "display_order": 2
+      }
+    ]
+  },
+  {
+    "id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+    "name": "MAKARNALAR & SALATALAR",
+    "display_order": 6,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:15.99757+00:00",
+    "image_url": "/menu/7cabbf8d5b01655a6ff9.webp",
+    "items": [
+      {
+        "id": "94259a5a-3395-4175-9fc5-2c62fdc2ecd2",
+        "name": "Zeytinyağlı Cacık",
+        "price": "150",
+        "image_url": "/menu/fd5b1a1c34bd7f90bec8.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "5b6254cc-0cce-46cf-8671-52245cb3a362",
+        "name": "Fettuccine Alfredo",
+        "price": "290",
+        "image_url": "/menu/10d1ae9ebde6759c9d05.webp",
+        "is_active": false,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 8
+      },
+      {
+        "id": "85c9fb39-58c6-4e09-b5d4-21c04fa8a288",
+        "name": "Penne Arabiata",
+        "price": "290",
+        "image_url": "/menu/295a4e73c0d1334e6b38.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 9
+      },
+      {
+        "id": "44c286c0-4df5-4499-876f-a0d8050d7fbe",
+        "name": "Ton Balıklı Salata",
+        "price": "325",
+        "image_url": "/menu/01a8a6b484f8a075a038.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 5
+      },
+      {
+        "id": "93f7a165-e18f-43b9-8cbf-6a501548f335",
+        "name": "Tagliatelle",
+        "price": "290",
+        "image_url": "/menu/0f6bdaebdb708a017281.webp",
+        "is_active": false,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 7
+      },
+      {
+        "id": "e61bc676-983f-439c-b285-ed3d73e7df2f",
+        "name": "Çoban Salata",
+        "price": "150",
+        "image_url": "/menu/e964cb8fd3f78d313a26.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "06db34d1-be7e-456f-96a3-5bfadbe2bbe2",
+        "name": "Mevsim Salata",
+        "price": "150",
+        "image_url": "/menu/caee28be9c3785b3d19f.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "13b90bc8-d3be-4c25-9b03-e73598fe8415",
+        "name": "Tavuklu Sezar Salata",
+        "price": "220",
+        "image_url": "/menu/4440a85964e7f54b0fb2.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "984cb2db-11de-486f-b2af-c43712871a3f",
+        "name": "Kremalı Tavuklu Makarna",
+        "price": "290",
+        "image_url": "/menu/0ec80ed21f3b1bb6966e.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 10
+      },
+      {
+        "id": "cf9c9f6e-1e3f-47aa-8386-e9b54ba51859",
+        "name": "Akdeniz Salatası",
+        "price": "270",
+        "image_url": "/menu/f8698ee75797bbc95590.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.100327+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 6
+      },
+      {
+        "id": "0eda20da-c949-4b77-b133-5e5756819cb1",
+        "name": "Köz Patlıcan Salata",
+        "price": "200",
+        "image_url": "/menu/generated-7.webp",
+        "is_active": true,
+        "created_at": "2026-09-02T19:20:45.368428+00:00",
+        "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
+        "description": "",
+        "display_order": 10,
+        "image_generated": true
+      }
+    ]
+  },
+  {
+    "id": "49edab98-644a-418b-9abd-e53283a5b30e",
+    "name": "BURGERLER",
+    "display_order": 7,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:15.386256+00:00",
+    "image_url": "/menu/72654e8c82bd55010b0d.webp",
+    "items": [
+      {
+        "id": "05e66b0e-dea0-4771-b1f9-e2beb1e0a632",
+        "name": "Çıtır Tavukburger",
+        "price": "330",
+        "image_url": "/menu/7c9b95878ccd5d5ebf06.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "7cea4a7c-46fb-40da-8cf8-616674424f85",
+        "name": "Natura Double Cheeseburger",
+        "price": "470",
+        "image_url": "/menu/b8a5d1f7bff189711528.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 5
+      },
+      {
+        "id": "b82dacde-3f53-4dbc-8eda-ba2575b580ae",
+        "name": "Kaşarlı Çıtır Tavuk Burger",
+        "price": "420",
+        "image_url": "/menu/5127bc24b96611452b4d.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "49a8d053-de16-4972-9864-1ee85a23737e",
+        "name": "Hamburger",
+        "price": "340",
+        "image_url": "/menu/eae242dad73a3efaeb8b.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "9c14b878-55fd-4add-baa1-69c9f22563ee",
+        "name": "Cheeseburger",
+        "price": "360",
+        "image_url": "/menu/7e70b18ec3ba3546da96.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "b16242b3-1e86-415d-86e1-745f17ca4827",
+        "name": "Mantarlı Peynirli Burger",
+        "price": "510",
+        "image_url": "/menu/c0428820c442e337ebae.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:15.490275+00:00",
+        "category_id": "49edab98-644a-418b-9abd-e53283a5b30e",
+        "description": "",
+        "display_order": 6
+      }
+    ]
+  },
+  {
+    "id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+    "name": "TATLILAR",
+    "display_order": 8,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:16.612322+00:00",
+    "image_url": "/menu/07fe12d72bb0f0952ff0.webp",
+    "items": [
+      {
+        "id": "55c78a6c-22b5-4e37-905e-783754875d1c",
+        "name": "Antep Fıstıklı Katmer",
+        "price": "220",
+        "image_url": "/menu/ad238afd3fded1029121.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "ab56aa15-a636-4492-bb2a-f835818b11bf",
+        "name": "Dondurma Porsiyon",
+        "price": "150",
+        "image_url": "/menu/255a98b23683e5c0a412.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T15:49:51.894209+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 9
+      },
+      {
+        "id": "41bdbc16-dc79-4204-88d6-36e89ed5a063",
+        "name": "Höşmerim",
+        "price": "180",
+        "image_url": "/menu/f86c630c3763da529cce.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 6
+      },
+      {
+        "id": "1aede467-5485-4870-b55a-40ebe936760e",
+        "name": "Künefe",
+        "price": "230",
+        "image_url": "/menu/c495d4db263addc6a413.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "a75a74cd-1f4c-4c9c-939b-1d2b26e50a9c",
+        "name": "Fırın Sütlaç",
+        "price": "180",
+        "image_url": "/menu/eeab836c8fa68a3ebea3.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 0
+      },
+      {
+        "id": "1257a097-f6a4-41c6-9580-2df35c2836f4",
+        "name": "San Sebastian",
+        "price": "280",
+        "image_url": "/menu/a2340a86ac955b43a213.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "Çikolata Soslu",
+        "display_order": 8
+      },
+      {
+        "id": "ca371db3-8b65-4019-a4dd-45180b0b1064",
+        "name": "Frambuazlı Cheesecake",
+        "price": "220",
+        "image_url": "/menu/9abd6be117e6ef9fd10d.webp",
+        "is_active": true,
+        "created_at": "2026-08-17T18:35:29.178686+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 11
+      },
+      {
+        "id": "e6cdf26f-2b65-4306-a1ea-3c380821170c",
+        "name": "Klasik Waffle",
+        "price": "250",
+        "image_url": "/menu/f5d9c3bcefa6cdcb935b.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "326ad9f0-fd62-4ae0-8224-e71791bc24cb",
+        "name": "Kaymaklı Çikolatalı Katmer",
+        "price": "220",
+        "image_url": "/menu/generated-8.webp",
+        "is_active": true,
+        "created_at": "2026-08-25T17:49:44.207004+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 7,
+        "image_generated": true
+      },
+      {
+        "id": "792e900d-5f01-4fed-882b-b99fc4c1fa3a",
+        "name": "Limonlu Cheesecake",
+        "price": "220",
+        "image_url": "/menu/1aec9f0824e0b9ad2cb5.webp",
+        "is_active": true,
+        "created_at": "2026-08-17T18:35:09.912961+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 10
+      },
+      {
+        "id": "9d400b69-58cc-4a3c-afb9-7635e76ebe2b",
+        "name": "Çikolatalı Sufle",
+        "price": "220",
+        "image_url": "/menu/01be36fa4f502232c1d6.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "2ecd9d55-3afc-4dbf-a284-5f3888f9d174",
+        "name": "Kesme Dondurma",
+        "price": "120",
+        "image_url": "/menu/455d7c66ef5434391ac9.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.716438+00:00",
+        "category_id": "949fb7f3-c1a4-4a19-b585-4b05e2bd8ced",
+        "description": "",
+        "display_order": 5
+      }
+    ]
+  },
+  {
+    "id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+    "name": "SICAK İÇECEKLER",
+    "display_order": 9,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:16.201569+00:00",
+    "image_url": "/menu/45ffba164bcf5c579ee7.webp",
+    "items": [
+      {
+        "id": "e7dd6fda-22c4-41c2-a824-421f5730174a",
+        "name": "Dibek Kahvesi",
+        "price": "100",
+        "image_url": "/menu/641a1e55430acefad32b.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "eacef004-db80-46bb-bc22-fb20445bd8f0",
+        "name": "Bitki Çayı",
+        "price": "120",
+        "image_url": "/menu/258a37c67acfd79118b3.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "f3a1a8a3-3052-463e-b4ae-0dcf909ca33e",
+        "name": "Sıcak Çikolata",
+        "price": "160",
+        "image_url": "/menu/01c442138a3c67a887e1.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 14
+      },
+      {
+        "id": "4a9d7902-77b6-486f-afb4-d3e95d70d2e4",
+        "name": "Damla Sakızlı Türk Kahvesi",
+        "price": "100",
+        "image_url": "/menu/39dbd85b288713a15a95.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 5
+      },
+      {
+        "id": "38865f42-a4f3-4d19-b5b3-439138915aaa",
+        "name": "Filtre Kahve",
+        "price": "120",
+        "image_url": "/menu/2df8e276ab41cd6074b1.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 8
+      },
+      {
+        "id": "096c948f-219d-486a-9162-b23fde55b373",
+        "name": "Salep",
+        "price": "120",
+        "image_url": "/menu/02dfc9e36c4e26b4117f.webp",
+        "is_active": true,
+        "created_at": "2026-10-28T18:25:49.718496+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 13
+      },
+      {
+        "id": "e60f1861-c352-4d75-9d54-79efc95df07d",
+        "name": "Cappuccino",
+        "price": "140",
+        "image_url": "/menu/efa2801ecb82dd452f1c.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 12
+      },
+      {
+        "id": "1f1babe5-560d-4d3c-9eb7-08bab25c4aa8",
+        "name": "Caffè Latte",
+        "price": "140",
+        "image_url": "/menu/5766b0338aadd67a14fb.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 10
+      },
+      {
+        "id": "2112f42c-ceb6-4459-858a-514cb244ce72",
+        "name": "Çay Fincan",
+        "price": "40",
+        "image_url": "/menu/04baa67b85ccc1e3c9fa.webp",
+        "is_active": true,
+        "created_at": "2026-07-25T12:32:38.087435+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "72c457ff-bd7c-42a5-b7d1-d2d4e1962f63",
+        "name": "Sütlü Türk Kahvesi",
+        "price": "120",
+        "image_url": "/menu/af9b03b41f6fa16c8e47.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 7
+      },
+      {
+        "id": "b2fd4e5b-1847-432a-923f-a005804786b4",
+        "name": "Sütlü Nescafé",
+        "price": "120",
+        "image_url": "/menu/23ec6b9b6e326491b3ec.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 9
+      },
+      {
+        "id": "251e91de-300b-46d5-bfbd-dfc843e37eed",
+        "name": "White Mocha",
+        "price": "140",
+        "image_url": "/menu/53a2a9f8cb437b723fb2.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 11
+      },
+      {
+        "id": "c7854364-85e3-4c78-8023-198f1553001a",
+        "name": "Türk Kahvesi",
+        "price": "100",
+        "image_url": "/menu/65eb5625b732cbd530a2.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "a187e2ad-16ba-4e9f-8b78-deec05ceb910",
+        "name": "Çay (Bardak)",
+        "price": "20",
+        "image_url": "/menu/d8de6705ae014def88b1.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 0
+      },
+      {
+        "id": "d35fb4aa-8a18-4779-8622-722d1e07cb2f",
+        "name": "Sütlü Menengiç Kahvesi",
+        "price": "120",
+        "image_url": "/menu/866a137d255a59c085fb.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.30576+00:00",
+        "category_id": "a61fdc6d-c155-407d-8fb8-cf380998c07c",
+        "description": "",
+        "display_order": 6
+      }
+    ]
+  },
+  {
+    "id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+    "name": "SOĞUK İÇECEKLER",
+    "display_order": 10,
+    "is_active": true,
+    "created_at": "2026-07-23T08:56:16.407778+00:00",
+    "image_url": "/menu/81578b570f187dfa3044.webp",
+    "items": [
+      {
+        "id": "bfae3e3e-b422-41f2-aa15-1dd7ca975b12",
+        "name": "Milkshake",
+        "price": "170",
+        "image_url": "/menu/8c04ae4b0f12af8d97a6.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "Çilek, Çikolata, Muz",
+        "display_order": 19
+      },
+      {
+        "id": "d709e81b-96fb-4a88-8a5b-bd13bf49d877",
+        "name": "Şişe İçecekler",
+        "price": "50",
+        "image_url": "/menu/21a8359545800e233b1e.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 13
+      },
+      {
+        "id": "ff63a2ad-4d5a-4984-bb05-1755a557b89b",
+        "name": "Churchill",
+        "price": "90",
+        "image_url": "/menu/27f778c8c03c7156ced7.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 3
+      },
+      {
+        "id": "c97eaf99-f17b-4778-8e46-0261c7cfb70d",
+        "name": "Smoothie",
+        "price": "170",
+        "image_url": "/menu/f4cff750a0e251a66026.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 21
+      },
+      {
+        "id": "8d768d1d-980d-4621-88c8-3663880d2a2d",
+        "name": "Ice Latte",
+        "price": "150",
+        "image_url": "/menu/9ad1a69c5ea2cdd7ea3a.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 16
+      },
+      {
+        "id": "61f95106-ef41-44ad-80d3-96a4475f608d",
+        "name": "Kutu İçecekler",
+        "price": "90",
+        "image_url": "/menu/4dca440fca0db2badc94.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 14
+      },
+      {
+        "id": "68b4d969-ec44-476a-921f-72781ff0aa1e",
+        "name": "Meyveli Soda",
+        "price": "40",
+        "image_url": "/menu/a48d12c39c780ada4b11.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 7
+      },
+      {
+        "id": "729e17e7-5245-4d64-bc84-9278cf035ccd",
+        "name": "El Yapımı Limonata",
+        "price": "110",
+        "image_url": "/menu/5c18d251b384c60a0d72.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 4
+      },
+      {
+        "id": "f8289543-208c-4fa9-9768-1fbe62989d08",
+        "name": "Su (0.5 L)",
+        "price": "20",
+        "image_url": "/menu/2f4f97dda797b158acaa.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 1
+      },
+      {
+        "id": "ef72bc4c-f0da-4903-8e1e-4fff2b654dc1",
+        "name": "Şalgam Suyu (Acılı/ Acısız)",
+        "price": "80",
+        "image_url": "/menu/3f43a1ed42365c5f0a61.webp",
+        "is_active": true,
+        "created_at": "2026-07-25T12:30:56.810532+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 10
+      },
+      {
+        "id": "67fdde5b-50be-4b5f-ac18-723b2cbe9d6c",
+        "name": "Ice Mocha",
+        "price": "150",
+        "image_url": "/menu/f881bef2fe397b790a33.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 17
+      },
+      {
+        "id": "1dfbc6ba-7ab3-4dde-8ca5-45d5b2a88d94",
+        "name": "170",
+        "price": "140",
+        "image_url": "/menu/c009bd3cfd5bca0cce44.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "Çarkıfelek, Mango, Şeftali, Ananas, Elma",
+        "display_order": 20
+      },
+      {
+        "id": "4232217c-2a97-45b7-927e-205336972f65",
+        "name": "Ice Filtre Kahve",
+        "price": "150",
+        "image_url": "/menu/475dc413df3ce09170b5.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 18
+      },
+      {
+        "id": "586bf666-19e7-4aec-9d3e-c78b717c5e12",
+        "name": "Ballı Muzlu Süt",
+        "price": "110",
+        "image_url": "/menu/dd00214addcf78ddbe91.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 12
+      },
+      {
+        "id": "10eba464-0d10-48e7-86af-970ae5bfa2c8",
+        "name": "Süt",
+        "price": "50",
+        "image_url": "/menu/12d6f97d4258f8e3960b.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 11
+      },
+      {
+        "id": "70cbfe13-c812-43da-ab99-eabaa9176e1c",
+        "name": "Sade Soda",
+        "price": "30",
+        "image_url": "/menu/c36fd3a25ba7c778c795.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 6
+      },
+      {
+        "id": "edce9422-0c7c-412e-ab1c-b3ad0841b2f5",
+        "name": "Su (1.5 L)",
+        "price": "50",
+        "image_url": "/menu/abf837eaa7d39ed7383d.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 2
+      },
+      {
+        "id": "e284cd5f-5b0a-45a9-ae93-193a65964c88",
+        "name": "Taze Portakal Suyu",
+        "price": "120",
+        "image_url": "/menu/c528066284df8f690d16.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 5
+      },
+      {
+        "id": "2a5987ed-2afa-4395-9fc3-192bc0cc54f6",
+        "name": "Ayran (Küçük)",
+        "price": "30",
+        "image_url": "/menu/0c04d34cb8e66f34a7ca.webp",
+        "is_active": true,
+        "created_at": "2026-07-23T08:56:16.509483+00:00",
+        "category_id": "8e85a496-4d6e-4b4f-8c69-f26ec62e20a2",
+        "description": "",
+        "display_order": 8
+      }
+    ]
+  }
+]

@@ -2,8 +2,10 @@ node_modules
 .next
 .git
 .env*
-data
-backups
+/data
+/backups
+!src/data
+!src/data/**
 test-results
 tests
 *.tsbuildinfo

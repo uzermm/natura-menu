@@ -1,6 +1,6 @@
 // CI-only smoke test. Creates and removes its own disposable Docker resources.
 import { execFileSync } from 'node:child_process';
-import { randomBytes,createHmac } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
 const suffix=randomBytes(6).toString('hex'),name=`natura-ci-${suffix}`,volume=`${name}-data`;
 const password=randomBytes(24).toString('base64url'),secret=randomBytes(32).toString('hex');
@@ -35,8 +35,10 @@ try {
  assert.equal((await request('/api/admin/settings',{...business,campaign:null})).status,200);
  assert.doesNotMatch((await request('/')).data,/aria-label="Kampanya"/);
  assert.equal((await request('/api/admin/settings',{...business,campaign})).status,200);
- const key=createHmac('sha256',secret).update('table:1').digest('base64url');
- assert.equal((await request('/api/waiter',{table:1,key})).status,200);
+ for(const table of [0,-1,1.5,31])assert.equal((await request('/api/waiter',{table})).status,400);
+ assert.equal((await request('/api/waiter',{table:1})).status,200);
+ assert.equal((await request('/api/waiter',{table:1})).status,200); // Duplicate requests create only one call.
+ assert.equal((await request('/api/admin/calls')).data.filter(c=>!c.resolved_at&&c.table_number===1).length,1);
  assert.equal((await request('/admin')).status,200); // Server -> Client serialization with a call present.
  const qr=await request('/api/admin/qr?table=1');assert.equal(qr.status,200);assert.match(qr.data,/<svg/);
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);

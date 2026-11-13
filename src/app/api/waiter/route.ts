@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { z } from 'zod';
 import { db,getSettings,transaction } from '@/lib/db';
-import { validTable } from '@/lib/security';
+import { waiterCallSchema } from '@/lib/validation';
 import { requireOrigin,errorResponse,jsonBody,limited,clientKey,HttpError } from '@/lib/api';
 export async function POST(req:Request){try{
- requireOrigin(req);const {table,key}=z.object({table:z.number().int(),key:z.string().max(100)}).parse(await jsonBody(req));
- if(!validTable(table,key,getSettings().table_count))throw new HttpError(400,'Garson çağırmak için masanızdaki QR kodu okutun.');
+ requireOrigin(req);const {table}=waiterCallSchema.parse(await jsonBody(req));
+ if(table>getSettings().table_count)throw new HttpError(400,'Bu masa kullanımda değil. Lütfen güncel masa numaranızı seçin.');
  if(limited(`waiter:${clientKey(req)}`,12,5*60*1000))throw new HttpError(429,'Lütfen kısa bir süre sonra tekrar deneyin.');
  const result=transaction(()=>{
   const existing=db().prepare('SELECT id FROM waiter_calls WHERE table_number=? AND resolved_at IS NULL').get(table);

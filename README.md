@@ -5,7 +5,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 - Natura adı ve mevcut tipografik logosu korunur.
 - İsteğe bağlı kampanya banner’ı: menüden ürün/porsiyon seçimi, otomatik görsel ve üstü çizili normal fiyat, belirgin kampanya fiyatı, canlı önizleme ve aç/kapat kontrolü.
 - Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları.
-- Doğrulanmış masa QR koduyla garson çağrısı; yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
+- Masa numarası seçerek garson çağırma; masaya özel QR kod gerekmez. Yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
 - Değiştirilebilir 1–200 masa, yazdırılabilir QR kodları ve SVG indirme.
 - Yüklemelerde Sharp ile 1000/480 px WebP; SQLite ve yüklenen fotoğraflar aynı kalıcı volume’da.
@@ -20,6 +20,8 @@ Alan adı: `natura.beyoglumutfagi.com` · Yönetim: `/admin`.
 ## Önizleme
 
 <img src="docs/screenshots/mobile-menu.jpg" width="300" alt="Mobil menü önizlemesi" />
+
+<img src="docs/screenshots/waiter-table-selection.jpg" width="300" alt="Masa numarası seçerek garson çağırma" />
 
 ![Yönetim paneli](docs/screenshots/admin-desktop.jpg)
 

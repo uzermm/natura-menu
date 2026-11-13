@@ -62,7 +62,7 @@ Dokploy yönlendirme etiketlerini oluşturur. Sunucunun dışına ayrıca `3000`
 - Alerjen, porsiyon ve etiket bilgilerini ürün ürün mutfakla doğrulayın. Kaynakta bulunmayan alerjenler tahmin edilerek eklenmedi.
 - **Masa QR kodları → Yazdır / PDF kaydet:** Masa kodlarını basın. Her kodda masa bilgisi doğrulaması vardır.
 - **Garson çağrıları:** Paneli açık tutun ve **Ses aç** düğmesine bir kez basın. Panel çağrıları 5 saniyede bir kontrol eder. Ses için tarayıcının kullanıcı etkileşimi gerekir. Telefon ekranı kilitli / tarayıcı arka plandayken bildirim garantisi yoktur; servis sırasında paneli açık bir cihazda tutun.
-- Garson çağrısı için masaya özel QR kod gerekir. Ana alan adından açılan menü ürünleri görüntülemek için kullanılabilir.
+- **Garson çağırma:** Müşteri düğmeye basar, açılan ekranda masa numarasını seçer ve çağrıyı onaylar. Masaya özel QR kod gerekmez. Seçenekler paneldeki masa sayısına göre 1’den başlar. Kullanım dışı masalar sunucuda da reddedilir; aynı masanın bekleyen çağrısı çoğaltılmaz. Mevcut masaya özel QR bağlantıları varsa masa seçimini önceden doldurabilir.
 
 ## 6. Kalıcı depolama ve güncellemeler
 

@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { validSession } from '@/lib/security';
+import { validSession } from '@/lib/auth';
 import { getSettings } from '@/lib/db';
 import PrintQr from '@/components/print-qr';
 export const dynamic='force-dynamic';

@@ -29,7 +29,7 @@ Yer tutucuları gerçek değerlerle değiştirin. Şifre yöneticinizle uzun bir
 openssl rand -hex 32
 ```
 
-Gerçek değerleri GitHub’a, ekran görüntüsüne veya sohbet mesajına eklemeyin. `SESSION_SECRET` kalıcı olmalıdır: değiştirmek tüm yönetici oturumlarını ve basılmış masa QR bağlantılarını geçersiz kılar. Yönetici şifresi değiştirilip yeniden dağıtım yapıldığında mevcut yönetici oturumları otomatik geçersizleşir; masa QR kodları bundan etkilenmez.
+Gerçek değerleri GitHub’a, ekran görüntüsüne veya sohbet mesajına eklemeyin. `SESSION_SECRET` kalıcı olmalıdır: değiştirmek tüm yönetici oturumlarını ve basılmış masa QR bağlantılarını geçersiz kılar. Admin panelinde Ayarlar → Yönetici şifresi bölümünden mevcut şifrenizi girerek şifrenizi değiştirebilirsiniz. Yeni şifre SQLite içinde rastgele tuzla scrypt özeti olarak saklanır; yeniden dağıtım ve yeniden başlatmalarda korunur. Diğer yönetici oturumları kapanır; masa QR kodları etkilenmez. Panelden şifre değiştirildikten sonra ADMIN_PASSWORD değeri giriş şifresini değiştirmez.
 
 Alan adı `compose.yaml` içinde `APP_URL=https://natura.beyoglumutfagi.com` olarak hazırdır. Alan adı değişirse bu değeri de güncelleyin.
 
@@ -54,7 +54,7 @@ Dokploy yönlendirme etiketlerini oluşturur. Sunucunun dışına ayrıca `3000`
 
 - Menü: `https://natura.beyoglumutfagi.com`
 - Yönetim: `https://natura.beyoglumutfagi.com/admin`
-- Giriş şifresi: Environment alanına yazdığınız `ADMIN_PASSWORD`.
+- İlk giriş şifresi: Environment alanına yazdığınız `ADMIN_PASSWORD`. Daha sonra Ayarlar bölümünden değiştirebilirsiniz.
 - İlk çalıştırmada kaynak menüdeki **9 kategori / 95 ürün**, fiyatlar ve görünürlük durumları SQLite’a bir defa aktarılır. Daha sonraki dağıtımlarda veriler yeniden yazılmaz.
 - **İşletme ayarları:** Masa sayısı `35` olarak hazırdır. Masa sayısını `30` yaparsanız 1–30 aktif kalır; bu masaların mevcut QR kodları değişmez. 31–35 bağlantıları kullanım dışı kalır.
 - Adres ve çalışma saatlerini doldurun.
@@ -105,7 +105,7 @@ Geri yükleme:
 ## Sorun giderme
 
 - **502 / Bad Gateway:** `menu` konteyner loglarına, portun 3000 olmasına ve `dokploy-network` bağlantısına bakın.
-- **Giriş yapılamıyor:** `ADMIN_PASSWORD` en az 12 karakter; `SESSION_SECRET` en az 32 karakter olmalı. Örnek değerler kabul edilmez. Değişiklikten sonra yeniden Deploy yapın. HTTPS üzerinden giriş yapın.
+- **Giriş yapılamıyor:** Panelden şifre değiştirdiyseniz en son belirlediğiniz şifreyi kullanın. İlk kurulumda `ADMIN_PASSWORD` en az 12 karakter; `SESSION_SECRET` en az 32 karakter olmalı. Örnek değerler kabul edilmez. Değişiklikten sonra yeniden Deploy yapın. HTTPS üzerinden giriş yapın.
 - **Geçersiz istek kaynağı:** `APP_URL` ile tarayıcıda kullandığınız adres aynı olmalı. Alan adının önüne `www` eklemeyin.
 - **Permission denied / SQLite yazılamıyor:** Volume `/app/data` yoluna bağlı mı ve `uid 1000` yazabiliyor mu kontrol edin.
 - **QR geçersiz:** Anahtar değiştirilmiş veya masa sayısı azaltılmış olabilir. Panelden güncel QR kodunu alın.

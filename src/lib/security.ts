@@ -8,12 +8,17 @@ export function sessionSecret() {
 }
 export function safeEqual(a:string,b:string) {const aa=Buffer.from(a),bb=Buffer.from(b);return aa.length===bb.length&&timingSafeEqual(aa,bb);}
 function sign(value:string){return createHmac('sha256',sessionSecret()).update(value).digest('base64url');}
-function signSession(payload:string){return sign(`session:${process.env.ADMIN_PASSWORD||''}:${payload}`);}
-export function makeSession(now=Date.now()) {const payload=Buffer.from(JSON.stringify({exp:now+1000*60*60*12,nonce:randomBytes(16).toString('hex')})).toString('base64url');return `${payload}.${signSession(payload)}`;}
-export function validSession(token:string|undefined,now=Date.now()) {
+function signSession(payload:string,credential:string){return sign(`session:${credential}:${payload}`);}
+export function makeSession(now=Date.now(),credential=process.env.ADMIN_PASSWORD||'') {const payload=Buffer.from(JSON.stringify({exp:now+1000*60*60*12,nonce:randomBytes(16).toString('hex')})).toString('base64url');return `${payload}.${signSession(payload,credential)}`;}
+export function validSession(token:string|undefined,now=Date.now(),credential=process.env.ADMIN_PASSWORD||'') {
  if(!token||token.length>1024)return false;
- const [payload,sig,...rest]=token.split('.');if(!payload||!sig||rest.length||!safeEqual(signSession(payload),sig))return false;
+ const [payload,sig,...rest]=token.split('.');if(!payload||!sig||rest.length||!safeEqual(signSession(payload,credential),sig))return false;
  try {const data=JSON.parse(Buffer.from(payload,'base64url').toString());return typeof data.exp==='number'&&data.exp>now&&data.exp<=now+1000*60*60*12;}catch{return false;}
+}
+export function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `scrypt:${salt}:${scryptSync(password,salt,32).toString('hex')}`;}
+export function verifyPasswordHash(password:string,encoded:string){
+ const match=/^scrypt:([a-f0-9]{32}):([a-f0-9]{64})$/.exec(encoded);
+ return !!match&&safeEqual(scryptSync(password,match[1],32).toString('hex'),match[2]);
 }
 export function validPassword(password:string) {
  const expected=process.env.ADMIN_PASSWORD;

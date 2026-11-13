@@ -1,7 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { makeSession,validSession,tableKey,validTable,sameOrigin } from '../src/lib/security.ts';
+import { makeSession,validSession,tableKey,validTable,sameOrigin,hashPassword,verifyPasswordHash } from '../src/lib/security.ts';
 process.env.SESSION_SECRET='test-only-secret-with-at-least-32-characters';
+test('stored password hashes use unique salts and rotate session signatures',()=>{
+ const password='a-new-test-password',first=hashPassword(password),second=hashPassword(password);
+ assert.notEqual(first,second);assert.equal(first.includes(password),false);
+ assert.equal(verifyPasswordHash(password,first),true);
+ assert.equal(verifyPasswordHash('wrong',first),false);
+ assert.equal(verifyPasswordHash(password,'invalid'),false);
+ const now=Date.now(),token=makeSession(now,first),key=tableKey(1);
+ assert.equal(validSession(token,now,first),true);assert.equal(validSession(token,now,second),false);
+ assert.equal(validTable(1,key,35),true);
+});
 test('signed sessions reject tampering, expiration and the old fixed auth cookie',()=>{
  const now=Date.now(),token=makeSession(now);
  assert.equal(validSession(token,now),true);

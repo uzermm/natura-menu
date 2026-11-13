@@ -48,7 +48,17 @@ try {
  assert.equal((await request('/admin')).status,200); // Server -> Client serialization with a call present.
  const qr=await request('/api/admin/qr?table=1');assert.equal(qr.status,200);assert.match(qr.data,/<svg/);
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);
+ assert.doesNotMatch(menu.data,/Yalnızca mevcut ürünleri göster/);
+ const newPassword=randomBytes(24).toString('base64url');
+ assert.equal((await request('/api/admin/password',{currentPassword:'incorrect',newPassword,confirmPassword:newPassword})).status,400);
+ assert.equal((await request('/api/admin/password',{currentPassword:password,newPassword,confirmPassword:'mismatch'})).status,400);
+ const changed=await request('/api/admin/password',{currentPassword:password,newPassword,confirmPassword:newPassword});assert.equal(changed.status,200);
+ assert.equal((await request('/api/admin/state')).status,401,'Old sessions must be revoked.');
+ cookie=changed.headers.get('set-cookie').split(';')[0];
+ assert.equal((await request('/api/admin/state')).status,200);
+ assert.equal((await request('/api/auth/login',{password})).status,401);
  docker('restart',name);await ready();
+ assert.equal((await request('/api/auth/login',{password:newPassword})).status,200,'New password must survive restart.');
  const after=(await request('/api/admin/state')).data;
  assert.equal(after.settings.table_count,30);assert.equal(after.calls.filter(c=>!c.resolved_at).length,1);assert.deepEqual(after.settings.campaign,campaign);
  const exported=docker('exec',name,'node','scripts/backup.mjs');assert.match(exported,/Backup ready:/);

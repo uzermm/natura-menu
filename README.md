@@ -4,7 +4,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 
 - Natura adı ve mevcut tipografik logosu korunur.
 - İsteğe bağlı kampanya banner’ı: menüden ürün/porsiyon seçimi, otomatik görsel ve üstü çizili normal fiyat, belirgin kampanya fiyatı, canlı önizleme ve aç/kapat kontrolü.
-- Telefonda dikey açılır kategoriler: ilk yüklemede tümü kapalıdır; dokunulan kategori açılır, ürünler altında listelenir ve aşağı kaydırılarak gezilir. Arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları korunur.
+- Telefonda dikey açılır kategoriler: ilk yüklemede tümü kapalıdır; dokunulan kategori açılır, ürünler altında listelenir ve aşağı kaydırılarak gezilir. Arama ve alttan açılan ürün ayrıntıları bulunur.
 - Masa numarası seçerek garson çağırma; masaya özel QR kod gerekmez. Yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
 - Tek bir Menü yönetimi ekranında açılır kategoriler ve altlarında ürünler; kategori içinden ürün ekleme/düzenleme, kategoriye özel toplu fiyat güncelleme ve aramayla otomatik açılan sonuçlar.
@@ -61,3 +61,5 @@ Orijinal görüntü dosyaları yeni yüklemelerde saklanmaz. WebP kalite ayarlar
 ## İşletim notları
 
 Tek örnek / tek sunucu kullanın. Uygulama menü görüntüleme ve garson çağırma için kullanılır; çevrimiçi sipariş ve ödeme sunulmaz. Garson çağrılarını almak için panel açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.
+
+Yönetici şifresi Ayarlar bölümünden mevcut şifre doğrulanarak değiştirilebilir. Yeni şifrenin scrypt özeti kalıcı SQLite veritabanında saklanır; diğer oturumlar geçersizleşir. `ADMIN_PASSWORD` ilk giriş içindir; panelden değiştirilen şifre sonraki dağıtımlarda korunur.

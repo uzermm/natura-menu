@@ -2,7 +2,8 @@ import { cookies } from 'next/headers';
 import { createHmac } from 'node:crypto';
 import { ZodError } from 'zod';
 import { db, transaction } from './db';
-import { sameOrigin, sessionSecret, validSession } from './security';
+import { sameOrigin, sessionSecret } from './security';
+import { validSession } from './auth';
 export class HttpError extends Error {constructor(public status:number,message:string){super(message);}}
 export async function requireAdmin(req?:Request) {
  if(!validSession((await cookies()).get('natura_session')?.value))throw new HttpError(401,'Lütfen yönetici girişi yapın.');

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { clientKey, errorResponse, HttpError, jsonBody, limited, requireOrigin } from '@/lib/api';
-import { makeSession, validPassword } from '@/lib/security';
+import { makeSession, validPassword } from '@/lib/auth';
 export const runtime='nodejs';
 export async function POST(req:Request) {try {
  requireOrigin(req);

@@ -21,6 +21,9 @@ try {
  const login=await request('/api/auth/login',{password});assert.equal(login.status,200);cookie=login.headers.get('set-cookie').split(';')[0];
  const state=(await request('/api/admin/state')).data;
  assert.equal(state.categories.length,9);assert.equal(state.categories.flatMap(c=>c.items).length,95);
+ const categoryButtons=[...menu.data.matchAll(/<button\b[^>]*aria-controls="category-products-[^"]+"[^>]*>/g)];
+ assert.equal(categoryButtons.length,state.categories.filter(c=>c.is_active).length);
+ assert.ok(categoryButtons.every(match=>match[0].includes('aria-expanded="false"')),'Every category must be collapsed on first load.');
  const generated=state.categories.flatMap(c=>c.items).filter(i=>i.image_url.startsWith('/menu/ai-'));
  assert.equal(generated.length,12);
  for(const item of generated){assert.equal(item.image_generated,true);for(const url of [item.image_url,item.image_url.replace('.webp','-sm.webp')]){const response=await fetch(base+url);assert.equal(response.status,200);assert.match(response.headers.get('content-type'),/image\/webp/);}}

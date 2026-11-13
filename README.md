@@ -4,7 +4,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 
 - Natura adı ve mevcut tipografik logosu korunur.
 - İsteğe bağlı kampanya banner’ı: menüden ürün/porsiyon seçimi, otomatik görsel ve üstü çizili normal fiyat, belirgin kampanya fiyatı, canlı önizleme ve aç/kapat kontrolü.
-- Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları.
+- Telefonda dikey açılır kategoriler: ilk yüklemede tümü kapalıdır; dokunulan kategori açılır, ürünler altında listelenir ve aşağı kaydırılarak gezilir. Arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları korunur.
 - Masa numarası seçerek garson çağırma; masaya özel QR kod gerekmez. Yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
 - Tek bir Menü yönetimi ekranında açılır kategoriler ve altlarında ürünler; kategori içinden ürün ekleme/düzenleme, kategoriye özel toplu fiyat güncelleme ve aramayla otomatik açılan sonuçlar.

@@ -6,7 +6,8 @@ export interface Item {
  tags:string[]; variants:Variant[]; original_price:number|null;
 }
 export interface Category { id:string; name:string; image_url:string; display_order:number; is_active:boolean; items:Item[] }
-export interface Settings { table_count:number; subtitle:string; address:string; hours:string; announcement:string; }
+export interface Campaign { item_id:string; variant:string; price:number }
+export interface Settings { table_count:number; address:string; hours:string; campaign:Campaign|null; }
 export interface WaiterCall { id:string; table_number:number; created_at:string; resolved_at:string|null }
 export interface MenuData { categories:Category[]; settings:Settings }
 export const money=(cents:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:cents%100?2:0}).format(cents/100);

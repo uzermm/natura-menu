@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Sheet,SheetContent,SheetDescription,SheetHeader,SheetTitle } from '@/components/ui/sheet';
 import { Brand } from '@/components/brand';
+import { CampaignBanner } from '@/components/campaign-banner';
+import { resolveCampaign } from '@/lib/campaign';
 import { api } from '@/lib/client';
 import { money,thumbnail,type Category,type Item,type Settings } from '@/lib/types';
 
@@ -18,6 +20,7 @@ export default function Menu({categories,settings,table,tableToken,invalidTable}
  const [notice,setNotice]=useState(''),[waiterBusy,setWaiterBusy]=useState(false);
  const searchRef=useRef<HTMLInputElement>(null),menuRef=useRef<HTMLDivElement>(null),noticeTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
  const all=useMemo(()=>categories.flatMap(c=>c.items),[categories]);
+ const offer=resolveCampaign(categories,settings.campaign);
  useEffect(()=>()=>clearTimeout(noticeTimer.current),[]);
  const selected=categories.find(c=>c.id===category);
  const visible=(search?all.filter(i=>normalize(`${i.name} ${i.description} ${i.tags.join(' ')}`).includes(normalize(search))):selected?.items||[]).filter(i=>!onlyAvailable||!i.sold_out);
@@ -29,11 +32,8 @@ export default function Menu({categories,settings,table,tableToken,invalidTable}
   <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8 md:py-7"><Brand compact/><div className="flex items-center gap-2">{table>0&&<span className="rounded-full bg-[#e9eee3] px-3 py-2 text-xs font-semibold">Masa {table}</span>}<button onClick={waiter} disabled={waiterBusy} className="flex h-11 w-11 items-center justify-center rounded-full border border-[#dfe3d8] bg-white transition hover:bg-[#e9eee6] md:w-auto md:gap-2 md:px-4" aria-label="Garson çağır"><Bell size={18}/><span className="hidden text-sm font-semibold md:inline">Garson çağır</span></button></div></header>
   {invalidTable&&<div className="mx-5 mb-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 md:mx-auto md:max-w-5xl">Masa bağlantınız geçersiz veya artık kullanımda değil. Lütfen masanızdaki güncel QR kodu okutun.</div>}
   <main className="mx-auto max-w-6xl md:px-8">
-   <section className="relative mx-4 mb-6 overflow-hidden rounded-[1.65rem] bg-[#244b34] px-6 py-7 text-[#fffdf4] md:mx-0 md:px-10 md:py-12">
-    <div className="relative z-10 max-w-full md:max-w-xl"><div className="mb-3 flex items-center gap-2 text-[9px] font-semibold tracking-[.15em] text-[#d5dcc5]"><span className="h-1.5 w-1.5 rounded-full bg-[#b6cc9d]"/>NATURA’YA HOŞ GELDİNİZ</div><h1 className="serif text-[clamp(1.7rem,8.5vw,2.125rem)] leading-[1.1] tracking-tight md:text-6xl">Her molanın<br/><span className="italic text-[#dfd6b6]">bir lezzeti var.</span></h1><p className="mt-4 max-w-72 text-xs leading-relaxed text-[#e2e8d9] md:text-sm">{settings.subtitle}</p></div>
-    <div aria-hidden="true" className="absolute -right-8 top-3 rotate-[-25deg] text-[#adc197]/20 md:right-4 md:top-1"><Leaf className="h-52 w-52 stroke-[.7] md:h-80 md:w-80"/></div><div className="absolute -bottom-16 right-12 h-40 w-40 rounded-full border border-white/10"/>
-   </section>
-   {settings.announcement&&<div className="mx-5 mb-5 rounded-xl border border-[#e2dbc8] bg-[#f2eddf] px-4 py-3 text-sm md:mx-0">{settings.announcement}</div>}
+   <h1 className="sr-only">Natura Bistro Menü</h1>
+   {offer&&<div className="mx-4 mb-5 md:mx-0"><CampaignBanner offer={offer}/></div>}
    <div ref={menuRef} className="sticky top-0 z-20 scroll-mt-0 bg-[#f9f8f3]/95 pb-3 pt-2 backdrop-blur-xl">
     <div className="flex gap-2 px-4 md:px-0"><div className="relative flex-1"><Search className="absolute left-4 top-3.5 text-[#87917e]" size={18}/><Input ref={searchRef} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Canın ne çekiyor?" aria-label="Menüde ara" className="h-12 rounded-2xl border-[#e3e4db] bg-white pl-11 pr-10 shadow-none"/>{search&&<button className="absolute right-2 top-1.5 h-9 w-9 rounded-full" onClick={()=>setSearch('')} aria-label="Aramayı temizle"><X size={17} className="mx-auto"/></button>}</div><button aria-label="Yalnızca mevcut ürünleri göster" aria-pressed={onlyAvailable} onClick={()=>setOnlyAvailable(!onlyAvailable)} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${onlyAvailable?'border-[#305c3e] bg-[#305c3e] text-white':'border-[#e3e4db] bg-white'}`}><SlidersHorizontal size={19}/></button></div>
     <nav aria-label="Menü kategorileri" className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-4 pb-1 md:px-0"><button onClick={()=>setCategoryOpen(true)} aria-label="Tüm kategoriler" className="sticky left-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-[#f9f8f3] shadow-[6px_0_10px_#f9f8f3]"><Grid2X2 size={17}/></button>{categories.map(c=><button id={`cat-${c.id}`} key={c.id} onClick={()=>choose(c.id)} className={`h-10 shrink-0 whitespace-nowrap rounded-xl px-4 text-xs font-semibold transition ${category===c.id&&!search?'bg-[#305c3e] text-white shadow-sm':'border border-[#e3e4db] bg-white text-[#72796c]'}`}>{title(c.name)}</button>)}</nav>

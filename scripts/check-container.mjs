@@ -21,7 +21,20 @@ try {
  const login=await request('/api/auth/login',{password});assert.equal(login.status,200);cookie=login.headers.get('set-cookie').split(';')[0];
  const state=(await request('/api/admin/state')).data;
  assert.equal(state.categories.length,9);assert.equal(state.categories.flatMap(c=>c.items).length,95);
- assert.equal((await request('/api/admin/settings',{...state.settings,table_count:30})).status,200);
+ assert.equal(state.settings.campaign,null);assert.doesNotMatch(menu.data,/Her molanın|NATURA’YA HOŞ GELDİNİZ|aria-label="Kampanya"/);
+ const business={...state.settings,table_count:30};
+ assert.equal((await request('/api/admin/settings',business)).status,200);
+ const product=state.categories.filter(c=>c.is_active).flatMap(c=>c.items).find(i=>i.is_active&&!i.sold_out&&i.image_url&&!i.variants.length&&i.price>1);
+ const campaign={item_id:product.id,variant:'',price:Math.floor(product.price*.75)};
+ assert.equal((await request('/api/admin/settings',{...business,campaign})).status,200);
+ const promoted=(await request('/')).data;assert.match(promoted,/aria-label="Kampanya"/);assert.match(promoted,/<del aria-label="Menü fiyatı"/);assert.match(promoted,/<strong aria-label="Kampanya fiyatı"/);
+ assert.equal((await request('/api/admin/settings',{...business,campaign:{...campaign,price:product.price}})).status,400);
+ assert.equal((await request('/api/admin/items',{...product,sold_out:true})).status,200);
+ assert.doesNotMatch((await request('/')).data,/aria-label="Kampanya"/);
+ assert.equal((await request('/api/admin/items',product)).status,200);
+ assert.equal((await request('/api/admin/settings',{...business,campaign:null})).status,200);
+ assert.doesNotMatch((await request('/')).data,/aria-label="Kampanya"/);
+ assert.equal((await request('/api/admin/settings',{...business,campaign})).status,200);
  const key=createHmac('sha256',secret).update('table:1').digest('base64url');
  assert.equal((await request('/api/waiter',{table:1,key})).status,200);
  assert.equal((await request('/admin')).status,200); // Server -> Client serialization with a call present.
@@ -29,7 +42,7 @@ try {
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);
  docker('restart',name);await ready();
  const after=(await request('/api/admin/state')).data;
- assert.equal(after.settings.table_count,30);assert.equal(after.calls.filter(c=>!c.resolved_at).length,1);
+ assert.equal(after.settings.table_count,30);assert.equal(after.calls.filter(c=>!c.resolved_at).length,1);assert.deepEqual(after.settings.campaign,campaign);
  const exported=docker('exec',name,'node','scripts/backup.mjs');assert.match(exported,/Backup ready:/);
  console.log('PASS: Linux container, non-root volume writes, menu, login, QR, waiter call, restart persistence and online backup.');
 } catch(error) {

@@ -3,6 +3,7 @@
 Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme paneli. **Next.js 16 · React 19 · TypeScript · SQLite · Tailwind CSS 4 · shadcn/ui**.
 
 - Natura adı ve mevcut tipografik logosu korunur.
+- İsteğe bağlı kampanya banner’ı: menüden ürün/porsiyon seçimi, otomatik görsel ve üstü çizili normal fiyat, belirgin kampanya fiyatı, canlı önizleme ve aç/kapat kontrolü.
 - Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları.
 - Doğrulanmış masa QR koduyla garson çağrısı; yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.

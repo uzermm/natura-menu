@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import seed from '@/data/menu.json';
 import type { Category, Item, Settings, WaiterCall } from './types';
+import { campaignSchema } from './validation';
 
 export const dataDir=path.resolve(/* turbopackIgnore: true */ process.env.DATA_DIR||'data');
 let singleton:DatabaseSync|undefined;
@@ -25,7 +26,7 @@ export function db() {
    const cat=d.prepare('INSERT INTO categories(id,name,image_url,display_order,is_active) VALUES(?,?,?,?,?)');
    const item=d.prepare('INSERT INTO items(id,category_id,name,description,price,image_url,image_generated,display_order,is_active) VALUES(?,?,?,?,?,?,?,?,?)');
    for(const c of seed){cat.run(c.id,c.name,c.image_url||'',c.display_order,Number(c.is_active));for(const i of c.items){item.run(i.id,c.id,i.name,i.description||'',Math.round(Number(String(i.price).replace(',','.'))*100),i.image_url||'',Number('image_generated' in i && i.image_generated),i.display_order,Number(i.is_active));}}
-   const settings:Settings={table_count:35,subtitle:'Güzel bir güne, lezzetli bir mola.',address:'',hours:'',announcement:''};
+   const settings:Settings={table_count:35,address:'',hours:'',campaign:null};
    d.prepare('INSERT INTO settings(id,value) VALUES(1,?)').run(JSON.stringify(settings));
    d.prepare('INSERT INTO migrations VALUES(1,?)').run(new Date().toISOString());
   }
@@ -33,7 +34,7 @@ export function db() {
  }catch(e){d.exec('ROLLBACK');d.close();throw e;}
  singleton=d;return d;
 }
-export function getSettings():Settings{const value=JSON.parse(db().prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);return {table_count:value.table_count,subtitle:value.subtitle,address:value.address,hours:value.hours,announcement:value.announcement};}
+export function getSettings():Settings{const value=JSON.parse(db().prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);const campaign=campaignSchema.safeParse(value.campaign);return {table_count:value.table_count,address:value.address,hours:value.hours,campaign:campaign.success?campaign.data:null};}
 function readItem(row:Record<string,unknown>):Item {return {...row,is_active:!!row.is_active,sold_out:!!row.sold_out,featured:!!row.featured,image_generated:!!row.image_generated,allergens_verified:!!row.allergens_verified,allergens:JSON.parse(row.allergens as string),tags:JSON.parse(row.tags as string),variants:JSON.parse(row.variants as string)} as Item;}
 export function getCategories(admin=false):Category[] {
  const d=db();const rows=d.prepare(`SELECT * FROM items ${admin?'':'WHERE is_active=1'} ORDER BY display_order,name`).all().map(readItem);

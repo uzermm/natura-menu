@@ -1,0 +1,46 @@
+'use client';
+import { useState } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Label } from './ui/label';
+import { Switch } from './ui/switch';
+import { CampaignBanner } from './campaign-banner';
+import { resolveCampaign } from '@/lib/campaign';
+import { money,type Category,type Settings } from '@/lib/types';
+
+export default function SettingsForm({settings,categories,onSave}:{settings:Settings;categories:Category[];onSave:(s:Settings)=>Promise<void>}) {
+ const [busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [enabled,setEnabled]=useState(!!settings.campaign);
+ const [itemId,setItemId]=useState(settings.campaign?.item_id||'');
+ const [variant,setVariant]=useState(settings.campaign?.variant||'');
+ const [campaignPrice,setCampaignPrice]=useState(settings.campaign?String(settings.campaign.price/100):'');
+ const selected=categories.flatMap(c=>c.items).find(i=>i.id===itemId);
+ const regularPrice=selected?.variants.find(v=>v.name===variant)?.price??selected?.price;
+ const price=Math.round(Number(campaignPrice.replace(',','.'))*100);
+ const offer=enabled?resolveCampaign(categories,{item_id:itemId,variant,price}):null;
+ return <form className="max-w-2xl space-y-6" onSubmit={async e=>{
+  e.preventDefault();const fd=new FormData(e.currentTarget);setBusy(true);setError('');
+  try{await onSave({table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price}:null});}
+  catch(e){setError((e as Error).message);}finally{setBusy(false);}
+ }}>
+  <section className="space-y-5 rounded-2xl border bg-white p-5 md:p-7" aria-labelledby="campaign-settings-title">
+   <div><h2 id="campaign-settings-title" className="serif text-2xl">Kampanya banner’ı</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">İndirimli ürünü menüden seçin. Görseli ve normal fiyatı otomatik alınır. Kapalıyken menünün üstünde banner gösterilmez.</p></div>
+   <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border p-3 text-sm"><span>Banner menüde görünsün</span><Switch checked={enabled} onCheckedChange={setEnabled} aria-label="Banner menüde görünsün"/></label>
+   {enabled&&<>
+    <div className="space-y-2"><Label htmlFor="campaign-item">Kampanyalı ürün</Label><select id="campaign-item" required value={itemId} onChange={e=>{setItemId(e.target.value);const item=categories.flatMap(c=>c.items).find(i=>i.id===e.target.value);setVariant(item?.variants[0]?.name||'');setCampaignPrice('');}} className="min-h-11 w-full max-w-full rounded-xl border bg-white px-3 text-sm"><option value="">Menüden bir ürün seçin</option>{categories.filter(c=>c.is_active).map(c=><optgroup key={c.id} label={c.name}>{c.items.filter(i=>i.is_active).map(i=><option key={i.id} value={i.id} disabled={i.sold_out||!i.image_url}>{i.name}{i.sold_out?' — Tükendi':!i.image_url?' — Görsel gerekli':''}</option>)}</optgroup>)}</select><p className="text-xs text-muted-foreground">Görseli bulunan ve satışta olan ürünler seçilebilir.</p></div>
+    {!!selected?.variants.length&&<div className="space-y-2"><Label htmlFor="campaign-variant">Porsiyon / boy</Label><select id="campaign-variant" required value={variant} onChange={e=>setVariant(e.target.value)} className="min-h-11 w-full rounded-xl border bg-white px-3 text-sm"><option value="" disabled>Porsiyon seçin</option>{selected.variants.map(v=><option key={v.name} value={v.name}>{v.name} — {money(v.price)}</option>)}</select></div>}
+    <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label htmlFor="campaign-regular">Menü fiyatı</Label><Input id="campaign-regular" value={regularPrice===undefined?'':money(regularPrice)} readOnly className="h-11 bg-muted" placeholder="Otomatik alınır"/></div><div className="space-y-2"><Label htmlFor="campaign-price">Kampanya fiyatı (₺)</Label><Input id="campaign-price" required inputMode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" value={campaignPrice} onChange={e=>setCampaignPrice(e.target.value)} placeholder="Örn. 90" className="h-11"/></div></div>
+    <p className="text-xs leading-5 text-muted-foreground">Kampanya fiyatı menü fiyatından düşük olmalı. Ürünün menü fiyatı değişmez. Ürün veya kategorisi gizlenir, ürün tükenir ya da fiyat farkı geçersiz hale gelirse banner otomatik gizlenir.</p>
+    {offer?<div><p className="mb-3 text-xs font-semibold text-muted-foreground">Menüdeki görünüm</p><CampaignBanner offer={offer}/></div>:itemId&&campaignPrice&&<p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Önizleme için geçerli bir ürün, porsiyon ve menü fiyatından düşük bir kampanya fiyatı girin.</p>}
+   </>}
+  </section>
+  <section className="space-y-6 rounded-2xl border bg-white p-5 md:p-7" aria-label="İşletme bilgileri">
+   <div className="space-y-2"><Label htmlFor="table-count">Masa sayısı</Label><Input id="table-count" name="table_count" type="number" min={1} max={200} defaultValue={settings.table_count} required/><p className="text-xs leading-5 text-muted-foreground">Örneğin 30 girerseniz 1–30 arası masalar aktif olur. Kalan masaların QR kodları aynı kalır. Kaldırılan masaların mevcut çağrılarını ayrıca karşılayın.</p></div>
+   <div className="space-y-2"><Label htmlFor="address">Adres</Label><Textarea id="address" name="address" defaultValue={settings.address} maxLength={300}/></div>
+   <div className="space-y-2"><Label htmlFor="hours">Çalışma saatleri</Label><Input id="hours" name="hours" defaultValue={settings.hours} maxLength={160} placeholder="Örn. Her gün 09.00–23.00"/></div>
+  </section>
+  {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+  <Button disabled={busy} className="h-12 w-full rounded-xl">{busy?'Kaydediliyor…':'Ayarları kaydet'}</Button>
+ </form>;
+}

@@ -49,7 +49,7 @@ try {
  const qr=await request('/api/admin/qr?table=1');assert.equal(qr.status,200);assert.match(qr.data,/<svg/);
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);
  assert.doesNotMatch(menu.data,/Yalnızca mevcut ürünleri göster/);
- const newPassword=randomBytes(24).toString('base64url');
+ const newPassword=randomBytes(6).toString('base64url'); // Exactly 8 characters.
  assert.equal((await request('/api/admin/password',{currentPassword:'incorrect',newPassword,confirmPassword:newPassword})).status,400);
  assert.equal((await request('/api/admin/password',{currentPassword:password,newPassword,confirmPassword:'mismatch'})).status,400);
  const changed=await request('/api/admin/password',{currentPassword:password,newPassword,confirmPassword:newPassword});assert.equal(changed.status,200);

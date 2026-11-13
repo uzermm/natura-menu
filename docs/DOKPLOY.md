@@ -19,7 +19,7 @@ DNS sağlayıcınızda `natura.beyoglumutfagi.com` için sunucunuzun IPv4 adresi
 Servisin **Environment** bölümüne şunları ekleyin:
 
 ```dotenv
-ADMIN_PASSWORD=BURAYA_EN_AZ_12_KARAKTERLIK_BENZERSIZ_SIFRENIZ
+ADMIN_PASSWORD=BURAYA_EN_AZ_8_KARAKTERLIK_BENZERSIZ_SIFRENIZ
 SESSION_SECRET=BURAYA_RASTGELE_64_HEX_KARAKTER
 ```
 
@@ -105,7 +105,7 @@ Geri yükleme:
 ## Sorun giderme
 
 - **502 / Bad Gateway:** `menu` konteyner loglarına, portun 3000 olmasına ve `dokploy-network` bağlantısına bakın.
-- **Giriş yapılamıyor:** Panelden şifre değiştirdiyseniz en son belirlediğiniz şifreyi kullanın. İlk kurulumda `ADMIN_PASSWORD` en az 12 karakter; `SESSION_SECRET` en az 32 karakter olmalı. Örnek değerler kabul edilmez. Değişiklikten sonra yeniden Deploy yapın. HTTPS üzerinden giriş yapın.
+- **Giriş yapılamıyor:** Panelden şifre değiştirdiyseniz en son belirlediğiniz şifreyi kullanın. İlk kurulumda `ADMIN_PASSWORD` en az 8 karakter; `SESSION_SECRET` en az 32 karakter olmalı. Örnek değerler kabul edilmez. Değişiklikten sonra yeniden Deploy yapın. HTTPS üzerinden giriş yapın.
 - **Geçersiz istek kaynağı:** `APP_URL` ile tarayıcıda kullandığınız adres aynı olmalı. Alan adının önüne `www` eklemeyin.
 - **Permission denied / SQLite yazılamıyor:** Volume `/app/data` yoluna bağlı mı ve `uid 1000` yazabiliyor mu kontrol edin.
 - **QR geçersiz:** Anahtar değiştirilmiş veya masa sayısı azaltılmış olabilir. Panelden güncel QR kodunu alın.

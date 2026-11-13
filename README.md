@@ -38,7 +38,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-`SESSION_SECRET` için en az 32 karakterlik rastgele bir değer, `ADMIN_PASSWORD` için en az 12 karakterlik benzersiz şifre belirleyin. Ortam dosyaları ve veritabanı Git’e eklenmez.
+`SESSION_SECRET` için en az 32 karakterlik rastgele bir değer, `ADMIN_PASSWORD` için en az 8 karakterlik benzersiz şifre belirleyin. Ortam dosyaları ve veritabanı Git’e eklenmez.
 
 ```sh
 pnpm typecheck

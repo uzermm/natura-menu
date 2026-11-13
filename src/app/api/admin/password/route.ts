@@ -9,7 +9,7 @@ export const runtime='nodejs';
 export async function POST(req:Request){try{
  await requireAdmin(req);
  if(limited(`password:${clientKey(req)}`,5,15*60*1000))throw new HttpError(429,'Çok fazla deneme. 15 dakika sonra tekrar deneyin.');
- const input=z.object({currentPassword:z.string().min(1).max(256),newPassword:z.string().min(12,'Yeni şifre en az 12 karakter olmalı.').max(256),confirmPassword:z.string().max(256)}).parse(await jsonBody(req));
+ const input=z.object({currentPassword:z.string().min(1).max(256),newPassword:z.string().min(8,'Yeni şifre en az 8 karakter olmalı.').max(256),confirmPassword:z.string().max(256)}).parse(await jsonBody(req));
  if(input.newPassword!==input.confirmPassword)throw new HttpError(400,'Yeni şifreler eşleşmiyor.');
  if(input.currentPassword===input.newPassword)throw new HttpError(400,'Yeni şifre mevcut şifreden farklı olmalı.');
  transaction(()=>{

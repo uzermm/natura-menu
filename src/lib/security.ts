@@ -22,7 +22,7 @@ export function verifyPasswordHash(password:string,encoded:string){
 }
 export function validPassword(password:string) {
  const expected=process.env.ADMIN_PASSWORD;
- if(!expected||expected.length<12||expected.startsWith('REPLACE_'))return false;
+ if(!expected||expected.length<8||expected.startsWith('REPLACE_'))return false;
  const salt='natura-password-comparison';
  return timingSafeEqual(scryptSync(password,salt,32),scryptSync(expected,salt,32));
 }

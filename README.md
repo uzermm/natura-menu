@@ -7,6 +7,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 - Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları.
 - Masa numarası seçerek garson çağırma; masaya özel QR kod gerekmez. Yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
+- Tek bir Menü yönetimi ekranında açılır kategoriler ve altlarında ürünler; kategori içinden ürün ekleme/düzenleme, kategoriye özel toplu fiyat güncelleme ve aramayla otomatik açılan sonuçlar.
 - Değiştirilebilir 1–200 masa, yazdırılabilir QR kodları ve SVG indirme.
 - Yüklemelerde Sharp ile 1000/480 px WebP; SQLite ve yüklenen fotoğraflar aynı kalıcı volume’da.
 - İmzalı 12 saatlik yönetici oturumu, HttpOnly/Secure/SameSite çerezi, kaynak doğrulaması ve kalıcı istek sınırları.

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "8749d8b2-a4b0-48a1-8c93-2806e31cc92a",
+    "previous_image_url": "/menu/344557e7870c7a585aef.webp",
+    "image_url": "/menu/ai-bazlama-tost-karisik-v1.webp"
+  },
+  {
+    "id": "cdc71527-0e52-4d97-8e35-71d34ce83cee",
+    "previous_image_url": "/menu/811834be73d2cbe47193.webp",
+    "image_url": "/menu/ai-tavuk-wrap-v1.webp"
+  },
+  {
+    "id": "bbef97a9-8749-4133-a919-9fa6d718c97e",
+    "previous_image_url": "/menu/1ac9e7fbaef0e81709fd.webp",
+    "image_url": "/menu/ai-kofte-wrap-kasarli-v1.webp"
+  },
+  {
+    "id": "b8cc1577-3590-49e8-a63c-53e356075081",
+    "previous_image_url": "/menu/0afaa1115aa059313fdd.webp",
+    "image_url": "/menu/ai-salam-sosis-wrap-v1.webp"
+  },
+  {
+    "id": "94259a5a-3395-4175-9fc5-2c62fdc2ecd2",
+    "previous_image_url": "/menu/fd5b1a1c34bd7f90bec8.webp",
+    "image_url": "/menu/ai-zeytinyagli-cacik-v1.webp"
+  },
+  {
+    "id": "06db34d1-be7e-456f-96a3-5bfadbe2bbe2",
+    "previous_image_url": "/menu/caee28be9c3785b3d19f.webp",
+    "image_url": "/menu/ai-mevsim-salata-v1.webp"
+  },
+  {
+    "id": "e61bc676-983f-439c-b285-ed3d73e7df2f",
+    "previous_image_url": "/menu/e964cb8fd3f78d313a26.webp",
+    "image_url": "/menu/ai-coban-salata-v1.webp"
+  },
+  {
+    "id": "13b90bc8-d3be-4c25-9b03-e73598fe8415",
+    "previous_image_url": "/menu/4440a85964e7f54b0fb2.webp",
+    "image_url": "/menu/ai-tavuklu-sezar-salata-v1.webp"
+  },
+  {
+    "id": "cf9c9f6e-1e3f-47aa-8386-e9b54ba51859",
+    "previous_image_url": "/menu/f8698ee75797bbc95590.webp",
+    "image_url": "/menu/ai-akdeniz-salatasi-v1.webp"
+  },
+  {
+    "id": "85c9fb39-58c6-4e09-b5d4-21c04fa8a288",
+    "previous_image_url": "/menu/295a4e73c0d1334e6b38.webp",
+    "image_url": "/menu/ai-penne-arabiata-v1.webp"
+  },
+  {
+    "id": "984cb2db-11de-486f-b2af-c43712871a3f",
+    "previous_image_url": "/menu/0ec80ed21f3b1bb6966e.webp",
+    "image_url": "/menu/ai-kremali-tavuklu-makarna-v1.webp"
+  },
+  {
+    "id": "bc00adba-bed0-4d42-aa73-f8d72522f227",
+    "previous_image_url": "/menu/671003960653d242e3c5.webp",
+    "image_url": "/menu/ai-dana-wrap-v1.webp"
+  }
+]

@@ -213,12 +213,13 @@
         "id": "8749d8b2-a4b0-48a1-8c93-2806e31cc92a",
         "name": "Bazlama Tost Karışık",
         "price": "210",
-        "image_url": "/menu/344557e7870c7a585aef.webp",
+        "image_url": "/menu/ai-bazlama-tost-karisik-v1.webp",
         "is_active": true,
         "created_at": "2026-08-11T15:54:38.573721+00:00",
         "category_id": "5f1f3879-d258-4ff1-a68d-804a56477a67",
         "description": "Sucuk ve kaşar",
-        "display_order": 2
+        "display_order": 2,
+        "image_generated": true
       },
       {
         "id": "1098c704-12d3-4e42-95d5-601f421e9836",
@@ -344,23 +345,25 @@
         "id": "b8cc1577-3590-49e8-a63c-53e356075081",
         "name": "Salam Sosis Wrap",
         "price": "330",
-        "image_url": "/menu/0afaa1115aa059313fdd.webp",
+        "image_url": "/menu/ai-salam-sosis-wrap-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:15.899599+00:00",
         "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
         "description": "",
-        "display_order": 3
+        "display_order": 3,
+        "image_generated": true
       },
       {
         "id": "cdc71527-0e52-4d97-8e35-71d34ce83cee",
         "name": "Tavuk Wrap",
         "price": "270",
-        "image_url": "/menu/811834be73d2cbe47193.webp",
+        "image_url": "/menu/ai-tavuk-wrap-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:15.899599+00:00",
         "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
         "description": "",
-        "display_order": 1
+        "display_order": 1,
+        "image_generated": true
       },
       {
         "id": "d4490b25-7628-4694-ba94-fcf42e85251d",
@@ -377,23 +380,25 @@
         "id": "bc00adba-bed0-4d42-aa73-f8d72522f227",
         "name": "Dana Wrap",
         "price": "390",
-        "image_url": "/menu/671003960653d242e3c5.webp",
+        "image_url": "/menu/ai-dana-wrap-v1.webp",
         "is_active": false,
         "created_at": "2026-07-23T08:56:15.899599+00:00",
         "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
         "description": "Kavurma, salam, sucuk, sosis",
-        "display_order": 4
+        "display_order": 4,
+        "image_generated": true
       },
       {
         "id": "bbef97a9-8749-4133-a919-9fa6d718c97e",
         "name": "Köfte Wrap Kaşarlı",
         "price": "350",
-        "image_url": "/menu/1ac9e7fbaef0e81709fd.webp",
+        "image_url": "/menu/ai-kofte-wrap-kasarli-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:15.899599+00:00",
         "category_id": "be4ed113-975e-4c56-b19d-96cac9adc543",
         "description": "",
-        "display_order": 2
+        "display_order": 2,
+        "image_generated": true
       }
     ]
   },
@@ -409,12 +414,13 @@
         "id": "94259a5a-3395-4175-9fc5-2c62fdc2ecd2",
         "name": "Zeytinyağlı Cacık",
         "price": "150",
-        "image_url": "/menu/fd5b1a1c34bd7f90bec8.webp",
+        "image_url": "/menu/ai-zeytinyagli-cacik-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 1
+        "display_order": 1,
+        "image_generated": true
       },
       {
         "id": "5b6254cc-0cce-46cf-8671-52245cb3a362",
@@ -431,12 +437,13 @@
         "id": "85c9fb39-58c6-4e09-b5d4-21c04fa8a288",
         "name": "Penne Arabiata",
         "price": "290",
-        "image_url": "/menu/295a4e73c0d1334e6b38.webp",
+        "image_url": "/menu/ai-penne-arabiata-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 9
+        "display_order": 9,
+        "image_generated": true
       },
       {
         "id": "44c286c0-4df5-4499-876f-a0d8050d7fbe",
@@ -464,56 +471,61 @@
         "id": "e61bc676-983f-439c-b285-ed3d73e7df2f",
         "name": "Çoban Salata",
         "price": "150",
-        "image_url": "/menu/e964cb8fd3f78d313a26.webp",
+        "image_url": "/menu/ai-coban-salata-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 3
+        "display_order": 3,
+        "image_generated": true
       },
       {
         "id": "06db34d1-be7e-456f-96a3-5bfadbe2bbe2",
         "name": "Mevsim Salata",
         "price": "150",
-        "image_url": "/menu/caee28be9c3785b3d19f.webp",
+        "image_url": "/menu/ai-mevsim-salata-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 2
+        "display_order": 2,
+        "image_generated": true
       },
       {
         "id": "13b90bc8-d3be-4c25-9b03-e73598fe8415",
         "name": "Tavuklu Sezar Salata",
         "price": "220",
-        "image_url": "/menu/4440a85964e7f54b0fb2.webp",
+        "image_url": "/menu/ai-tavuklu-sezar-salata-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 4
+        "display_order": 4,
+        "image_generated": true
       },
       {
         "id": "984cb2db-11de-486f-b2af-c43712871a3f",
         "name": "Kremalı Tavuklu Makarna",
         "price": "290",
-        "image_url": "/menu/0ec80ed21f3b1bb6966e.webp",
+        "image_url": "/menu/ai-kremali-tavuklu-makarna-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 10
+        "display_order": 10,
+        "image_generated": true
       },
       {
         "id": "cf9c9f6e-1e3f-47aa-8386-e9b54ba51859",
         "name": "Akdeniz Salatası",
         "price": "270",
-        "image_url": "/menu/f8698ee75797bbc95590.webp",
+        "image_url": "/menu/ai-akdeniz-salatasi-v1.webp",
         "is_active": true,
         "created_at": "2026-07-23T08:56:16.100327+00:00",
         "category_id": "cb5ff4d8-7589-4118-bc74-1d2428bbfd5e",
         "description": "",
-        "display_order": 6
+        "display_order": 6,
+        "image_generated": true
       },
       {
         "id": "0eda20da-c949-4b77-b133-5e5756819cb1",

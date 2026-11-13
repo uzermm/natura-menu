@@ -2,8 +2,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import seed from '@/data/menu.json';
+import generatedImageUpdates from '@/data/generated-image-updates.json';
 import type { Category, Item, Settings, WaiterCall } from './types';
 import { campaignSchema } from './validation';
+import { applyGeneratedImageUpdates } from './image-updates';
 
 export const dataDir=path.resolve(/* turbopackIgnore: true */ process.env.DATA_DIR||'data');
 let singleton:DatabaseSync|undefined;
@@ -29,6 +31,10 @@ export function db() {
    const settings:Settings={table_count:35,address:'',hours:'',campaign:null};
    d.prepare('INSERT INTO settings(id,value) VALUES(1,?)').run(JSON.stringify(settings));
    d.prepare('INSERT INTO migrations VALUES(1,?)').run(new Date().toISOString());
+  }
+  if(!d.prepare('SELECT 1 FROM migrations WHERE version=2').get()) {
+   applyGeneratedImageUpdates(d,generatedImageUpdates);
+   d.prepare('INSERT INTO migrations VALUES(2,?)').run(new Date().toISOString());
   }
   d.exec('COMMIT');
  }catch(e){d.exec('ROLLBACK');d.close();throw e;}

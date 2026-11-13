@@ -80,6 +80,8 @@ GitHub’a yeni sürüm yüklendiğinde Dokploy’dan yeniden Deploy yapın veya
 
 Kaynak menü görselleri depodaki `public/menu/` içindedir. Yeni fotoğraflar otomatik olarak EXIF verileri kaldırılmış, yönü düzeltilmiş WebP’ye çevrilir; en çok 1000 px ana sürüm ve 480 px küçük sürüm oluşturulur. Gereksiz büyütme yapılmaz. Orijinal yüklemeler saklanmaz. Kayıplı WebP’de matematiksel olarak sıfır kayıp garanti edilmez; ayarlar görünür kaliteyi korumaya yöneliktir. Görsellerin dosya boyutu içeriğe göre değişir.
 
+Ürüne özel eklenen 12 temsili görsel, mevcut veritabanında boş veya bilinen geçici görsel alanlarına otomatik ve bir defa uygulanır. Panelden yüklediğiniz farklı görseller, ürün fiyatları ve diğer ayarlar korunur. Görsel kayıtları için [üretilen görseller](generated-images.md) belgesine bakın.
+
 ## 7. Yedekleme
 
 Dokploy’da çalışan `menu` konteynerinin terminalini açıp çalıştırın:

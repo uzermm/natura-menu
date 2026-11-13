@@ -52,6 +52,8 @@ Eski proje: [isousluer/natura-qr-menu](https://github.com/isousluer/natura-qr-me
 
 İçe aktarma ölçümleri: `src/data/import-report.json`. Mevcut 96 fotoğraf için ana ve küçük sürümler üretildi. Fotoğrafı bulunmayan sekiz ürün için yapay zekâ ile temsili görseller oluşturuldu ve menüde işaretlendi. İşletme kendi fotoğraflarını panelden yükleyebilir.
 
+Son görsel kontrolünde 11 aktif ürünün boş görseli ve gizli Dana Wrap ürününün geçici görseli için 12 ayrı, ürün adına uygun fotoğraf üretildi. Her ürünün WebP dosyaları ve üretim tarifi [görsel kaydında](docs/generated-images.md) listelenir. Mevcut veritabanına eklenirken yalnızca boş alanlar ve eşleşen eski yer tutucular bir defa güncellenir; işletmenin yüklediği farklı fotoğraflar, fiyatlar ve diğer düzenlemeler korunur.
+
 Üretilen görsellerin ortak tarifi: ürün adına uygun Türk bistro sunumu, kırık beyaz seramik tabak, sıcak doğal ışık, krem masa ve hafif zeytin yeşili kumaş; 45 derece gerçekçi yemek fotoğrafı; insan, yazı, marka ve filigran yok. Her ürün ayrı oluşturuldu: serpme kahvaltı; sebzeli karışık, kaşarlı, sebzeli kaşarlı, kavurmalı ve sucuklu bazlama tost; köz patlıcan salata; kaymaklı çikolatalı katmer. Yerleşik görsel üretimi kullanıldı. Son WebP dosyaları `public/menu/generated-1.webp`–`generated-8.webp` ve küçük sürümleridir.
 
 Orijinal görüntü dosyaları yeni yüklemelerde saklanmaz. WebP kalite ayarları 84/82’dir; dosya boyutu fotoğraf içeriğine bağlıdır. Tüm ürünlerin görselleri yerel servis edilir; Supabase’e çalışma zamanı bağımlılığı yoktur.

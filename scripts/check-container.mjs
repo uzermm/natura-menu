@@ -15,7 +15,8 @@ try {
  docker('volume','create',volume);
  docker('run','-d','--name',name,'-p','127.0.0.1:3000:3000','--mount',`type=volume,source=${volume},target=/app/data`,'-e',`APP_URL=${origin}`,'-e',`ADMIN_PASSWORD=${password}`,'-e',`SESSION_SECRET=${secret}`,'natura-menu:ci');
  await ready();
- assert.equal((await request('/')).status,200);
+ const menu=await request('/');assert.equal(menu.status,200);assert.doesNotMatch(menu.data,/WhatsApp|Sepetim|Siparişini oluştur|sepete ekle/);
+ assert.equal((await request('/api/order',{lines:[]})).status,404);
  assert.equal((await request('/api/admin/state')).status,401);
  const login=await request('/api/auth/login',{password});assert.equal(login.status,200);cookie=login.headers.get('set-cookie').split(';')[0];
  const state=(await request('/api/admin/state')).data;

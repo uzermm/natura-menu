@@ -56,13 +56,12 @@ Dokploy yönlendirme etiketlerini oluşturur. Sunucunun dışına ayrıca `3000`
 - Yönetim: `https://natura.beyoglumutfagi.com/admin`
 - Giriş şifresi: Environment alanına yazdığınız `ADMIN_PASSWORD`.
 - İlk çalıştırmada kaynak menüdeki **9 kategori / 95 ürün**, fiyatlar ve görünürlük durumları SQLite’a bir defa aktarılır. Daha sonraki dağıtımlarda veriler yeniden yazılmaz.
-- **İşletme ayarları:** WhatsApp numarası `905513700989`, masa sayısı `35` olarak hazırdır. Masa sayısını `30` yaparsanız 1–30 aktif kalır; bu masaların mevcut QR kodları değişmez. 31–35 bağlantıları kullanım dışı kalır.
+- **İşletme ayarları:** Masa sayısı `35` olarak hazırdır. Masa sayısını `30` yaparsanız 1–30 aktif kalır; bu masaların mevcut QR kodları değişmez. 31–35 bağlantıları kullanım dışı kalır.
 - Adres, çalışma saatleri ve duyuruyu doldurun.
 - Alerjen, porsiyon ve etiket bilgilerini ürün ürün mutfakla doğrulayın. Kaynakta bulunmayan alerjenler tahmin edilerek eklenmedi.
 - **Masa QR kodları → Yazdır / PDF kaydet:** Masa kodlarını basın. Her kodda masa bilgisi doğrulaması vardır.
 - **Garson çağrıları:** Paneli açık tutun ve **Ses aç** düğmesine bir kez basın. Panel çağrıları 5 saniyede bir kontrol eder. Ses için tarayıcının kullanıcı etkileşimi gerekir. Telefon ekranı kilitli / tarayıcı arka plandayken bildirim garantisi yoktur; servis sırasında paneli açık bir cihazda tutun.
-- Garson çağrısı için masaya özel QR kod gerekir. Ana alan adından açılan menü paket siparişine izin verir.
-- WhatsApp düğmesi hazırlanmış mesajı açar. Müşteri mesajı kendisi gönderir; sipariş işletme tarafından onaylanınca kesinleşir. Ödeme alınmaz.
+- Garson çağrısı için masaya özel QR kod gerekir. Ana alan adından açılan menü ürünleri görüntülemek için kullanılabilir.
 
 ## 6. Kalıcı depolama ve güncellemeler
 

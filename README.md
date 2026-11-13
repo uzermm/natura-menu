@@ -3,8 +3,7 @@
 Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme paneli. **Next.js 16 · React 19 · TypeScript · SQLite · Tailwind CSS 4 · shadcn/ui**.
 
 - Natura adı ve mevcut tipografik logosu korunur.
-- Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün/sepet ekranları.
-- Güncel fiyatları sunucuda doğrulayan WhatsApp sipariş mesajı.
+- Telefonda yatay kategori geçişi, arama, mevcut ürün filtresi ve alttan açılan ürün ayrıntıları.
 - Doğrulanmış masa QR koduyla garson çağrısı; yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
 - Değiştirilebilir 1–200 masa, yazdırılabilir QR kodları ve SVG indirme.
@@ -55,4 +54,4 @@ Orijinal görüntü dosyaları yeni yüklemelerde saklanmaz. WebP kalite ayarlar
 
 ## İşletim notları
 
-Tek örnek / tek sunucu kullanın. WhatsApp mesajını müşteri kendisi gönderir; uygulama ödeme almaz veya WhatsApp mesajı otomatik göndermez. Garson çağrılarını almak için panel açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.
+Tek örnek / tek sunucu kullanın. Uygulama menü görüntüleme ve garson çağırma için kullanılır; çevrimiçi sipariş ve ödeme sunulmaz. Garson çağrılarını almak için panel açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.

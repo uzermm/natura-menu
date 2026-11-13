@@ -22,7 +22,7 @@ test('password rotation revokes sessions without changing table QR keys',()=>{
 });
 test('mutations require an exact origin including port',()=>{
  process.env.APP_URL='https://natura.beyoglumutfagi.com';
- const req=(origin?:string)=>new Request('http://internal:3000/api/order',{headers:origin?{origin}:{}});
+ const req=(origin?:string)=>new Request('http://internal:3000/api/waiter',{headers:origin?{origin}:{}});
  assert.equal(sameOrigin(req('https://natura.beyoglumutfagi.com')),true);
  assert.equal(sameOrigin(req('https://evil.example')),false);
  assert.equal(sameOrigin(req('https://natura.beyoglumutfagi.com.evil.example')),false);

@@ -24,6 +24,5 @@ export function CampaignBanner({offer}:{offer:NonNullable<ReturnType<typeof reso
     {offer.item.image_generated&&<span className="mt-3 block text-center text-[8px] text-[#d2ddc5]">Temsili görsel</span>}
    </div>
   </div>
-  <div className="relative flex items-center justify-between gap-3 border-t border-dashed border-white/20 bg-black/10 px-4 py-2.5 sm:px-7"><span className="text-[10px] font-semibold tracking-wide text-[#d5dfc4]">KAMPANYALI FİYAT</span><span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold text-[#eef4ac]">{money(offer.regularPrice-offer.campaignPrice)} avantaj</span></div>
  </section>;
 }

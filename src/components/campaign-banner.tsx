@@ -8,7 +8,7 @@ export function CampaignBanner({offer}:{offer:NonNullable<ReturnType<typeof reso
   <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-64 w-64 rounded-full border-[24px] border-[#cfe48a]/[.06]"/>
   <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-5 pt-5 sm:gap-8 sm:px-7 sm:py-7">
    <div className="min-w-0">
-    <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#e5ed9c] px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#203d29] sm:text-[10px]"><Sparkles size={12} aria-hidden="true"/>Natura fırsatı</span>
+    <span className="mb-3 inline-flex max-w-full items-center gap-1.5 rounded-2xl bg-[#e5ed9c] px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[.12em] text-[#203d29] sm:text-[10px]"><Sparkles size={12} className="shrink-0" aria-hidden="true"/><span className="min-w-0 break-words [overflow-wrap:anywhere]">{offer.title}</span></span>
     <h2 className="serif break-words text-xl leading-tight text-[#fffdf1] sm:text-3xl">{offer.item.name}</h2>
     {offer.variant&&<p className="mt-1 text-xs text-[#d5dfc4]">{offer.variant}</p>}
     <div className="mt-3 flex flex-col items-start">

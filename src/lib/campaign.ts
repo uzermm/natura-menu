@@ -10,5 +10,5 @@ export function resolveCampaign(categories:Category[],campaign:Campaign|null) {
  if(item.variants.length?!variant:!!campaign.variant)return null;
  const regularPrice=variant?.price??item.price;
  if(!Number.isInteger(campaign.price)||campaign.price<=0||campaign.price>=regularPrice)return null;
- return {item,variant:variant?.name||'',regularPrice,campaignPrice:campaign.price};
+ return {item,variant:variant?.name||'',regularPrice,campaignPrice:campaign.price,title:campaign.title?.trim()||'Natura fırsatı'};
 }

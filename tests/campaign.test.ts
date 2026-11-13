@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveCampaign } from '../src/lib/campaign.ts';
-import { settingsSchema } from '../src/lib/validation.ts';
+import { campaignSchema,settingsSchema } from '../src/lib/validation.ts';
 import type { Category,Item } from '../src/lib/types.ts';
 const item:Item={id:'food',category_id:'c',name:'Tost',description:'',price:12000,image_url:'/menu/food.webp',image_generated:false,display_order:0,is_active:true,sold_out:false,featured:false,allergens:[],allergens_verified:false,tags:[],variants:[],original_price:null};
 const menu=(i:Item=item):Category[]=>[{id:'c',name:'Tostlar',image_url:'',display_order:0,is_active:true,items:[i]}];
@@ -27,4 +27,12 @@ test('portion campaigns use the selected portion price and reject stale selectio
 test('existing business settings default to having no banner',()=>{
  const settings=settingsSchema.parse({table_count:35,address:'',hours:''});assert.equal(settings.campaign,null);
  assert.equal(settingsSchema.safeParse({...settings,campaign:{...campaign,price:0}}).success,false);
+});
+test('custom banner titles are preserved and older campaigns retain their default title',()=>{
+ assert.equal(campaignSchema.parse(campaign).title,'Natura fırsatı');
+ assert.equal(resolveCampaign(menu(),campaign)?.title,'Natura fırsatı');
+ const custom=campaignSchema.parse({...campaign,title:'  Haftanın fırsatı  '});
+ assert.equal(custom.title,'Haftanın fırsatı');assert.equal(resolveCampaign(menu(),custom)?.title,'Haftanın fırsatı');
+ assert.equal(campaignSchema.safeParse({...campaign,title:'   '}).success,false);
+ assert.equal(campaignSchema.safeParse({...campaign,title:'a'.repeat(61)}).success,false);
 });

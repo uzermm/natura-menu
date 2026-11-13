@@ -25,9 +25,9 @@ try {
  const business={...state.settings,table_count:30};
  assert.equal((await request('/api/admin/settings',business)).status,200);
  const product=state.categories.filter(c=>c.is_active).flatMap(c=>c.items).find(i=>i.is_active&&!i.sold_out&&i.image_url&&!i.variants.length&&i.price>1);
- const campaign={item_id:product.id,variant:'',price:Math.floor(product.price*.75)};
+ const campaign={item_id:product.id,variant:'',price:Math.floor(product.price*.75),title:'Haftanın fırsatı'};
  assert.equal((await request('/api/admin/settings',{...business,campaign})).status,200);
- const promoted=(await request('/')).data;assert.match(promoted,/aria-label="Kampanya"/);assert.match(promoted,/<del aria-label="Menü fiyatı"/);assert.match(promoted,/<strong aria-label="Kampanya fiyatı"/);
+ const promoted=(await request('/')).data;assert.match(promoted,/aria-label="Kampanya"/);assert.match(promoted,/Haftanın fırsatı/);assert.match(promoted,/<del aria-label="Menü fiyatı"/);assert.match(promoted,/<strong aria-label="Kampanya fiyatı"/);
  assert.equal((await request('/api/admin/settings',{...business,campaign:{...campaign,price:product.price}})).status,400);
  assert.equal((await request('/api/admin/items',{...product,sold_out:true})).status,200);
  assert.doesNotMatch((await request('/')).data,/aria-label="Kampanya"/);

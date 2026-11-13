@@ -14,20 +14,22 @@ export default function SettingsForm({settings,categories,onSave}:{settings:Sett
  const [enabled,setEnabled]=useState(!!settings.campaign);
  const [itemId,setItemId]=useState(settings.campaign?.item_id||'');
  const [variant,setVariant]=useState(settings.campaign?.variant||'');
+ const [campaignTitle,setCampaignTitle]=useState(settings.campaign?.title||'Natura fırsatı');
  const [campaignPrice,setCampaignPrice]=useState(settings.campaign?String(settings.campaign.price/100):'');
  const selected=categories.flatMap(c=>c.items).find(i=>i.id===itemId);
  const regularPrice=selected?.variants.find(v=>v.name===variant)?.price??selected?.price;
  const price=Math.round(Number(campaignPrice.replace(',','.'))*100);
- const offer=enabled?resolveCampaign(categories,{item_id:itemId,variant,price}):null;
+ const offer=enabled?resolveCampaign(categories,{item_id:itemId,variant,price,title:campaignTitle}):null;
  return <form className="max-w-2xl space-y-6" onSubmit={async e=>{
   e.preventDefault();const fd=new FormData(e.currentTarget);setBusy(true);setError('');
-  try{await onSave({table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price}:null});}
+  try{await onSave({table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price,title:campaignTitle}:null});}
   catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }}>
   <section className="space-y-5 rounded-2xl border bg-white p-5 md:p-7" aria-labelledby="campaign-settings-title">
    <div><h2 id="campaign-settings-title" className="serif text-2xl">Kampanya banner’ı</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">İndirimli ürünü menüden seçin. Görseli ve normal fiyatı otomatik alınır. Kapalıyken menünün üstünde banner gösterilmez.</p></div>
    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border p-3 text-sm"><span>Banner menüde görünsün</span><Switch checked={enabled} onCheckedChange={setEnabled} aria-label="Banner menüde görünsün"/></label>
    {enabled&&<>
+    <div className="space-y-2"><Label htmlFor="campaign-title">Banner başlığı</Label><Input id="campaign-title" required maxLength={60} value={campaignTitle} onChange={e=>setCampaignTitle(e.target.value)} placeholder="Örn. Ayın fırsatı, Haftanın fırsatı"/><p className="text-xs text-muted-foreground">Banner’ın üstündeki etikette görünür. En fazla 60 karakter yazabilirsiniz.</p></div>
     <div className="space-y-2"><Label htmlFor="campaign-item">Kampanyalı ürün</Label><select id="campaign-item" required value={itemId} onChange={e=>{setItemId(e.target.value);const item=categories.flatMap(c=>c.items).find(i=>i.id===e.target.value);setVariant(item?.variants[0]?.name||'');setCampaignPrice('');}} className="min-h-11 w-full max-w-full rounded-xl border bg-white px-3 text-sm"><option value="">Menüden bir ürün seçin</option>{categories.filter(c=>c.is_active).map(c=><optgroup key={c.id} label={c.name}>{c.items.filter(i=>i.is_active).map(i=><option key={i.id} value={i.id} disabled={i.sold_out||!i.image_url}>{i.name}{i.sold_out?' — Tükendi':!i.image_url?' — Görsel gerekli':''}</option>)}</optgroup>)}</select><p className="text-xs text-muted-foreground">Görseli bulunan ve satışta olan ürünler seçilebilir.</p></div>
     {!!selected?.variants.length&&<div className="space-y-2"><Label htmlFor="campaign-variant">Porsiyon / boy</Label><select id="campaign-variant" required value={variant} onChange={e=>setVariant(e.target.value)} className="min-h-11 w-full rounded-xl border bg-white px-3 text-sm"><option value="" disabled>Porsiyon seçin</option>{selected.variants.map(v=><option key={v.name} value={v.name}>{v.name} — {money(v.price)}</option>)}</select></div>}
     <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label htmlFor="campaign-regular">Menü fiyatı</Label><Input id="campaign-regular" value={regularPrice===undefined?'':money(regularPrice)} readOnly className="h-11 bg-muted" placeholder="Otomatik alınır"/></div><div className="space-y-2"><Label htmlFor="campaign-price">Kampanya fiyatı (₺)</Label><Input id="campaign-price" required inputMode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" value={campaignPrice} onChange={e=>setCampaignPrice(e.target.value)} placeholder="Örn. 90" className="h-11"/></div></div>

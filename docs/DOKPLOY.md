@@ -112,3 +112,7 @@ Geri yükleme:
 - **Garson sesi yok:** Ses aç düğmesine basın, tarayıcı ses iznini ve cihazın sesini kontrol edin; paneli ön planda tutun.
 
 Resmî kaynaklar: [Dokploy Docker Compose](https://docs.dokploy.com/docs/core/docker-compose), [Compose alan adları](https://docs.dokploy.com/docs/core/docker-compose/domains), [Volume yedekleri](https://docs.dokploy.com/docs/core/volume-backups), [Next.js sunucu dağıtımı](https://nextjs.org/docs/app/getting-started/deploying).
+
+## Adisyon ve USB yazıcı
+
+Masalar ve adisyon sekmesi mevcut SQLite dosyasını kullanır. Yeni servis veya ek sunucu ayarı gerekmez. Güncellemede yeni tablolar otomatik eklenir; menü ve şifre korunur. Kasa bilgisayarında USB baskı için [Windows yazdırma yardımcısını](../printer/README.md) bir kez kurun. [Adisyon kullanım rehberi](ADISYON.md).

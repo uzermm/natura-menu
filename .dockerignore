@@ -11,3 +11,5 @@ tests
 *.tsbuildinfo
 scripts/*.local.json
 docs/screenshots
+printer/config.local.json
+printer/queue

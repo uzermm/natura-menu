@@ -2,6 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { checkPos } from './check-pos.mjs';
 const suffix=randomBytes(6).toString('hex'),name=`natura-ci-${suffix}`,volume=`${name}-data`;
 const password=randomBytes(24).toString('base64url'),secret=randomBytes(32).toString('hex');
 const origin='https://natura.example',base='http://127.0.0.1:3000';let cookie='';
@@ -48,6 +49,7 @@ try {
  assert.equal((await request('/admin')).status,200); // Server -> Client serialization with a call present.
  const qr=await request('/api/admin/qr?table=1');assert.equal(qr.status,200);assert.match(qr.data,/<svg/);
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);
+ const posCheck=await checkPos({base,origin,adminCookie:cookie});
  assert.doesNotMatch(menu.data,/Yalnızca mevcut ürünleri göster/);
  const newPassword=randomBytes(6).toString('base64url'); // Exactly 8 characters.
  assert.equal((await request('/api/admin/password',{currentPassword:'incorrect',newPassword,confirmPassword:newPassword})).status,400);
@@ -59,6 +61,7 @@ try {
  assert.equal((await request('/api/auth/login',{password})).status,401);
  docker('restart',name);await ready();
  assert.equal((await request('/api/auth/login',{password:newPassword})).status,200,'New password must survive restart.');
+ assert.equal((await request(`/api/pos?ticket=${posCheck.ticketId}`)).data.status,'closed','Adisyon history must survive restart.');
  const after=(await request('/api/admin/state')).data;
  assert.equal(after.settings.table_count,30);assert.equal(after.calls.filter(c=>!c.resolved_at).length,1);assert.deepEqual(after.settings.campaign,campaign);
  const exported=docker('exec',name,'node','scripts/backup.mjs');assert.match(exported,/Backup ready:/);

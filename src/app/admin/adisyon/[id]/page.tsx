@@ -4,14 +4,15 @@ import { validSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ticket,PosError } from '@/lib/pos-core';
 import { paymentLabels } from '@/lib/pos-types';
-import { ReceiptControls } from '@/components/receipt-controls';
+import { ReceiptControls,type ReceiptFormat } from '@/components/receipt-controls';
 export const dynamic='force-dynamic';
 export const metadata={title:'Adisyon | Natura Bistro',robots:{index:false,follow:false}};
 const price=(n:number)=>(n/100).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
-export default async function ReceiptPage({params}:{params:Promise<{id:string}>}){
+export default async function ReceiptPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{format?:string;print?:string}>}){
  if(!validSession((await cookies()).get('natura_session')?.value))redirect('/admin/login');
- const {id}=await params;let t;try{t=ticket(db(),id);}catch(error){if(error instanceof PosError)notFound();throw error;}
- return <main className="p-5 print:p-0"><ReceiptControls/><article className="receipt mx-auto bg-white text-black" style={{width:'80mm',padding:'4mm',fontFamily:'Arial, sans-serif',fontSize:'11px'}}>
+ const {id}=await params,query=await searchParams;const format:ReceiptFormat=query.format==='a4'?'a4':query.format==='thermal'?'thermal':'auto';
+ let t;try{t=ticket(db(),id);}catch(error){if(error instanceof PosError)notFound();throw error;}
+ return <main className="p-4 print:p-0"><ReceiptControls format={format} autoPrint={query.print==='1'}/><article data-format={format} className="receipt mx-auto bg-white text-black" style={{width:format==='a4'?'210mm':'80mm',maxWidth:'100%',padding:format==='a4'?'12mm':'4mm',fontFamily:'Arial, sans-serif',fontSize:format==='a4'?'14px':'11px'}}>
   <h1 style={{fontSize:'23px',fontWeight:800,textAlign:'center',marginBottom:'9px'}}>Natura Bistro</h1>
   <h2 style={{border:'1px solid black',textAlign:'center',fontSize:'21px',fontWeight:800,padding:'3px'}}>Masa {t.table_number}</h2>
   <p style={{fontWeight:700,textAlign:'center',margin:'7px 0'}}>{new Date().toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',day:'2-digit',month:'long',year:'numeric',weekday:'long',hour:'2-digit',minute:'2-digit'})}</p>
@@ -21,5 +22,5 @@ export default async function ReceiptPage({params}:{params:Promise<{id:string}>}
   {t.payments.map(p=><p key={p.id} style={{display:'flex',justifyContent:'space-between',gap:'8px',marginTop:'4px'}}><span>{paymentLabels[p.method]}{p.account_name&&` / ${p.account_name}`}</span><strong>{price(p.amount)}</strong></p>)}
   {t.paid>0&&<p style={{display:'flex',justifyContent:'space-between',fontWeight:700,marginTop:'6px'}}><span>Kalan</span><span>{price(t.remaining)}</span></p>}{t.note&&<p style={{marginTop:'8px'}}>Masa notu: {t.note}</p>}
   <p style={{marginTop:'12px',textAlign:'center'}}>Çalışan: Kasa</p><p style={{marginTop:'7px',textAlign:'center',fontWeight:800,fontSize:'13px'}}>BİZİ TERCİH ETTİĞİNİZ İÇİN TEŞEKKÜR EDERİZ!</p><p style={{marginTop:'8px',textAlign:'center',fontSize:'9px'}}>Adisyon / Hesap dökümü</p>
- </article><style>{`@media print{@page{size:80mm auto;margin:0}html,body{background:#fff!important;width:80mm}body{margin:0}.receipt{margin:0!important;break-inside:avoid}}`}</style></main>;
+ </article><style>{`@media print{@page{size:${format==='a4'?'A4':format==='thermal'?'80mm 297mm':'auto'};margin:${format==='a4'?'12mm':'4mm'}}html,body{background:#fff!important;width:auto}body{margin:0}.receipt{width:100%!important;max-width:none!important;padding:0!important;margin:0!important;font-size:clamp(11px,2vw,15px)!important}.receipt tr{break-inside:avoid}.receipt thead{display:table-header-group}}`}</style></main>;
 }

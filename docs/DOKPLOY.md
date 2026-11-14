@@ -113,6 +113,6 @@ Geri yükleme:
 
 Resmî kaynaklar: [Dokploy Docker Compose](https://docs.dokploy.com/docs/core/docker-compose), [Compose alan adları](https://docs.dokploy.com/docs/core/docker-compose/domains), [Volume yedekleri](https://docs.dokploy.com/docs/core/volume-backups), [Next.js sunucu dağıtımı](https://nextjs.org/docs/app/getting-started/deploying).
 
-## Adisyon ve USB yazıcı
+## Adisyon ve yazdırma
 
-Masalar ve adisyon sekmesi mevcut SQLite dosyasını kullanır. Yeni servis veya ek sunucu ayarı gerekmez. Güncellemede yeni tablolar otomatik eklenir; menü ve şifre korunur. Kasa bilgisayarında USB baskı için [Windows yazdırma yardımcısını](../printer/README.md) bir kez kurun. [Adisyon kullanım rehberi](ADISYON.md).
+Masalar ve adisyon sekmesi mevcut SQLite dosyasını kullanır. Yeni servis veya ek sunucu ayarı gerekmez. Güncellemede yeni tablolar otomatik eklenir; menü ve şifre korunur. Yazdırma tarayıcı üzerinden yapılır; kasa bilgisayarında ek program kurulmaz. Yazdırma ekranında A4 veya Possify yazıcısını ve uygun kağıt boyutunu seçin. [Adisyon kullanım rehberi](ADISYON.md).

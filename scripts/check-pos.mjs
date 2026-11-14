@@ -32,14 +32,10 @@ export async function checkPos({base,origin,adminCookie}){
  const entries=(await req(`/api/pos/accounts?id=${a.id}`)).data;assert.equal(entries[0].ticket_id,t.id);
  assert.equal((await req('/api/pos/accounts',{action:'collect',id:a.id,amount:accountAmount,method:'card',note:'Test tahsilat',request_id:randomUUID()})).status,200);
  assert.equal((await req('/api/pos/accounts')).data.find(x=>x.id===a.id).balance,0);
- const configured=await req('/api/pos/print',{action:'configure'});assert.equal(configured.status,200);const token=configured.data.token;assert.equal(token.length,43);
- const jobId=randomUUID(),print={ticket_id:t.id,version:t.version,request_id:jobId};assert.equal((await req('/api/pos/print',print)).status,200);assert.equal((await req('/api/pos/print',print)).status,200);
- assert.equal((await req('/api/printer',undefined,'')).status,401);
- const claimed=await req('/api/printer',undefined,'',{Authorization:`Bearer ${token}`});assert.equal(claimed.status,200);assert.equal(claimed.data.job.id,jobId);assert.equal(claimed.data.job.payload.ticket.total,t.total);
- assert.equal((await req('/api/printer',undefined,'',{Authorization:`Bearer ${token}`})).data.job,null);
- assert.equal((await req('/api/printer',{id:jobId,status:'printed',error:''},'',{Authorization:`Bearer ${token}`})).status,200);
+ for(const format of ['auto','a4','thermal']){const receipt=await req('/admin/adisyon/'+t.id+'?format='+format);assert.equal(receipt.status,200);assert.match(receipt.data,/Natura Bistro/);assert.ok(receipt.data.includes('data-format="'+format+'"'));}
+ assert.equal((await req('/admin/adisyon/'+t.id,undefined,'')).status,307);
  const staff=(await req('/api/pos/staff')).data[0];assert.equal((await req('/api/pos/staff',{...staff,is_active:false})).status,200);assert.equal((await req('/api/pos',undefined,staffCookie)).status,401);
  assert.equal((await req('/api/pos/staff',{...staff,is_active:true})).status,200);assert.equal((await req('/api/pos',undefined,staffCookie)).status,401,'Re-enabling staff must not revive revoked sessions.');
- console.log('PASS: POS HTTP permissions, ETag, idempotent orders, customer approval, waiter identity, split payments, account collection, transfer, printer queue and staff revocation.');
+ console.log('PASS: POS HTTP permissions, ETag, idempotent orders, customer approval, waiter identity, split payments, account collection, transfer, browser receipt layouts and staff revocation.');
  return {ticketId:t.id,accountId:a.id};
 }

@@ -17,14 +17,10 @@ export function initPos(d:DatabaseSync){d.exec(`
  CREATE TABLE IF NOT EXISTS pos_staff(id TEXT PRIMARY KEY,username TEXT NOT NULL UNIQUE,name TEXT NOT NULL,password_hash TEXT NOT NULL,is_active INTEGER NOT NULL DEFAULT 1);
  CREATE TABLE IF NOT EXISTS pos_orders(id TEXT PRIMARY KEY,number INTEGER NOT NULL UNIQUE,table_number INTEGER NOT NULL,lines TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'pending',created_at TEXT NOT NULL,note TEXT NOT NULL DEFAULT '',ticket_id TEXT REFERENCES pos_tickets(id));
  CREATE INDEX IF NOT EXISTS pos_orders_pending ON pos_orders(status,created_at);
- CREATE TABLE IF NOT EXISTS pos_printers(id INTEGER PRIMARY KEY CHECK(id=1),token_hash TEXT NOT NULL,last_seen TEXT);
- CREATE TABLE IF NOT EXISTS pos_print_jobs(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),payload TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'queued',created_at TEXT NOT NULL,claimed_at TEXT,finished_at TEXT,error TEXT NOT NULL DEFAULT '');
- CREATE INDEX IF NOT EXISTS pos_print_queue ON pos_print_jobs(status,created_at);
  CREATE INDEX IF NOT EXISTS pos_payments_day ON pos_payments(substr(datetime(created_at,'+3 hours'),1,10),method);
  CREATE INDEX IF NOT EXISTS pos_ledger_day ON pos_ledger(substr(datetime(created_at,'+3 hours'),1,10),method) WHERE amount<0;
  CREATE INDEX IF NOT EXISTS pos_ledger_account ON pos_ledger(account_id,created_at);
  CREATE INDEX IF NOT EXISTS pos_closed_history ON pos_tickets(status,closed_at);
- CREATE INDEX IF NOT EXISTS pos_print_history ON pos_print_jobs(created_at);
  `);
  if(!d.prepare('PRAGMA table_info(pos_staff)').all().some(column=>column.name==='session_version'))d.exec('ALTER TABLE pos_staff ADD COLUMN session_version INTEGER NOT NULL DEFAULT 1');
 }

@@ -10,7 +10,3 @@ test-results/
 .DS_Store
 *.local.json
 next-env.d.ts
-
-/printer/config.local.json
-/printer/queue/
-/printer/*.local.*

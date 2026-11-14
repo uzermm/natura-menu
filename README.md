@@ -3,6 +3,7 @@
 Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme paneli. **Next.js 16 · React 19 · TypeScript · SQLite · Tailwind CSS 4 · shadcn/ui**.
 
 - Natura adı ve mevcut tipografik logosu korunur.
+- Masada tam ekran sipariş: bağımsız kaydırılabilen görselli kategori ve ürün blokları, tek panelde adisyon ve ödeme; telefonda Ürünler/Adisyon sekmeleri.
 - Masalar ve adisyon: menüyle senkron sipariş, fiyat anlık görüntüsü, parçalı nakit/kredi kartı/yemek kartı ödemesi, kalan tutarı cariye aktarma, %10/%20 indirim, boş masaya komple taşıma ve günlük kasa özeti.
 - Cari hesap hareketlerinden eski adisyonun ürün ve ödeme detaylarına erişim; cari tahsilat kaydı.
 - Ayrı garson hesapları (`/garson`), siparişte kullanıcı kaydı; müşterinin menüde masa seçerek gönderdiği siparişlerin kasa/garson onayıyla adisyona eklenmesi.

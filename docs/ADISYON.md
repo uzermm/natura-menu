@@ -4,7 +4,9 @@ Yönetim panelindeki **Masalar ve adisyon** sekmesi kasa ekranıdır. İlk açı
 
 ## Masa işlemleri
 
-- Boş masaya dokunarak adisyon açın. **Ürün ekle** ile kategoriden/aramadan ürünü, porsiyonu, adedi ve ürün notunu seçip listeyi masaya gönderin.
+- Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
+- Ürüne dokunmak bir adet siparişi doğrudan masaya ekler. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda Ürünler ve Adisyon sekmeleri arasında geçiş yapılır.
+- İndirim, masa taşıma ve not işlemleri adisyon panelinin altındaki düğmelerden açılır.
 - Siparişe eklenen ürünün adı ve fiyatı o anki haliyle saklanır. Sonraki menü fiyat değişikliği açık veya eski adisyonları değiştirmez. Ürün ekleme ekranı her açılışta güncel menüyü alır. Gönderim sırasında fiyat değişirse yeniden kontrol etmeniz istenir.
 - Kasa ürün adedini değiştirebilir; iptal nedeni yazarak ürünü iptal edebilir. İptal kaydı silinmez. Yapılan ödemeden daha düşük bir hesaba yol açacak değişiklik reddedilir.
 - %10 ve %20 indirim ürün ara toplamına uygulanır. Tekrar basmak indirimi katlamaz; mevcut indirimi değiştirir. **Kaldır** indirimi sıfırlar.

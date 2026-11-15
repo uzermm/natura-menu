@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { lineKey,quoteItemPayment } from './pos-lines.ts';
 import type { DatabaseSync } from 'node:sqlite';
 import { ticketLabel,type QuickMetadata,type Account,type AccountEntry,type OrderSource,type PaymentMethod,type PendingOrder,type PosSummary,type Ticket,type TicketLine,type TicketPayment } from './pos-types.ts';
 
@@ -10,6 +11,8 @@ export function initPos(d:DatabaseSync){d.exec(`
  CREATE TABLE IF NOT EXISTS pos_accounts(id TEXT PRIMARY KEY,name TEXT NOT NULL,phone TEXT NOT NULL DEFAULT '',note TEXT NOT NULL DEFAULT '',is_active INTEGER NOT NULL DEFAULT 1);
  CREATE TABLE IF NOT EXISTS pos_payments(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),method TEXT NOT NULL CHECK(method IN ('cash','card','meal_card','account')),amount INTEGER NOT NULL CHECK(amount>0),account_id TEXT REFERENCES pos_accounts(id),reference TEXT NOT NULL DEFAULT '',actor TEXT NOT NULL,created_at TEXT NOT NULL);
  CREATE INDEX IF NOT EXISTS pos_payments_ticket ON pos_payments(ticket_id);
+ CREATE TABLE IF NOT EXISTS pos_payment_items(id TEXT PRIMARY KEY,payment_id TEXT NOT NULL REFERENCES pos_payments(id),line_id TEXT NOT NULL REFERENCES pos_lines(id),quantity INTEGER NOT NULL CHECK(quantity>0),amount INTEGER NOT NULL CHECK(amount>=0));
+ CREATE INDEX IF NOT EXISTS pos_payment_items_line ON pos_payment_items(line_id);
  CREATE TABLE IF NOT EXISTS pos_ledger(id TEXT PRIMARY KEY,account_id TEXT NOT NULL REFERENCES pos_accounts(id),ticket_id TEXT REFERENCES pos_tickets(id),amount INTEGER NOT NULL CHECK(amount!=0),method TEXT NOT NULL,note TEXT NOT NULL DEFAULT '',actor TEXT NOT NULL,created_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS pos_events(id TEXT PRIMARY KEY,ticket_id TEXT REFERENCES pos_tickets(id),action TEXT NOT NULL,actor TEXT NOT NULL,data TEXT NOT NULL,created_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS pos_requests(id TEXT PRIMARY KEY,payload TEXT NOT NULL,result TEXT NOT NULL,created_at TEXT NOT NULL);
@@ -37,7 +40,7 @@ function amount(value:number,allowZero=false){if(!Number.isSafeInteger(value)||v
 function quantity(value:number){if(!Number.isInteger(value)||value<1||value>999)throw new PosError('Adet 1–999 arasında olmalı.');}
 export function ticket(d:DatabaseSync,id:string):Ticket{
  const row=d.prepare('SELECT * FROM pos_tickets WHERE id=?').get(id);if(!row)throw new PosError('Adisyon bulunamadı.',404);
- const lines=d.prepare('SELECT * FROM pos_lines WHERE ticket_id=? ORDER BY created_at,rowid').all(id) as unknown as TicketLine[];
+ const lines=d.prepare('SELECT l.*,(SELECT COALESCE(SUM(p.quantity),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_quantity,(SELECT COALESCE(SUM(p.amount),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_amount FROM pos_lines l WHERE l.ticket_id=? ORDER BY l.created_at,l.rowid').all(id) as unknown as TicketLine[];
  const payments=d.prepare("SELECT p.*,COALESCE(a.name,'') AS account_name FROM pos_payments p LEFT JOIN pos_accounts a ON a.id=p.account_id WHERE ticket_id=? ORDER BY p.created_at,p.rowid").all(id) as unknown as TicketPayment[];
  const subtotal=lines.filter(l=>!l.voided_at).reduce((sum,l)=>sum+l.unit_price*l.quantity,0),total=subtotal-Number(row.discount),paid=payments.reduce((sum,p)=>sum+p.amount,0);
  return {...row,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,subtotal,total,paid,remaining:total-paid} as Ticket;
@@ -65,10 +68,13 @@ function quoteLine(d:DatabaseSync,line:AddLine){
  return {...line,name:String(item.name),variant:variant?.name||'',unit_price:price};
 }
 function appendLine(d:DatabaseSync,id:string,line:AddLine,source:OrderSource,actor:string){
- const quoted=quoteLine(d,line),lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());return lineId;
+ const quoted=quoteLine(d,line),existing=d.prepare('SELECT id,quantity FROM pos_lines WHERE ticket_id=? AND item_id=? AND name=? AND variant=? AND unit_price=? AND note=? AND source=? AND actor=? AND voided_at IS NULL ORDER BY created_at,rowid LIMIT 1').get(id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.note,source,actor);
+ if(existing){quantity(Number(existing.quantity)+line.quantity);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(line.quantity,String(existing.id));return String(existing.id);}
+ const lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());return lineId;
 }
 export type PosCommand=(
  |{action:'open';table:number}
+ |{action:'open_order';table:number;lines:AddLine[]}
  |{action:'open_quick';service_type:'counter'|'takeaway';account_name:string;lines?:AddLine[]}
  |{action:'label';ticket_id:string;version:number;service_type:'counter'|'takeaway';account_name:string}
  |{action:'add';ticket_id:string;version:number;lines:AddLine[]}
@@ -78,6 +84,7 @@ export type PosCommand=(
  |{action:'note';ticket_id:string;version:number;note:string}
  |{action:'move';ticket_id:string;version:number;table:number}
  |{action:'pay';ticket_id:string;version:number;method:PaymentMethod;amount:number;account_id?:string;reference:string;close:boolean}
+ |{action:'pay_items';ticket_id:string;version:number;method:PaymentMethod;items:{line_id:string;quantity:number}[];account_id?:string;reference:string}
  |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata};
 export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,actor='Kasa',source:OrderSource='cashier'):Ticket{
  return atomic(d,()=>{
@@ -85,6 +92,10 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
   if(previous){if(previous.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return ticket(d,String(previous.result));}
   let id:string;
   if(command.action==='open')id=createTicket(d,command.table,actor);
+  else if(command.action==='open_order'){
+   tableRange(d,command.table);if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table))throw new PosError('Masa başka bir cihazda açılmış. Güncel adisyonu kontrol edin.',409);
+   if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');id=createTicket(d,command.table,actor);for(const line of command.lines)appendLine(d,id,line,source,actor);
+  }
   else if(command.action==='open_quick'){
    id=createQuickTicket(d,command,actor);
    if(command.lines){if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');for(const line of command.lines)appendLine(d,id,line,source,actor);}
@@ -99,8 +110,15 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
     for(const line of command.lines)appendLine(d,id,line,source,actor);
    }else if(command.action==='quantity'||command.action==='void'){
     const line=t.lines.find(l=>l.id===command.line_id&&!l.voided_at);if(!line)throw new PosError('Sipariş satırı bulunamadı.');
-    if(command.action==='quantity'){quantity(command.quantity);if(t.subtotal+(command.quantity-line.quantity)*line.unit_price<t.discount+t.paid)throw new PosError('Ödenen tutarın altına düşülemez.');d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(command.quantity,line.id);}
-    else{if(!command.reason.trim())throw new PosError('İptal nedenini yazın.');if(t.subtotal-line.quantity*line.unit_price<t.discount+t.paid)throw new PosError('Ödenen tutarın altına düşülemez.');d.prepare('UPDATE pos_lines SET voided_at=?,void_reason=? WHERE id=?').run(new Date().toISOString(),command.reason,line.id);}
+    const group=t.lines.filter(l=>!l.voided_at&&lineKey(l)===lineKey(line)),qty=group.reduce((s,l)=>s+l.quantity,0),paidQty=group.reduce((s,l)=>s+(l.paid_quantity||0),0);
+    if(command.action==='quantity'){
+     quantity(command.quantity);if(command.quantity<paidQty)throw new PosError('Ödenmiş ürün adedi azaltılamaz.');const delta=command.quantity-qty;if(t.subtotal+delta*line.unit_price<t.discount+t.paid)throw new PosError('Ödenen tutarın altına düşülemez.');
+     if(delta>0){quantity(line.quantity+delta);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(delta,line.id);}
+     else{let remove=-delta;for(const member of [...group].reverse()){const take=Math.min(remove,member.quantity-(member.paid_quantity||0));if(!take)continue;const next=member.quantity-take;if(next)d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(next,member.id);else d.prepare('UPDATE pos_lines SET voided_at=?,void_reason=? WHERE id=?').run(new Date().toISOString(),'Adet düzeltmesi',member.id);remove-=take;if(!remove)break;}}
+    }else{
+     if(!command.reason.trim())throw new PosError('İptal nedenini yazın.');if(qty===paidQty)throw new PosError('Ödenmiş ürün iptal edilemez.');if(t.subtotal-(qty-paidQty)*line.unit_price<t.discount+t.paid)throw new PosError('Ödenen tutarın altına düşülemez.');
+     for(const member of group){if(member.paid_quantity)d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(member.paid_quantity,member.id);else d.prepare('UPDATE pos_lines SET voided_at=?,void_reason=? WHERE id=?').run(new Date().toISOString(),command.reason,member.id);}
+    }
    }else if(command.action==='discount'){
     amount(command.amount,true);if(command.amount>t.subtotal-t.paid)throw new PosError('İndirim kalan tutarı aşamaz.');d.prepare('UPDATE pos_tickets SET discount=? WHERE id=?').run(command.amount,id);
    }else if(command.action==='note')d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.note,id);
@@ -108,16 +126,20 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
     tableRange(d,command.table);if(command.table===t.table_number)throw new PosError('Farklı bir masa seçin.');
     if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table))throw new PosError('Hedef masa dolu. Boş bir masa seçin.');
     d.prepare("UPDATE pos_tickets SET table_number=?,service_type='table' WHERE id=?").run(command.table,id);
-   }else if(command.action==='pay'){
-    amount(command.amount);if(command.amount>t.remaining)throw new PosError('Ödeme kalan tutarı aşamaz.');
-    if(command.close&&command.amount!==t.remaining)throw new PosError('Masayı kapatmak için kalan tutarın tamamını ödeyin.');
+   }else if(command.action==='pay'||command.action==='pay_items'){
+    let itemQuote:ReturnType<typeof quoteItemPayment>|undefined;
+    if(command.action==='pay_items'){if(!command.items.length||command.items.length>100)throw new PosError('Ödenecek ürünleri seçin.');try{itemQuote=quoteItemPayment(t,command.items);}catch(error){throw new PosError((error as Error).message);}}
+    const value=command.action==='pay'?command.amount:itemQuote!.amount,close=command.action==='pay'?command.close:value===t.remaining;
+    amount(value);if(value>t.remaining)throw new PosError('Ödeme kalan tutarı aşamaz.');
+    if(close&&value!==t.remaining)throw new PosError('Masayı kapatmak için kalan tutarın tamamını ödeyin.');
     const paymentId=randomUUID(),now=new Date().toISOString();let accountId:string|null=null;
     if(command.method==='account'){
      accountId=command.account_id||'';if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1').get(accountId))throw new PosError('Aktif bir cari hesap seçin.');
-     d.prepare('INSERT INTO pos_ledger VALUES(?,?,?,?,?,?,?,?)').run(randomUUID(),accountId,id,command.amount,'account',`Adisyon #${t.number} · ${ticketLabel(t)}`,actor,now);
+     d.prepare('INSERT INTO pos_ledger VALUES(?,?,?,?,?,?,?,?)').run(randomUUID(),accountId,id,value,'account',`Adisyon #${t.number} · ${ticketLabel(t)}`,actor,now);
     }
-    d.prepare('INSERT INTO pos_payments VALUES(?,?,?,?,?,?,?,?)').run(paymentId,id,command.method,command.amount,accountId,command.reference,actor,now);
-    if(command.close)d.prepare("UPDATE pos_tickets SET status='closed',closed_at=? WHERE id=?").run(now,id);
+    d.prepare('INSERT INTO pos_payments VALUES(?,?,?,?,?,?,?,?)').run(paymentId,id,command.method,value,accountId,command.reference,actor,now);
+    if(itemQuote)for(const allocation of itemQuote.allocations)d.prepare('INSERT INTO pos_payment_items VALUES(?,?,?,?,?)').run(randomUUID(),paymentId,allocation.line_id,allocation.quantity,allocation.amount);
+    if(close)d.prepare("UPDATE pos_tickets SET status='closed',closed_at=? WHERE id=?").run(now,id);
    }else if(command.action==='close'){
     if(t.remaining!==0)throw new PosError('Masa kapatılmadan önce kalan tutar ödenmeli veya cariye aktarılmalı.');
     d.prepare("UPDATE pos_tickets SET status='closed',closed_at=? WHERE id=?").run(new Date().toISOString(),id);

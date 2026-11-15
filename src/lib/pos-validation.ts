@@ -5,6 +5,7 @@ const base={ticket_id:id,version};
 const quick=z.object({service_type:z.enum(['counter','takeaway']),account_name:z.string().trim().max(120)});
 export const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('open'),table}),
+ z.object({action:z.literal('open_order'),table,lines:z.array(addLineSchema).min(1).max(100)}),
  z.object({action:z.literal('open_quick'),...quick.shape,lines:z.array(addLineSchema).min(1).max(100).optional()}),
  z.object({action:z.literal('label'),...base,...quick.shape}),
  z.object({action:z.literal('add'),...base,lines:z.array(addLineSchema).min(1).max(100)}),
@@ -14,6 +15,7 @@ export const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('note'),...base,note}),
  z.object({action:z.literal('move'),...base,table}),
  z.object({action:z.literal('pay'),...base,method:z.enum(['cash','card','meal_card','account']),amount,account_id:id.optional(),reference:note.default(''),close:z.boolean()}),
+ z.object({action:z.literal('pay_items'),...base,method:z.enum(['cash','card','meal_card','account']),items:z.array(z.object({line_id:id,quantity:z.number().int().min(1).max(999)})).min(1).max(100),account_id:id.optional(),reference:note.default('')}),
  z.object({action:z.literal('close'),...base}),
 ]).and(z.object({quick:quick.optional()}));
 export const posRequestSchema=z.object({request_id:id,command:commandSchema});

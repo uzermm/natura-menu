@@ -17,6 +17,12 @@ export async function checkPos({base,origin,adminCookie}){
  assert.equal((await req('/api/pos/staff',{username:'testgarson',name:'Test Garson',password:staffPassword,is_active:true})).status,200);
  const staffLogin=await req('/api/staff/login',{username:'testgarson',password:staffPassword},'');assert.equal(staffLogin.status,200);const staffCookie=staffLogin.headers.get('set-cookie').split(';')[0];
  const staffState=await req('/api/pos',undefined,staffCookie);assert.equal(staffState.status,200);assert.deepEqual(staffState.data.accounts,[]);assert.equal(staffState.data.today,null);
+ const confirmKey=randomUUID(),confirm={action:'open_order',table:10,lines:[{item_id:item.id,variant:'',quantity:2,note:''},{item_id:item.id,variant:'',quantity:2,note:''}]};
+ let selected=(await command(confirm,adminCookie,confirmKey)).data;assert.equal(selected.lines.length,1);assert.equal(selected.lines[0].quantity,4);assert.equal((await command(confirm,adminCookie,confirmKey)).data.id,selected.id);assert.equal((await command(confirm)).status,409);
+ const selectedPayment={action:'pay_items',ticket_id:selected.id,version:selected.version,method:'cash',items:[{line_id:selected.lines[0].id,quantity:2}],reference:''},selectedKey=randomUUID();
+ assert.equal((await command(selectedPayment,staffCookie)).status,403);
+ selected=(await command(selectedPayment,adminCookie,selectedKey)).data;assert.equal(selected.status,'open');assert.equal(selected.remaining,item.price*2);assert.equal(selected.lines[0].paid_quantity,2);assert.equal((await command(selectedPayment,adminCookie,selectedKey)).data.payments.length,1);
+ selected=(await command({...selectedPayment,version:selected.version,method:'card'})).data;assert.equal(selected.status,'closed');assert.equal(selected.remaining,0);assert.equal(selected.lines[0].paid_quantity,4);
  assert.equal((await command({action:'pay',ticket_id:t.id,version:t.version,method:'cash',amount:1,reference:'',close:false},staffCookie)).status,403);
  assert.equal((await req('/api/pos/accounts',undefined,staffCookie)).status,401);
  const quickKey=randomUUID(),quickInput={action:'open_quick',service_type:'takeaway',account_name:'Paket Deneme',lines:[{item_id:item.id,variant:'',quantity:2,note:''}]};

@@ -1,6 +1,7 @@
 export type PaymentMethod='cash'|'card'|'meal_card'|'account';
 export type OrderSource='cashier'|'waiter'|'customer';
-export interface TicketLine {id:string;ticket_id:string;item_id:string;name:string;variant:string;unit_price:number;quantity:number;note:string;source:OrderSource;actor:string;created_at:string;voided_at:string|null;void_reason:string;}
+export interface TicketLine {id:string;ticket_id:string;item_id:string;name:string;variant:string;unit_price:number;quantity:number;paid_quantity?:number;paid_amount?:number;note:string;source:OrderSource;actor:string;created_at:string;voided_at:string|null;void_reason:string;}
+export interface SelectedItem {line_id:string;quantity:number;}
 export interface TicketPayment {id:string;ticket_id:string;method:PaymentMethod;amount:number;account_id:string|null;account_name:string;reference:string;actor:string;created_at:string;}
 export type ServiceType='table'|'counter'|'takeaway';
 export interface QuickMetadata {service_type:'counter'|'takeaway';account_name:string;}

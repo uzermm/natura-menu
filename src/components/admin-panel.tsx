@@ -19,14 +19,14 @@ import { thumbnail,type Category,type Item,type Settings,type WaiterCall } from 
 
 type State={categories:Category[];settings:Settings;calls:WaiterCall[]};
 type Page='accounts'|'history'|'summary'|'pending'|'pos'|'overview'|'menu'|'calls'|'settings'|'qr';
-const links=[{id:'pos',label:'Masalar ve adisyon',icon:UtensilsCrossed},{id:'pending',label:'Müşteri siparişleri',icon:ShoppingBag},{id:'accounts',label:'Cari hesaplar',icon:Wallet},{id:'history',label:'Kapanan adisyonlar',icon:History},{id:'summary',label:'Günlük kasa',icon:Banknote},{id:'overview',label:'Genel bakış',icon:LayoutDashboard},{id:'menu',label:'Menü yönetimi',icon:Layers},{id:'calls',label:'Garson çağrıları',icon:Bell},{id:'qr',label:'Masa QR kodları',icon:QrCode},{id:'settings',label:'İşletme ayarları',icon:Settings2}] as const;
+const links=[{id:'pos',label:'Masalar',icon:UtensilsCrossed},{id:'pending',label:'Müşteri siparişleri',icon:ShoppingBag},{id:'accounts',label:'Cari hesaplar',icon:Wallet},{id:'history',label:'Kapanan adisyonlar',icon:History},{id:'summary',label:'Günlük kasa',icon:Banknote},{id:'overview',label:'Genel bakış',icon:LayoutDashboard},{id:'menu',label:'Menü yönetimi',icon:Layers},{id:'calls',label:'Garson çağrıları',icon:Bell},{id:'qr',label:'Masa QR kodları',icon:QrCode},{id:'settings',label:'İşletme ayarları',icon:Settings2}] as const;
 const cents=(value:string)=>Math.round(Number(value.replace(',','.'))*100);
 const tryAmount=(value:number)=>(value/100).toString();
 function blankItem(category_id:string,position:number):Item{return {id:'',category_id,name:'',description:'',price:0,image_url:'',image_generated:false,display_order:position,is_active:true,sold_out:false,featured:false,allergens:[],allergens_verified:false,tags:[],variants:[],original_price:null};}
 
 export default function AdminPanel({initial}:{initial:State}){
  const [pendingOrders,setPendingOrders]=useState(0),seenOrders=useRef(new Set<string>());
- const [state,setState]=useState(initial),[page,setPage]=useState<Page>('overview'),[categoryFilter,setCategoryFilter]=useState('');
+ const [state,setState]=useState(initial),[page,setPage]=useState<Page>('pos'),[categoryFilter,setCategoryFilter]=useState('');
  const [editingItem,setEditingItem]=useState<Item|null>(null),[editingCategory,setEditingCategory]=useState<Category|null>(null),[confirm,setConfirm]=useState<{message:string;action:()=>Promise<void>}|null>(null);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[sound,setSound]=useState(false),[connected,setConnected]=useState(true),[bulkOpen,setBulkOpen]=useState(false);
  const audio=useRef<AudioContext|null>(null),seen=useRef(new Set(initial.calls.filter(c=>!c.resolved_at).map(c=>c.id))),toastTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);

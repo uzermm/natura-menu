@@ -1,12 +1,12 @@
 # Masalar ve adisyon
 
-Yönetim panelindeki **Masalar ve adisyon** sekmesi kasa ekranıdır. İlk açılışta mevcut menü ve masa sayısı kullanılır; ürünleri tekrar tanımlamak gerekmez. Yeni tablolar mevcut SQLite dosyasına eklenir, menü ve işletme ayarları korunur.
+Yönetim panelindeki **Masalar** sekmesi kasa ekranıdır. Yönetim paneli ilk açıldığında bu ekranın **Açık Masalar** bölümü gösterilir. İlk açılışta mevcut menü ve masa sayısı kullanılır; ürünleri tekrar tanımlamak gerekmez. Yeni tablolar mevcut SQLite dosyasına eklenir, menü ve işletme ayarları korunur.
 
 ## Hızlı sipariş ve açık hesaplar
 
-Masalar ve adisyon içinde **Masalar**, **Açık masalar** ve **Hızlı sipariş** düğmeleri bulunur. Hızlı sipariş kasa satışı veya paket servis içindir; fiziksel masa seçilmez. Görselli ürün ekranı aynı şekilde açılır. Adisyonun altında **Hesap adı** alanına açıklama yazabilir, **Kasa satışı / Paket servis** türünü seçebilirsiniz.
+Masalar içinde sırasıyla **Açık Masalar**, **Masalar** ve **Hızlı Sipariş** düğmeleri bulunur. Hızlı sipariş kasa satışı veya paket servis içindir; fiziksel masa seçilmez. Görselli ürün ekranı aynı şekilde açılır. Adisyonun altında **Hesap adı** alanına açıklama yazabilir, **Kasa satışı / Paket servis** türünü seçebilirsiniz.
 
-İlk ürün eklenince hesap kaydedilir. Ürün eklemeden geri dönülen boş giriş kayıt oluşturmaz. Hesap adı sonraki ürün, ödeme ve cari işleminde birlikte kaydedilir; kaydet düğmesi veya geri dönmek de adı saklar. Ödenmeyen veya kısmen ödenen hesaplar **Açık masalar** içinde kendi adlarıyla görünür. Son ödeme/cari aktarımıyla kapatılan hesaplar listeden çıkar ve Kapanan adisyonlar içinde saklanır. Hesap adı bir açıklamadır; cari hesap oluşturmaz.
+Ürünler önce taslağa eklenir; **Siparişi onayla** ile hesap kaydedilir. Masa seçmek veya onaylanmamış ürün seçmek masayı aktif hale getirmez. Taslaktan çıkarken onaylama veya silme seçenekleri sunulur. Hesap adı sonraki ürün, ödeme ve cari işleminde birlikte kaydedilir; kaydet düğmesi veya geri dönmek de adı saklar. Ödenmeyen veya kısmen ödenen hesaplar **Açık masalar** içinde kendi adlarıyla görünür. Son ödeme/cari aktarımıyla kapatılan hesaplar listeden çıkar ve Kapanan adisyonlar içinde saklanır. Hesap adı bir açıklamadır; cari hesap oluşturmaz.
 
 **Cari hesaplar**, **Kapanan adisyonlar** ve **Günlük kasa** sol menüdedir. Müşteri siparişleri de sol menüden onaylanır. Garson hesapları İşletme ayarları içindedir. Hızlı siparişler kasa yetkisindedir.
 
@@ -15,8 +15,8 @@ Masalar ve adisyon içinde **Masalar**, **Açık masalar** ve **Hızlı sipariş
 Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar beyazdır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.
 
 - Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
-- Ürüne dokunmak bir adet siparişi doğrudan masaya ekler. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda Ürünler ve Adisyon sekmeleri arasında geçiş yapılır.
-- Adisyon panelinde yalnız sipariş listesi kayar; toplam ve işlem düğmeleri altta sabittir. Satırlar ürün, birim fiyat, adet ve tutarı kompakt gösterir. **Ödeme al** ödeme penceresini açar; **Cariye** doğrudan cari aktarımıyla başlatır. **Diğer** içinde indirim, masa notu ve ödeme geçmişi bulunur; masa taşıma ve yazdırma alt düğmelerdedir.
+- Ürüne dokunmak sipariş taslağındaki adedi artırır; aynı ürün, fiyat, porsiyon ve nota sahip seçimler tek satırda görünür. **Siparişi onayla** ürünleri masaya kaydeder. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda Ürünler ve Adisyon sekmeleri arasında geçiş yapılır.
+- Adisyon panelinde yalnız sipariş listesi kayar; toplam ve işlem düğmeleri altta sabittir. Satırlar ürün, birim fiyat, adet ve tutarı kompakt gösterir. **Tutar ile ödeme** tutar girişini, **Ürün ile ödeme** ürün/adet seçimini açar; **Cariye** doğrudan cari aktarımıyla başlatır. **Diğer** içinde indirim, masa notu ve ödeme geçmişi bulunur; masa taşıma ve yazdırma alt düğmelerdedir.
 - Siparişe eklenen ürünün adı ve fiyatı o anki haliyle saklanır. Sonraki menü fiyat değişikliği açık veya eski adisyonları değiştirmez. Ürün ekleme ekranı her açılışta güncel menüyü alır. Gönderim sırasında fiyat değişirse yeniden kontrol etmeniz istenir.
 - Kasa ürün adedini değiştirebilir; iptal nedeni yazarak ürünü iptal edebilir. İptal kaydı silinmez. Yapılan ödemeden daha düşük bir hesaba yol açacak değişiklik reddedilir.
 - %10 ve %20 indirim ürün ara toplamına uygulanır. Tekrar basmak indirimi katlamaz; mevcut indirimi değiştirir. **Kaldır** indirimi sıfırlar.
@@ -24,7 +24,9 @@ Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (
 
 ## Ödeme ve cari
 
-**Nakit**, **Kredi kartı**, **Yemek kartı** veya **Cari hesap** seçip tutarı girin. Parçalı ödeme için kalan tutardan küçük bir tutar yazın. Birden fazla ödeme türü aynı adisyonda kullanılabilir. Yemek kartı firması not olarak kaydedilebilir.
+**Ürün ile ödeme** içinde ödenecek ürünlerin adetlerini seçin. Örneğin dört çaydan ikisi ödendiğinde iki çay altta pasif **Ödenen ürünler** bölümüne geçer; kalan iki çayla masa açık kalır. Son ürünlerin ödemesi kalan tutarı kapattığında masa kapanır. Ödenen adetler azaltılamaz veya iptal edilemez. İndirim ve önceki tutar ödemeleri ödenmemiş ürünlere orantılı yansıtılır; hesap kuruş bazında tutulur. Farklı çalışanlardan gelen aynı ürünler ekranda birlikte gösterilirken çalışan kayıtları korunur.
+
+**Tutar ile ödeme** içinde **Nakit**, **Kredi kartı**, **Yemek kartı** veya **Cari hesap** seçip tutarı girin. Parçalı ödeme için kalan tutardan küçük bir tutar yazın. Birden fazla ödeme türü aynı adisyonda kullanılabilir. Yemek kartı firması not olarak kaydedilebilir.
 
 Kredi kartı/yemek kartı, ayrı POS cihazında alınmış ödemenin kasa kaydıdır. Web uygulaması POS cihazından para çekmez. Cari aktarımı tahsilat sayılmaz; ilgili hesaba borç kaydı ekler. Kalan sıfırlandığında masayı kapatabilirsiniz. “Ödeme sonrası masayı kapat” seçeneği son ödeme ile kapatmayı tek işlemde yapar. Kapalı adisyonlar değiştirilmez; yanlış ödeme için bu sürümde iade/ödeme silme işlevi yoktur.
 

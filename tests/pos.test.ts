@@ -4,10 +4,57 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
 import { initPos,executePos,ticket,saveAccount,accounts,collectAccount,accountHistory,posSummary,submitCustomerOrder,decideCustomerOrder,pendingOrders } from '../src/lib/pos-core.ts';
 import type { PosCommand } from '../src/lib/pos-core.ts';
+import { groupLines,quoteItemPayment } from '../src/lib/pos-lines.ts';
 function fixture(){
  const d=new DatabaseSync(':memory:');d.exec(`PRAGMA foreign_keys=ON;CREATE TABLE settings(id INTEGER PRIMARY KEY,value TEXT);INSERT INTO settings VALUES(1,'{"table_count":35}');CREATE TABLE categories(id TEXT PRIMARY KEY,is_active INTEGER);INSERT INTO categories VALUES('food',1);CREATE TABLE items(id TEXT PRIMARY KEY,category_id TEXT,name TEXT,price INTEGER,variants TEXT,is_active INTEGER,sold_out INTEGER);INSERT INTO items VALUES('tea','food','Çay',2000,'[]',1,0),('coffee','food','Türk Kahvesi',10000,'[]',1,0),('toast','food','Tost',15000,'[{"name":"Büyük","price":18000}]',1,0);`);initPos(d);return d;
 }
 const run=(d:DatabaseSync,c:PosCommand)=>executePos(d,randomUUID(),c);
+test('confirmation opens a table atomically and duplicate product additions increase one row',()=>{
+ const d=fixture();try{
+ const line={item_id:'tea',variant:'',quantity:1,note:''};
+ assert.throws(()=>run(d,{action:'open_order',table:1,lines:[line,{...line,item_id:'missing'}]}));assert.equal(posSummary(d).open.length,0);
+ const key=randomUUID(),command:PosCommand={action:'open_order',table:1,lines:[line,line,line,line]};let t=executePos(d,key,command);
+ assert.equal(t.lines.length,1);assert.equal(t.lines[0].quantity,4);assert.equal(executePos(d,key,command).id,t.id);
+ assert.throws(()=>run(d,command),/başka bir cihaz/);assert.equal(posSummary(d).open.length,1);
+ t=run(d,{action:'add',ticket_id:t.id,version:t.version,lines:[line]});assert.equal(t.lines.length,1);assert.equal(t.lines[0].quantity,5);
+ }finally{d.close();}
+});
+test('paying two of four teas preserves two unpaid teas and protects paid quantities',()=>{
+ const d=fixture();try{
+ let t=run(d,{action:'open_order',table:1,lines:[{item_id:'tea',variant:'',quantity:4,note:''}]});const line=t.lines[0],key=randomUUID();
+ const command:PosCommand={action:'pay_items',ticket_id:t.id,version:t.version,method:'cash',items:[{line_id:line.id,quantity:2}],reference:''};
+ t=executePos(d,key,command);assert.equal(t.status,'open');assert.equal(t.remaining,4000);assert.equal(t.lines[0].paid_quantity,2);assert.equal(t.lines[0].paid_amount,4000);
+ assert.equal(executePos(d,key,command).payments.length,1);assert.throws(()=>run(d,command),/başka bir cihaz/);
+ assert.throws(()=>run(d,{...command,version:t.version,items:[{line_id:line.id,quantity:3}]}),/aşıyor/);
+ assert.throws(()=>run(d,{action:'quantity',ticket_id:t.id,version:t.version,line_id:line.id,quantity:1}),/Ödenmiş/);
+ t=run(d,{...command,version:t.version,method:'card'});assert.equal(t.status,'closed');assert.equal(t.remaining,0);assert.equal(t.lines[0].paid_quantity,4);assert.equal(t.payments.length,2);
+ initPos(d);assert.equal(ticket(d,t.id).lines[0].paid_quantity,4);
+ }finally{d.close();}
+});
+test('item settlement distributes discount and earlier amount payments without lost cents',()=>{
+ const d=fixture();try{
+ let t=run(d,{action:'open_order',table:1,lines:[{item_id:'tea',variant:'',quantity:3,note:''},{item_id:'coffee',variant:'',quantity:1,note:''}]});
+ t=run(d,{action:'discount',ticket_id:t.id,version:t.version,amount:1600,note:'%10'});
+ t=run(d,{action:'pay',ticket_id:t.id,version:t.version,amount:1001,method:'cash',reference:'',close:false});
+ const before=t.remaining,tea=t.lines[0].id,coffee=t.lines[1].id,first=quoteItemPayment(t,[{line_id:tea,quantity:1}]);assert.equal(first.amount,1674);
+ t=run(d,{action:'pay_items',ticket_id:t.id,version:t.version,method:'meal_card',items:[{line_id:tea,quantity:1}],reference:'Multinet'});assert.equal(t.remaining,before-first.amount);
+ const a=saveAccount(d,{name:'Firma',phone:'',note:'',is_active:true},'Kasa');
+ t=run(d,{action:'pay_items',ticket_id:t.id,version:t.version,method:'account',account_id:a.id,items:[{line_id:tea,quantity:2},{line_id:coffee,quantity:1}],reference:''});
+ assert.equal(t.remaining,0);assert.equal(t.status,'closed');assert.equal(t.paid,14400);assert.equal(accounts(d)[0].balance,before-first.amount);
+ assert.equal(t.lines.reduce((sum,l)=>sum+(l.paid_amount||0),0)+1001,t.paid);
+ }finally{d.close();}
+});
+test('grouped legacy rows retain operator provenance and split allocation across duplicate rows',()=>{
+ const d=fixture();try{
+ let t=run(d,{action:'open_order',table:1,lines:[{item_id:'tea',variant:'',quantity:2,note:''}]});
+ t=executePos(d,randomUUID(),{action:'add',ticket_id:t.id,version:t.version,lines:[{item_id:'tea',variant:'',quantity:2,note:''}]},'Garson 1','waiter');
+ assert.equal(t.lines.length,2);assert.equal(groupLines(t.lines).length,1);assert.equal(groupLines(t.lines)[0].quantity,4);
+ t=run(d,{action:'pay_items',ticket_id:t.id,version:t.version,method:'cash',items:[{line_id:t.lines[0].id,quantity:3}],reference:''});
+ assert.equal(t.remaining,2000);assert.equal(groupLines(t.lines)[0].paid_quantity,3);assert.equal(t.lines[1].actor,'Garson 1');
+ t=run(d,{action:'void',ticket_id:t.id,version:t.version,line_id:t.lines[0].id,reason:'Kalan iptal'});assert.equal(t.remaining,0);assert.equal(groupLines(t.lines)[0].quantity,3);assert.equal(groupLines(t.lines)[0].paid_quantity,3);
+ assert.throws(()=>run(d,{action:'void',ticket_id:t.id,version:t.version,line_id:t.lines[0].id,reason:'Hata'}),/Ödenmiş/);
+ }finally{d.close();}
+});
 test('adisyon snapshots prices, supports split payment + account and exact daily cash totals',()=>{
  const d=fixture();try{
  let t=run(d,{action:'open',table:1});t=run(d,{action:'add',ticket_id:t.id,version:t.version,lines:[{item_id:'tea',variant:'',quantity:4,note:''},{item_id:'coffee',variant:'',quantity:2,note:'Sade'}]});assert.equal(t.total,28000);

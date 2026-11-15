@@ -32,6 +32,9 @@ export async function checkPos({base,origin,adminCookie}){
  const quickReceipt=await req(`/admin/adisyon/${quick.id}`);assert.match(quickReceipt.data,/Kasadan Deneme/);assert.match(quickReceipt.data,/Kasa satışı/);assert.doesNotMatch(quickReceipt.data,/Masa null/);
  quick=(await command({action:'pay',ticket_id:quick.id,version:quick.version,method:'card',amount:quick.remaining,reference:'',close:true})).data;assert.equal(quick.status,'closed');assert.ok(!(await req('/api/pos')).data.open.some(x=>x.id===quick.id));
  let waiter=(await command({action:'open',table:8},staffCookie)).data;waiter=(await command({action:'add',ticket_id:waiter.id,version:waiter.version,lines:add.lines},staffCookie)).data;assert.equal(waiter.lines[0].source,'waiter');assert.equal(waiter.lines[0].actor,'testgarson');
+ waiter=(await command({action:'quantity',ticket_id:waiter.id,version:waiter.version,line_id:waiter.lines[0].id,quantity:3},staffCookie)).data;assert.equal(waiter.lines[0].quantity,3);
+ waiter=(await command({action:'quantity',ticket_id:waiter.id,version:waiter.version,line_id:waiter.lines[0].id,quantity:2},staffCookie)).data;assert.equal(waiter.lines[0].quantity,2);
+ assert.equal((await command({action:'void',ticket_id:waiter.id,version:waiter.version,line_id:waiter.lines[0].id,reason:'Test'},staffCookie)).status,403);
  const order=await req('/api/orders',{request_id:randomUUID(),table:7,lines:[{item_id:item.id,variant:'',quantity:1,note:'Müşteri testi',unit_price:1}],note:''},'');assert.equal(order.status,200);
  assert.equal((await req('/api/pos/orders',{id:order.data.id,accept:true},staffCookie)).status,200);assert.equal((await req('/api/pos/orders',{id:order.data.id,accept:true},staffCookie)).status,200);
  t=(await req(`/api/pos?ticket=${t.id}`)).data;assert.equal(t.total,item.price*3);assert.equal(t.lines.length,2);

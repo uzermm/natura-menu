@@ -15,7 +15,7 @@ export async function GET(req:Request){try{
 }catch(error){return posErrorResponse(error);}}
 export async function POST(req:Request){try{
  const operator=await requireOperator(req),{request_id,command}=posRequestSchema.parse(await jsonBody(req));
- if(operator.role!=='admin'&&!['open','open_order','add','note'].includes(command.action))throw new HttpError(403,'Bu işlem için kasa yetkisi gerekli.');
+ if(operator.role!=='admin'&&!['open','open_order','add','quantity','note'].includes(command.action))throw new HttpError(403,'Bu işlem için kasa yetkisi gerekli.');
  if(operator.role!=='admin'&&'ticket_id' in command&&ticket(db(),command.ticket_id).service_type!=='table')throw new HttpError(403,'Hızlı siparişler kasa yetkisindedir.');
  return Response.json(executePos(db(),request_id,command,operator.actor,operator.role==='admin'?'cashier':'waiter'),{headers:noStore});
 }catch(error){return posErrorResponse(error);}}

@@ -16,7 +16,7 @@ Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (
 
 - Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
 - Ürüne dokunmak sipariş taslağındaki adedi artırır; aynı ürün, fiyat, porsiyon ve nota sahip seçimler tek satırda görünür. **Siparişi onayla** ürünleri masaya kaydeder. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda Ürünler ve Adisyon sekmeleri arasında geçiş yapılır.
-- Adisyon panelinde yalnız sipariş listesi kayar; toplam ve işlem düğmeleri altta sabittir. Satırlar ürün, birim fiyat, adet ve tutarı kompakt gösterir. **Tutar ile ödeme** tutar girişini, **Ürün ile ödeme** ürün/adet seçimini açar; **Cariye** doğrudan cari aktarımıyla başlatır. **Diğer** içinde indirim, masa notu ve ödeme geçmişi bulunur; masa taşıma ve yazdırma alt düğmelerdedir.
+- Adisyon panelinde yalnız sipariş listesi kayar; toplam ve işlem düğmeleri altta sabittir. Satırlar ürün, birim fiyat, adet ve tutarı kompakt gösterir. **Tutar ile ödeme** tutar girişini, **Hesabı kapat** ürün/adet seçimini açar; **Cariye** doğrudan cari aktarımıyla başlatır. **Diğer** içinde indirim, masa notu ve ödeme geçmişi bulunur; masa taşıma ve yazdırma alt düğmelerdedir.
 - Siparişe eklenen ürünün adı ve fiyatı o anki haliyle saklanır. Sonraki menü fiyat değişikliği açık veya eski adisyonları değiştirmez. Ürün ekleme ekranı her açılışta güncel menüyü alır. Gönderim sırasında fiyat değişirse yeniden kontrol etmeniz istenir.
 - Kasa ürün adedini değiştirebilir; iptal nedeni yazarak ürünü iptal edebilir. İptal kaydı silinmez. Yapılan ödemeden daha düşük bir hesaba yol açacak değişiklik reddedilir.
 - %10 ve %20 indirim ürün ara toplamına uygulanır. Tekrar basmak indirimi katlamaz; mevcut indirimi değiştirir. **Kaldır** indirimi sıfırlar.
@@ -24,7 +24,7 @@ Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (
 
 ## Ödeme ve cari
 
-**Ürün ile ödeme** içinde ödenecek ürünlerin adetlerini seçin. Örneğin dört çaydan ikisi ödendiğinde iki çay altta pasif **Ödenen ürünler** bölümüne geçer; kalan iki çayla masa açık kalır. Son ürünlerin ödemesi kalan tutarı kapattığında masa kapanır. Ödenen adetler azaltılamaz veya iptal edilemez. İndirim ve önceki tutar ödemeleri ödenmemiş ürünlere orantılı yansıtılır; hesap kuruş bazında tutulur. Farklı çalışanlardan gelen aynı ürünler ekranda birlikte gösterilirken çalışan kayıtları korunur.
+**Hesabı kapat** içinde tüm ödenmemiş ürünler mevcut adetleriyle seçili gelir. Kısmi ödeme için adetleri azaltın; sıfır verilen ürün bu ödemeye alınmaz. Örneğin dört çaydan ikisi ödendiğinde iki çay altta pasif **Ödenen ürünler** bölümüne geçer; kalan iki çayla masa açık kalır. Son ürünlerin ödemesi kalan tutarı kapattığında masa kapanır. Ödenen adetler azaltılamaz veya iptal edilemez. İndirim ve önceki tutar ödemeleri ödenmemiş ürünlere orantılı yansıtılır; hesap kuruş bazında tutulur. Farklı çalışanlardan gelen aynı ürünler ekranda birlikte gösterilirken çalışan kayıtları korunur.
 
 **Tutar ile ödeme** içinde **Nakit**, **Kredi kartı**, **Yemek kartı** veya **Cari hesap** seçip tutarı girin. Parçalı ödeme için kalan tutardan küçük bir tutar yazın. Birden fazla ödeme türü aynı adisyonda kullanılabilir. Yemek kartı firması not olarak kaydedilebilir.
 
@@ -36,7 +36,7 @@ Günlük kasa Türkiye saatiyle bugünkü nakit, kredi kartı, yemek kartı tahs
 
 ## Garson ve müşteri
 
-**İşletme ayarları → Garson hesapları** bölümünde her çalışan için ayrı kullanıcı adı ve en az 8 karakterli şifre oluşturun. Garson adresi `/garson`'dur. Garsonlar masa açar, ürün ve not ekler, müşteri siparişi onaylar/reddeder. Cari, kasa özeti, ödeme, indirim, ürün iptali ve masa taşıma kasa yetkisindedir. Kullanıcı adı sipariş satırı ve işlem günlüğünde saklanır; ileride performans raporuna temel oluşturur. Hesap güncellemesi mevcut oturumlarını geçersiz kılar.
+**İşletme ayarları → Garson hesapları** bölümünde her çalışan için ayrı kullanıcı adı ve en az 8 karakterli şifre oluşturun. Garson adresi `/garson`'dur. Garsonlar masa açar, artı/eksi düğmeleriyle ödenmemiş ürün adetlerini değiştirir, ürün ve not ekler, müşteri siparişi onaylar/reddeder. Cari, kasa özeti, ödeme, indirim, ürün iptali ve masa taşıma kasa yetkisindedir. Kullanıcı adı sipariş satırı ve işlem günlüğünde saklanır; ileride performans raporuna temel oluşturur. Hesap güncellemesi mevcut oturumlarını geçersiz kılar.
 
 Müşteri, menüde **Sipariş ver** düğmesiyle masa numarasını seçer. İstekler **Müşteri siparişleri** listesinde onay bekler. Masa seçimi müşteriye ait olduğu için kasa/garson masa ve ürünleri doğrular. Onaylanan istek, seçilen masanın açık adisyonuna eklenir veya masa boşsa yeni adisyon açar. Tekrar onaylamak ürünü iki kez eklemez. Müşteri başka masaların hesaplarını veya cari bilgilerini göremez. “Garson çağır” düğmesi önceki tercihe uygun olarak pasiftir.
 

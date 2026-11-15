@@ -9,6 +9,33 @@ function fixture(){
  const d=new DatabaseSync(':memory:');d.exec(`PRAGMA foreign_keys=ON;CREATE TABLE settings(id INTEGER PRIMARY KEY,value TEXT);INSERT INTO settings VALUES(1,'{"table_count":35}');CREATE TABLE categories(id TEXT PRIMARY KEY,is_active INTEGER);INSERT INTO categories VALUES('food',1);CREATE TABLE items(id TEXT PRIMARY KEY,category_id TEXT,name TEXT,price INTEGER,variants TEXT,is_active INTEGER,sold_out INTEGER);INSERT INTO items VALUES('tea','food','Çay',2000,'[]',1,0),('coffee','food','Türk Kahvesi',10000,'[]',1,0),('toast','food','Tost',15000,'[{"name":"Büyük","price":18000}]',1,0);`);initPos(d);return d;
 }
 const run=(d:DatabaseSync,c:PosCommand)=>executePos(d,randomUUID(),c);
+test('occupied-table merge preserves paid items, discounts, account receipts and daily totals once',()=>{
+ const d=fixture();try{
+ const account=saveAccount(d,{name:'Firma',phone:'',note:'',is_active:true},'Kasa');
+ let source=run(d,{action:'open_order',table:1,ticket_note:'Cam kenarı',lines:[{item_id:'tea',variant:'',quantity:4,note:''}]});
+ source=run(d,{action:'discount',ticket_id:source.id,version:source.version,amount:800,note:'%10'});
+ source=run(d,{action:'pay_items',ticket_id:source.id,version:source.version,method:'cash',items:[{line_id:source.lines[0].id,quantity:2}],reference:''});
+ source=run(d,{action:'pay',ticket_id:source.id,version:source.version,method:'account',account_id:account.id,amount:1000,reference:'',close:false});
+ let target=run(d,{action:'open_order',table:2,ticket_note:'Bahçe',lines:[{item_id:'coffee',variant:'',quantity:1,note:''}]});
+ target=run(d,{action:'discount',ticket_id:target.id,version:target.version,amount:1000,note:'%10'});target=run(d,{action:'pay',ticket_id:target.id,version:target.version,method:'card',amount:2000,reference:'',close:false});
+ const key=randomUUID(),command:PosCommand={action:'move',ticket_id:source.id,version:source.version,table:2,target_ticket_id:target.id,target_version:target.version,ticket_note:'Pencere'};
+ let merged=executePos(d,key,command);assert.equal(merged.id,target.id);assert.equal(merged.subtotal,18000);assert.equal(merged.discount,1800);assert.equal(merged.paid,6600);assert.equal(merged.remaining,9600);assert.match(merged.note,/Bahçe.*Pencere/);assert.equal(merged.lines.find(l=>l.id===source.lines[0].id)!.paid_quantity,2);
+ assert.equal(executePos(d,key,command).payments.length,3);assert.equal(posSummary(d).open.length,1);assert.equal(posSummary(d).today.closed_count,0);assert.equal(posSummary(d).recent.length,0);
+ const archived=ticket(d,source.id);assert.equal(archived.merged_into,target.id);assert.equal(archived.status,'closed');assert.equal(archived.total,7200);assert.equal(archived.lines.length,1);assert.equal(archived.note,'Pencere');assert.equal(accountHistory(d,account.id)[0].ticket_id,source.id);assert.equal(accounts(d)[0].balance,1000);
+ assert.throws(()=>run(d,{action:'add',ticket_id:source.id,version:archived.version,lines:[{item_id:'tea',variant:'',quantity:1,note:''}]}));
+ merged=run(d,{action:'pay',ticket_id:merged.id,version:merged.version,method:'cash',amount:merged.remaining,reference:'',close:true});const summary=posSummary(d);assert.equal(summary.today.cash,13200);assert.equal(summary.today.card,2000);assert.equal(summary.today.account,1000);assert.equal(summary.today.closed_count,1);assert.equal(summary.today.discount,1800);assert.equal(summary.recent.length,1);
+ initPos(d);assert.equal(ticket(d,source.id).merged_into,merged.id);assert.equal(ticket(d,merged.id).lines.length,2);assert.equal(run(d,{action:'open',table:1}).table_number,1);
+ }finally{d.close();}
+});
+test('merge rejects changed targets, keeps both accounts intact on failure and supports quick sales',()=>{
+ const d=fixture();try{
+ let source=run(d,{action:'open_quick',service_type:'takeaway',account_name:'Paket',lines:[{item_id:'tea',variant:'',quantity:2,note:''}]}),target=run(d,{action:'open_order',table:2,lines:[{item_id:'tea',variant:'',quantity:1,note:''}]});
+ const command:PosCommand={action:'move',ticket_id:source.id,version:source.version,table:2,target_ticket_id:target.id,target_version:target.version};target=run(d,{action:'note',ticket_id:target.id,version:target.version,note:'Yeni not'});
+ assert.throws(()=>run(d,command),/değişti/);assert.equal(ticket(d,source.id).status,'open');assert.equal(ticket(d,target.id).lines.length,1);assert.equal(posSummary(d).open.length,2);
+ assert.throws(()=>run(d,{...command,table:3}),/aynı hesap/);assert.throws(()=>run(d,{...command,target_version:target.version,ticket_note:'x'.repeat(500)}),/notları/);assert.equal(ticket(d,source.id).lines.length,1);
+ const merged=run(d,{...command,target_version:target.version});assert.equal(merged.service_type,'table');assert.equal(merged.table_number,2);assert.equal(groupLines(merged.lines)[0].quantity,3);assert.equal(posSummary(d).open.length,1);
+ }finally{d.close();}
+});
 test('table notes are saved atomically with orders and checkout, including the closing payment',()=>{
  const d=fixture();try{
  let t=run(d,{action:'open_order',table:1,ticket_note:'  Cam kenarı  ',lines:[{item_id:'tea',variant:'',quantity:4,note:''}]});assert.equal(t.note,'Cam kenarı');

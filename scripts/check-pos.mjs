@@ -9,6 +9,12 @@ export async function checkPos({base,origin,adminCookie}){
  const initial=await req('/api/pos');assert.equal(initial.status,200);assert.equal((await req('/api/pos',undefined,adminCookie,{'If-None-Match':initial.headers.get('etag')})).status,304);
  const menu=(await req('/api/admin/state')).data.categories;
  const item=menu.filter(c=>c.is_active).flatMap(c=>c.items).find(i=>i.is_active&&!i.sold_out&&!i.variants.length&&i.price>=100);
+ let mergeSource=(await command({action:'open_order',table:11,lines:[{item_id:item.id,variant:'',quantity:2,note:''}]})).data;
+ const mergeTarget=(await command({action:'open_order',table:12,lines:[{item_id:item.id,variant:'',quantity:1,note:''}]})).data;
+ mergeSource=(await command({action:'pay_items',ticket_id:mergeSource.id,version:mergeSource.version,method:'cash',items:[{line_id:mergeSource.lines[0].id,quantity:1}],reference:''})).data;
+ const mergeCommand={action:'move',ticket_id:mergeSource.id,version:mergeSource.version,table:12,target_ticket_id:mergeTarget.id,target_version:mergeTarget.version},mergeKey=randomUUID();
+ let mergeResult=(await command(mergeCommand,adminCookie,mergeKey)).data;assert.equal(mergeResult.id,mergeTarget.id);assert.equal(mergeResult.remaining,item.price*2);assert.equal(mergeResult.paid,item.price);assert.equal((await command(mergeCommand,adminCookie,mergeKey)).data.lines.length,2);assert.equal((await req(`/api/pos?ticket=${mergeSource.id}`)).data.merged_into,mergeTarget.id);assert.ok(!(await req('/api/pos')).data.open.some(t=>t.id===mergeSource.id));
+ mergeResult=(await command({action:'pay',ticket_id:mergeResult.id,version:mergeResult.version,method:'card',amount:mergeResult.remaining,reference:'',close:true})).data;assert.equal(mergeResult.status,'closed');
  let t=(await command({action:'open',table:7})).data;
  const add={action:'add',ticket_id:t.id,version:t.version,lines:[{item_id:item.id,variant:'',quantity:2,note:'Test siparişi'}]},addKey=randomUUID();
  t=(await command(add,adminCookie,addKey)).data;assert.equal(t.total,item.price*2);assert.equal((await command(add,adminCookie,addKey)).data.lines.length,1);

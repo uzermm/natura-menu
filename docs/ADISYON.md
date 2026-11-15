@@ -12,7 +12,7 @@ Masalar içinde sırasıyla **Açık Masalar**, **Masalar** ve **Hızlı Sipari�
 
 ## Masa işlemleri
 
-Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar beyazdır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.
+Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar siyah dolgu ve beyaz yazıyla gösterilir. Bekleyen garson çağrısı olan masalar süre renginden bağımsız olarak mor dolgu ve zil simgesi alır. Boş masaya gelen çağrı Açık Masalar içinde de görünür; masa açılmadan İlgilenildi ile karşılanabilir. Ayrı çağrılar sekmesi yoktur. Mobil yenile düğmesi üstte ses düğmesinin yanındadır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.
 
 - Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
 - Ürüne dokunmak sipariş taslağındaki adedi artırır; aynı ürün, fiyat, porsiyon ve nota sahip seçimler tek satırda görünür. **Siparişi onayla** ürünleri masaya kaydeder. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda ürünler ve siparişler aynı anda görünür.
@@ -20,7 +20,7 @@ Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (
 - Siparişe eklenen ürünün adı ve fiyatı o anki haliyle saklanır. Sonraki menü fiyat değişikliği açık veya eski adisyonları değiştirmez. Ürün ekleme ekranı her açılışta güncel menüyü alır. Gönderim sırasında fiyat değişirse yeniden kontrol etmeniz istenir.
 - Kasa ürün adedini değiştirebilir; iptal nedeni yazarak ürünü iptal edebilir. İptal kaydı silinmez. Yapılan ödemeden daha düşük bir hesaba yol açacak değişiklik reddedilir.
 - %10 ve %20 indirim ürün ara toplamına uygulanır. Tekrar basmak indirimi katlamaz; mevcut indirimi değiştirir. **Kaldır** indirimi sıfırlar.
-- **Masayı taşı** yalnız boş hedef masaları gösterir. Ürünler, indirim ve ödemeler aynı adisyonda korunur; kaynak masa boşalır. Dolu masaları birleştirme yapılmaz.
+- **Taşı** boş veya dolu hedef masa seçtirir. Boş masaya tüm hesap taşınır. Dolu masada Masaları birleştir ile ürünler, ödenmiş adetler, ödemeler ve indirimler hedef hesapta birleşir; kaynak masa boşalır. Kaynak adisyonun birleştirme öncesi ürün/ödeme/not kaydı ve eski cari fiş bağlantıları korunur. Kaynak arşivi kapanan satış olarak sayılmaz; günlük tahsilat ikinci kez yazılmaz. Hedef hesap değişmişse işlem reddedilir. Birleşen notlar 500 karakteri aşarsa önce kısaltılması istenir.
 
 ## Ödeme ve cari
 
@@ -36,7 +36,7 @@ Günlük kasa Türkiye saatiyle bugünkü nakit, kredi kartı, yemek kartı tahs
 
 ## Ortak yönetim ekranı ve müşteri
 
-Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; çalışan yetkileri daha sonra ortak yönetim ekranına eklenecektir. Eski hesap kayıtları veritabanında korunur. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. 320–430 piksel genişliğindeki standart portre ekranlarda ürün alanında en az dokuz ürün aynı anda görülebilir. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
+Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; çalışan yetkileri daha sonra ortak yönetim ekranına eklenecektir. Eski hesap kayıtları veritabanında korunur. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. Sipariş listesine iki satır daha yer açmak için sağ alt bölüm mobilde 80 piksel yukarı genişletilmiştir; aynı anda görünen ürün sayısı ekranın yüksekliğine bağlıdır. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
 
 Müşteri, menüde **Sipariş ver** düğmesiyle masa numarasını seçer. İstekler **Müşteri siparişleri** listesinde onay bekler. Masa seçimi müşteriye ait olduğu için yönetici masa ve ürünleri doğrular. Onaylanan istek, seçilen masanın açık adisyonuna eklenir veya masa boşsa yeni adisyon açar. Tekrar onaylamak ürünü iki kez eklemez. Müşteri başka masaların hesaplarını veya cari bilgilerini göremez. “Garson çağır” düğmesi önceki tercihe uygun olarak pasiftir.
 

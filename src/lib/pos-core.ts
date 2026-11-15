@@ -28,6 +28,8 @@ export function initPos(d:DatabaseSync){d.exec(`
  atomic(d,()=>{
   const columns=d.prepare('PRAGMA table_info(pos_tickets)').all();
   if(!columns.some(c=>c.name==='service_type'))d.exec("ALTER TABLE pos_tickets ADD COLUMN service_type TEXT NOT NULL DEFAULT 'table' CHECK(service_type IN ('table','counter','takeaway'))");
+  if(!columns.some(c=>c.name==='merged_into'))d.exec('ALTER TABLE pos_tickets ADD COLUMN merged_into TEXT REFERENCES pos_tickets(id)');
+  if(!columns.some(c=>c.name==='merge_snapshot'))d.exec('ALTER TABLE pos_tickets ADD COLUMN merge_snapshot TEXT');
   if(!columns.some(c=>c.name==='account_name'))d.exec("ALTER TABLE pos_tickets ADD COLUMN account_name TEXT NOT NULL DEFAULT ''");
   const index=d.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='one_open_ticket_per_table'").get();
   if(!String(index?.sql||'').includes('service_type'))d.exec("DROP INDEX IF EXISTS one_open_ticket_per_table; CREATE UNIQUE INDEX one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open' AND service_type='table'");
@@ -40,10 +42,12 @@ function amount(value:number,allowZero=false){if(!Number.isSafeInteger(value)||v
 function quantity(value:number){if(!Number.isInteger(value)||value<1||value>999)throw new PosError('Adet 1–999 arasında olmalı.');}
 export function ticket(d:DatabaseSync,id:string):Ticket{
  const row=d.prepare('SELECT * FROM pos_tickets WHERE id=?').get(id);if(!row)throw new PosError('Adisyon bulunamadı.',404);
+ if(row.merged_into&&row.merge_snapshot)return {...JSON.parse(String(row.merge_snapshot)),status:'closed',version:Number(row.version),closed_at:String(row.closed_at),merged_into:String(row.merged_into)} as Ticket;
  const lines=d.prepare('SELECT l.*,(SELECT COALESCE(SUM(p.quantity),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_quantity,(SELECT COALESCE(SUM(p.amount),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_amount FROM pos_lines l WHERE l.ticket_id=? ORDER BY l.created_at,l.rowid').all(id) as unknown as TicketLine[];
  const payments=d.prepare("SELECT p.*,COALESCE(a.name,'') AS account_name FROM pos_payments p LEFT JOIN pos_accounts a ON a.id=p.account_id WHERE ticket_id=? ORDER BY p.created_at,p.rowid").all(id) as unknown as TicketPayment[];
  const subtotal=lines.filter(l=>!l.voided_at).reduce((sum,l)=>sum+l.unit_price*l.quantity,0),total=subtotal-Number(row.discount),paid=payments.reduce((sum,p)=>sum+p.amount,0);
- return {...row,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,subtotal,total,paid,remaining:total-paid} as Ticket;
+ const {merge_snapshot,...publicRow}=row;void merge_snapshot;
+ return {...publicRow,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,subtotal,total,paid,remaining:total-paid} as Ticket;
 }
 function editable(d:DatabaseSync,id:string,version:number){const t=ticket(d,id);if(t.status!=='open')throw new PosError('Bu adisyon kapatılmış.');if(t.version!==version)throw new PosError('Adisyon başka bir cihazda değişti. Güncel halini kontrol edip tekrar deneyin.',409);return t;}
 function bump(d:DatabaseSync,id:string){d.prepare('UPDATE pos_tickets SET version=version+1 WHERE id=?').run(id);}
@@ -82,12 +86,14 @@ export type PosCommand=(
  |{action:'void';ticket_id:string;version:number;line_id:string;reason:string}
  |{action:'discount';ticket_id:string;version:number;amount:number;note:string}
  |{action:'note';ticket_id:string;version:number;note:string}
- |{action:'move';ticket_id:string;version:number;table:number}
+ |{action:'move';ticket_id:string;version:number;table:number;target_ticket_id?:string;target_version?:number}
  |{action:'pay';ticket_id:string;version:number;method:PaymentMethod;amount:number;account_id?:string;reference:string;close:boolean}
  |{action:'pay_items';ticket_id:string;version:number;method:PaymentMethod;items:{line_id:string;quantity:number}[];account_id?:string;reference:string}
  |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata;ticket_note?:string};
 export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,actor='Kasa',source:OrderSource='cashier'):Ticket{
  return atomic(d,()=>{
+  if(command.ticket_note!==undefined&&(typeof command.ticket_note!=='string'||command.ticket_note.trim().length>500))throw new PosError('Not en fazla 500 karakter olabilir.');
+  let mergedSource=false;
   const payload=JSON.stringify({command,actor,source}),previous=d.prepare('SELECT payload,result FROM pos_requests WHERE id=?').get(requestId);
   if(previous){if(previous.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return ticket(d,String(previous.result));}
   let id:string;
@@ -124,8 +130,21 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
    }else if(command.action==='note')d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.note,id);
    else if(command.action==='move'){
     tableRange(d,command.table);if(command.table===t.table_number)throw new PosError('Farklı bir masa seçin.');
-    if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table))throw new PosError('Hedef masa dolu. Boş bir masa seçin.');
-    d.prepare("UPDATE pos_tickets SET table_number=?,service_type='table' WHERE id=?").run(command.table,id);
+    const destination=d.prepare("SELECT id FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table);
+    if(destination){
+     const target=ticket(d,String(destination.id));if(command.target_ticket_id!==target.id||command.target_version!==target.version)throw new PosError('Hedef masa değişti. Güncel hesabı kontrol edip yeniden seçin.',409);
+     const sourceNote=command.ticket_note?.trim()??t.note,combinedNote=[target.note,sourceNote?`${ticketLabel(t)}: ${sourceNote}`:''].filter(Boolean).join(' · ');if(combinedNote.length>500)throw new PosError('Birleşen masa notları 500 karakteri aşıyor. Önce notları kısaltın.');
+     const snapshot={...t,note:sourceNote},now=new Date().toISOString();
+     d.prepare('UPDATE pos_lines SET ticket_id=? WHERE ticket_id=?').run(target.id,id);
+     d.prepare('UPDATE pos_payments SET ticket_id=? WHERE ticket_id=?').run(target.id,id);
+     d.prepare('UPDATE pos_orders SET ticket_id=? WHERE ticket_id=?').run(target.id,id);
+     d.prepare("UPDATE pos_tickets SET status='closed',closed_at=?,merged_into=?,merge_snapshot=?,version=version+1 WHERE id=?").run(now,target.id,JSON.stringify(snapshot),id);
+     d.prepare('UPDATE pos_tickets SET discount=discount+?,note=? WHERE id=?').run(t.discount,combinedNote,target.id);
+     event(d,id,'merge',actor,{target_id:target.id,table:command.table,total:t.total,paid:t.paid});id=target.id;mergedSource=true;
+    }else{
+     if(command.target_ticket_id||command.target_version)throw new PosError('Hedef masa artık aynı hesap değil. Yeniden seçin.',409);
+     d.prepare("UPDATE pos_tickets SET table_number=?,service_type='table' WHERE id=?").run(command.table,id);
+    }
    }else if(command.action==='pay'||command.action==='pay_items'){
     let itemQuote:ReturnType<typeof quoteItemPayment>|undefined;
     if(command.action==='pay_items'){if(!command.items.length||command.items.length>100)throw new PosError('Ödenecek ürünleri seçin.');try{itemQuote=quoteItemPayment(t,command.items);}catch(error){throw new PosError((error as Error).message);}}
@@ -146,7 +165,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
    }
    bump(d,id);event(d,id,command.action,actor,{command,before:{table:t.table_number,total:t.total,paid:t.paid}});
   }
-  if('ticket_note' in command&&command.ticket_note!==undefined){if(typeof command.ticket_note!=='string'||command.ticket_note.trim().length>500)throw new PosError('Not en fazla 500 karakter olabilir.');d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.ticket_note.trim(),id);}
+  if(!mergedSource&&'ticket_note' in command&&command.ticket_note!==undefined){if(typeof command.ticket_note!=='string'||command.ticket_note.trim().length>500)throw new PosError('Not en fazla 500 karakter olabilir.');d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.ticket_note.trim(),id);}
   d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return ticket(d,id);
  });
 }
@@ -165,8 +184,8 @@ export function posSummary(d:DatabaseSync):PosSummary{
  const sums=d.prepare("SELECT method,SUM(amount) AS amount FROM pos_payments WHERE substr(datetime(created_at,'+3 hours'),1,10)=? GROUP BY method").all(today);
  const collected=d.prepare("SELECT method,SUM(-amount) AS amount FROM pos_ledger WHERE amount<0 AND substr(datetime(created_at,'+3 hours'),1,10)=? GROUP BY method").all(today);
  const totals={cash:0,card:0,meal_card:0,account:0};for(const row of [...sums,...collected])totals[row.method as PaymentMethod]+=Number(row.amount);
- const closed=d.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(discount),0) AS discount FROM pos_tickets WHERE status='closed' AND substr(datetime(closed_at,'+3 hours'),1,10)=?").get(today)!;
- return {open:d.prepare("SELECT id FROM pos_tickets WHERE status='open' ORDER BY table_number").all().map(r=>ticket(d,String(r.id))),recent:d.prepare("SELECT id FROM pos_tickets WHERE status='closed' ORDER BY closed_at DESC LIMIT 40").all().map(r=>ticket(d,String(r.id))),accounts:accounts(d),pending:pendingOrders(d),today:{date:today,closed_count:Number(closed.count),discount:Number(closed.discount),...totals}};
+ const closed=d.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(discount),0) AS discount FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND substr(datetime(closed_at,'+3 hours'),1,10)=?").get(today)!;
+ return {open:d.prepare("SELECT id FROM pos_tickets WHERE status='open' ORDER BY table_number").all().map(r=>ticket(d,String(r.id))),recent:d.prepare("SELECT id FROM pos_tickets WHERE status='closed' AND merged_into IS NULL ORDER BY closed_at DESC LIMIT 40").all().map(r=>ticket(d,String(r.id))),accounts:accounts(d),pending:pendingOrders(d),today:{date:today,closed_count:Number(closed.count),discount:Number(closed.discount),...totals}};
 }
 export function pendingOrders(d:DatabaseSync):PendingOrder[]{return d.prepare("SELECT * FROM pos_orders WHERE status='pending' ORDER BY created_at").all().map(row=>({...row,lines:JSON.parse(String(row.lines))})) as PendingOrder[];}
 export function submitCustomerOrder(d:DatabaseSync,id:string,table:number,lines:AddLine[],note:string){return atomic(d,()=>{

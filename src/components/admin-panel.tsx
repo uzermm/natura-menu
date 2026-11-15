@@ -11,7 +11,6 @@ import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle } from 
 import { Brand } from './brand';
 import SettingsForm from './settings-form';
 import { PasswordForm } from './password-form';
-import { PosStaff } from './pos-staff';
 import AdminMenuManager from './admin-menu-manager';
 import { PosPanel } from './pos-panel';
 import { api } from '@/lib/client';
@@ -52,7 +51,7 @@ export default function AdminPanel({initial}:{initial:State}){
    {page==='menu'&&<AdminMenuManager categories={state.categories} busy={busy} onEditCategory={setEditingCategory} onDeleteCategory={c=>requestDelete('categories',c.id,c.name)} onAddItem={c=>setEditingItem(blankItem(c.id,Math.max(-1,...c.items.map(i=>i.display_order))+1))} onEditItem={setEditingItem} onDeleteItem={i=>requestDelete('items',i.id,i.name)} onToggleItem={i=>run(async()=>{await api('/api/admin/items',{...i,is_active:!i.is_active});await reload();})} onMoveCategory={(id,direction)=>reorder('categories',id,direction)} onMoveItem={(i,direction)=>reorder('items',i.id,direction,i.category_id)} onBulkPrices={id=>{setCategoryFilter(id);setBulkOpen(true);}}/>}
 
    {(page==='pos'||page==='accounts'||page==='history'||page==='summary'||page==='pending')&&<PosPanel view={page} categories={state.categories} tableCount={state.settings.table_count}/>}
-   {page==='settings'&&<div className="space-y-8"><SettingsForm settings={state.settings} categories={state.categories} onSave={async s=>{await api('/api/admin/settings',s);await reload();toast('İşletme ayarları kaydedildi.');}}/><section className="max-w-2xl space-y-5 rounded-2xl border bg-white p-5 md:p-7" aria-labelledby="staff-settings-title"><h2 id="staff-settings-title" className="serif text-2xl">Garson hesapları</h2><PosStaff/></section><PasswordForm/></div>}
+   {page==='settings'&&<div className="space-y-8"><SettingsForm settings={state.settings} categories={state.categories} onSave={async s=>{await api('/api/admin/settings',s);await reload();toast('İşletme ayarları kaydedildi.');}}/><PasswordForm/></div>}
    {page==='qr'&&<><div className="no-print mb-6 flex flex-wrap items-center gap-4 rounded-2xl border bg-white p-5"><div className="flex-1"><h2 className="font-semibold">{state.settings.table_count} masaya özel QR kod</h2><p className="mt-1 text-sm text-muted-foreground">Masa sayısını İşletme ayarları bölümünden değiştirebilirsiniz.</p></div><Button asChild><a href="/admin/qr" target="_blank" rel="noreferrer">Yazdır / PDF kaydet</a></Button></div><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{Array.from({length:state.settings.table_count},(_,i)=>i+1).map(n=><div key={n} className="rounded-2xl border bg-white p-4 text-center"><img src={`/api/admin/qr?table=${n}`} alt={`Masa ${n} QR kodu`} width={250} height={250} loading="lazy" className="mx-auto w-full max-w-52"/><p className="serif text-xl">Masa {n}</p><a className="mt-2 inline-block p-2 text-xs text-[#638351] underline" href={`/api/admin/qr?table=${n}`} download={`natura-masa-${n}.svg`}>SVG indir</a></div>)}</div></>}
   </main>
   {notice&&<div role="status" className="fixed bottom-6 left-4 right-4 z-[70] mx-auto flex max-w-md items-center gap-3 rounded-xl border bg-white p-4 text-sm shadow-lg"><Check size={18} className="text-[#789366]"/>{notice}</div>}

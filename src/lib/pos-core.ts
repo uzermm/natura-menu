@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import {initMenuVisibility} from './menu-visibility.ts';
 import {PosError} from './pos-error.ts';
 export {PosError} from './pos-error.ts';
 import {initOperations,businessDay,dayTotals,adjustPayment,rejectExpiredRequest} from './pos-operations.ts';
@@ -6,7 +7,7 @@ import { lineKey,quoteItemPayment } from './pos-lines.ts';
 import type { DatabaseSync } from 'node:sqlite';
 import { ticketLabel,type QuickMetadata,type Account,type AccountEntry,type OrderSource,type PaymentMethod,type PendingOrder,type PosSummary,type Ticket,type TicketLine,type TicketPayment,type PaymentAdjustment } from './pos-types.ts';
 
-export function initPos(d:DatabaseSync){d.exec(`
+export function initPos(d:DatabaseSync){initMenuVisibility(d);d.exec(`
  CREATE TABLE IF NOT EXISTS pos_tickets(id TEXT PRIMARY KEY,number INTEGER NOT NULL UNIQUE,table_number INTEGER NOT NULL CHECK(table_number>0),status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','closed')),version INTEGER NOT NULL DEFAULT 1,opened_at TEXT NOT NULL,closed_at TEXT,discount INTEGER NOT NULL DEFAULT 0 CHECK(discount>=0),note TEXT NOT NULL DEFAULT '');
  CREATE TABLE IF NOT EXISTS pos_lines(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),item_id TEXT NOT NULL,name TEXT NOT NULL,variant TEXT NOT NULL DEFAULT '',unit_price INTEGER NOT NULL CHECK(unit_price>=0),quantity INTEGER NOT NULL CHECK(quantity BETWEEN 1 AND 999),note TEXT NOT NULL DEFAULT '',source TEXT NOT NULL,actor TEXT NOT NULL,created_at TEXT NOT NULL,voided_at TEXT,void_reason TEXT NOT NULL DEFAULT '');
  CREATE INDEX IF NOT EXISTS pos_lines_ticket ON pos_lines(ticket_id);
@@ -67,10 +68,11 @@ function createQuickTicket(d:DatabaseSync,input:QuickMetadata,actor:string){
  d.prepare('INSERT INTO pos_tickets(id,number,table_number,opened_at,service_type,account_name) VALUES(?,?,1,?,?,?)').run(id,number,new Date().toISOString(),meta.service_type,meta.account_name);event(d,id,'open_quick',actor,meta);return id;
 }
 export interface AddLine {item_id:string;variant:string;quantity:number;note:string;expected_unit_price?:number;}
-function quoteLine(d:DatabaseSync,line:AddLine){
+function quoteLine(d:DatabaseSync,line:AddLine,qrMenu=false){
  quantity(line.quantity);
- const item=d.prepare('SELECT i.* FROM items i JOIN categories c ON c.id=i.category_id WHERE i.id=? AND i.is_active=1 AND i.sold_out=0 AND c.is_active=1').get(line.item_id);
+ const item=d.prepare('SELECT i.*,c.qr_visible AS category_qr_visible FROM items i JOIN categories c ON c.id=i.category_id WHERE i.id=? AND i.is_active=1 AND i.sold_out=0 AND c.is_active=1').get(line.item_id);
  if(!item)throw new PosError('Ürün artık satışta değil. Menüyü yenileyin.');
+ if(qrMenu&&(!item.qr_visible||!item.category_qr_visible))throw new PosError('Ürün QR menüde satışa açık değil. Menüyü yenileyin.');
  const variants=JSON.parse(String(item.variants)) as {name:string;price:number}[],variant=variants.find(v=>v.name===line.variant);
  if(variants.length&&!variant||!variants.length&&line.variant)throw new PosError('Geçerli bir porsiyon seçin.');
  const price=variant?.price??Number(item.price);amount(price,true);
@@ -231,7 +233,7 @@ export function submitCustomerOrder(d:DatabaseSync,id:string,table:number,lines:
  rejectExpiredRequest(d,id);const payload=JSON.stringify({table,lines,note}),old=d.prepare('SELECT payload,result FROM pos_requests WHERE id=?').get(id);
  if(old){if(old.payload!==payload)throw new PosError('İşlem anahtarı başka bir siparişte kullanılmış.',409);return {id,number:Number(old.result)};}
  tableRange(d,table);if(!lines.length||lines.length>50)throw new PosError('1–50 ürün seçin.');
- const quoted=lines.map(line=>quoteLine(d,line)),number=Number(d.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM pos_orders').get()!.n);
+ const quoted=lines.map(line=>quoteLine(d,line,true)),number=Number(d.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM pos_orders').get()!.n);
  d.prepare('INSERT INTO pos_orders(id,number,table_number,lines,created_at,note) VALUES(?,?,?,?,?,?)').run(id,number,table,JSON.stringify(quoted),new Date().toISOString(),note);
  d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(id,payload,String(number),new Date().toISOString());event(d,null,'customer_order','Müşteri',{id,table,number});return {id,number};
 });}
@@ -241,7 +243,7 @@ export function decideCustomerOrder(d:DatabaseSync,id:string,accept:boolean,acto
  let ticketId:string|null=null;
  if(accept){
   const lines=JSON.parse(String(order.lines)) as PendingOrder['lines'];
-  for(const line of lines)quoteLine(d,{...line,expected_unit_price:undefined});
+  for(const line of lines)quoteLine(d,{...line,expected_unit_price:undefined},true);
   ticketId=createTicket(d,Number(order.table_number),actor);
   for(const line of lines)d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(randomUUID(),ticketId,line.item_id,line.name,line.variant,line.unit_price,line.quantity,[line.note,String(order.note)].filter(Boolean).join(' · '),'customer',actor,new Date().toISOString());
   bump(d,ticketId);

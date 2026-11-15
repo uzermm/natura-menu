@@ -4,7 +4,7 @@ import type { Campaign,Category } from './types';
 // products must never be advertised as an available discount.
 export function resolveCampaign(categories:Category[],campaign:Campaign|null) {
  if(!campaign)return null;
- const item=categories.filter(c=>c.is_active).flatMap(c=>c.items).find(i=>i.id===campaign.item_id&&i.is_active&&!i.sold_out&&i.image_url);
+ const item=categories.filter(c=>c.is_active&&c.qr_visible!==false).flatMap(c=>c.items).find(i=>i.id===campaign.item_id&&i.is_active&&i.qr_visible!==false&&!i.sold_out&&i.image_url);
  if(!item)return null;
  const variant=item.variants.find(v=>v.name===campaign.variant);
  if(item.variants.length?!variant:!!campaign.variant)return null;

@@ -44,10 +44,10 @@ export function db() {
  singleton=d;return d;
 }
 export function getSettings():Settings{const value=JSON.parse(db().prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);const campaign=campaignSchema.safeParse(value.campaign);return {table_count:value.table_count,address:value.address,hours:value.hours,campaign:campaign.success?campaign.data:null};}
-function readItem(row:Record<string,unknown>):Item {return {...row,is_active:!!row.is_active,sold_out:!!row.sold_out,featured:!!row.featured,image_generated:!!row.image_generated,allergens_verified:!!row.allergens_verified,allergens:JSON.parse(row.allergens as string),tags:JSON.parse(row.tags as string),variants:JSON.parse(row.variants as string)} as Item;}
+function readItem(row:Record<string,unknown>):Item {return {...row,qr_visible:!!row.qr_visible,is_active:!!row.is_active,sold_out:!!row.sold_out,featured:!!row.featured,image_generated:!!row.image_generated,allergens_verified:!!row.allergens_verified,allergens:JSON.parse(row.allergens as string),tags:JSON.parse(row.tags as string),variants:JSON.parse(row.variants as string)} as Item;}
 export function getCategories(admin=false):Category[] {
- const d=db();const rows=d.prepare(`SELECT * FROM items ${admin?'':'WHERE is_active=1'} ORDER BY display_order,name`).all().map(readItem);
- return d.prepare(`SELECT * FROM categories ${admin?'':'WHERE is_active=1'} ORDER BY display_order,name`).all().map(c=>({...c,is_active:!!c.is_active,items:rows.filter(i=>i.category_id===c.id)}) as unknown as Category);
+ const d=db();const rows=d.prepare(`SELECT * FROM items ${admin?'':'WHERE is_active=1 AND qr_visible=1'} ORDER BY display_order,name`).all().map(readItem);
+ return d.prepare(`SELECT * FROM categories ${admin?'':'WHERE is_active=1 AND qr_visible=1'} ORDER BY display_order,name`).all().map(c=>({...c,qr_visible:!!c.qr_visible,is_active:!!c.is_active,items:rows.filter(i=>i.category_id===c.id)}) as unknown as Category);
 }
 export function getCalls():WaiterCall[] {return db().prepare('SELECT * FROM waiter_calls WHERE resolved_at IS NULL OR id IN (SELECT id FROM waiter_calls WHERE resolved_at IS NOT NULL ORDER BY created_at DESC LIMIT 100) ORDER BY created_at DESC').all().map(row=>({...row})) as unknown as WaiterCall[];}
 export function transaction<T>(fn:()=>T):T { const d=db();d.exec('BEGIN IMMEDIATE');try {const r=fn();d.exec('COMMIT');return r;}catch(e){d.exec('ROLLBACK');throw e;} }

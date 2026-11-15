@@ -82,25 +82,13 @@ Kaynak menü görselleri depodaki `public/menu/` içindedir. Yeni fotoğraflar o
 
 Ürüne özel eklenen 12 temsili görsel, mevcut veritabanında boş veya bilinen geçici görsel alanlarına otomatik ve bir defa uygulanır. Panelden yüklediğiniz farklı görseller, ürün fiyatları ve diğer ayarlar korunur. Görsel kayıtları için [üretilen görseller](generated-images.md) belgesine bakın.
 
-## 7. Yedekleme
+## 7. Gün kapatma ve cari koruması
 
-Dokploy’da çalışan `menu` konteynerinin terminalini açıp çalıştırın:
+Bu işletmede zamanlanmış tam sistem yedeği kullanılmaz. Yönetici kendi satış/kasa arşivini aldıktan sonra Günlük kasa → Gün kapat işlemini yapar. Açık hesap veya bekleyen sipariş varsa kapatma engellenir. Cari hesaplar ve bağlı ürün/fiş detayları korunur; diğer tamamlanmış satışlar ve günlük kasa kayıtları temizlenir.
 
-```sh
-node scripts/backup.mjs
-```
+Gün kapatmada tek dosya olan `/app/data/cari-koruma.json` yenilenir. Yönetici Cari verilerini indir ile bu verileri dışarı alabilir. Menü, görseller, ayarlar ve çalışan kayıtları korunur. Ayrıntılı kullanım ve silme kapsamı [Gün kapatma rehberinde](GUN-KAPAT.md) açıklanır.
 
-Bu komut SQLite’ın çevrimiçi yedekleme API’siyle tutarlı bir veritabanı kopyası ve yüklenen görselleri `/app/data/backups/TARIH/` altında oluşturur. Kaynak fotoğraflar GitHub’da bulunduğundan yedekte tekrar saklanmaz. Disk alanını kontrol edin; eski yedekler otomatik silinmez.
-
-**Aynı sunucudaki kopya tek başına yeterli değildir.** Dokploy Volume Backups üzerinden `natura_data` volume’u için sunucu dışı S3 yedeği planlayın. Volume’un ham dosya yedeğini alırken yazmaları durdurun; çalışan veritabanının yalnız `.sqlite` dosyasını kopyalamayın. Üretilmiş tarihli yedek klasörü bağımsız ve tutarlıdır. Güvenli bir kopyayı ayrıca sunucu dışına indirin.
-
-Geri yükleme:
-
-1. Servisi durdurun; güncel verilerin ayrı yedeğini alın.
-2. Volume içindeki `natura.sqlite`, `natura.sqlite-wal` ve `natura.sqlite-shm` dosyalarını mevcut durum yedeğine taşıyın.
-3. Seçilen yedeğin `natura.sqlite` dosyasını `/app/data/natura.sqlite` konumuna, `uploads` klasörünü `/app/data/uploads` konumuna geri koyun.
-4. Dosya sahibinin konteynerdeki `node` kullanıcısı (`uid 1000`) olduğundan emin olun.
-5. Aynı `SESSION_SECRET` ile servisi başlatın; menüyü, giriş işlemini, bir görseli ve test masa çağrısını kontrol edin.
+Depodaki eski `scripts/backup.mjs` aracı yalnız elle çağrıldığında çalışır; uygulama onu otomatik başlatmaz. Çalıştırılması bu işletmenin seçili günlük akışının bir parçası değildir. Kalıcı volume’u silmeyin.
 
 ## Sorun giderme
 

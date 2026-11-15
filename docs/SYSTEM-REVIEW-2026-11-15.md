@@ -2,6 +2,8 @@
 
 15 Kasım 2026 · İncelenen uygulama sürümü: `56d8a75`.
 
+**Sonraki uygulama durumu:** Sharp 0.35.5 güncellemesi yapıldı; üretim bağımlılık denetimi sıfır uyarı verdi. Eski çalışan erişimi kapatıldı. Taslak kurtarma, ödeme türü düzeltme/iade, günlük kasa ve yöneticiyle gün kapatma eklendi. Çalışanlar kasiyer/garson/mutfak olarak kaydedilir fakat bütün yetkileri kapalıdır. İşletme tercihiyle otomatik tam yedekleme yapılmaz; gün kapatmada yalnız cari verileri korunur ve tek cari koruma dosyası yenilenir. Güncel kullanım [Gün kapatma rehberindedir](GUN-KAPAT.md). Aşağıdaki inceleme, belirtilen eski sürümün tarihsel bulgularını içerir.
+
 İstenen beş değişiklik GitHub’a yüklendikten sonra kaynak kod, üretim bağımlılıkları, ödeme/veri akışları, Docker yapısı, yedekten dönüş ve mobil tasarım incelendi. Aşağıdaki öneriler henüz uygulanmış özellikler değildir. Sunucuya yönetici erişimi kullanılmadı; canlı veritabanına sipariş, ödeme veya çağrı yazılmadı. İşlem testleri ayrı test veritabanlarında yapıldı.
 
 ## Sonuç

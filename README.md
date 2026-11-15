@@ -3,9 +3,12 @@
 Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme paneli. **Next.js 16 · React 19 · TypeScript · SQLite · Tailwind CSS 4 · shadcn/ui**.
 
 - Natura adı ve mevcut tipografik logosu korunur.
-- Masada tam ekran sipariş: bağımsız kaydırılabilen görselli kategori ve ürün blokları, tek panelde adisyon ve ödeme; telefonda Ürünler/Adisyon sekmeleri.
+- Masada tam ekran sipariş: bağımsız kaydırılabilen görselli kategori ve ürün blokları, tek panelde adisyon ve ödeme; telefonda kategoriler, ürünler ve siparişler aynı anda görünür.
 - Hesap adlı hızlı sipariş: masa seçmeden kasa satışı / paket servis; ödenmeyen hesapları Açık masalar içinde takip etme. Cari hesaplar, kapanan adisyonlar ve günlük kasa sol menüdedir.
-- Masalar: varsayılan Açık Masalar görünümü, onayla etkinleşen masa/sipariş taslağı, tek satırda ürün adedi, ürün ve adet bazında veya tutarla ödeme; menüyle senkron sipariş, fiyat anlık görüntüsü, parçalı nakit/kredi kartı/yemek kartı ödemesi, kalan tutarı cariye aktarma, %10/%20 indirim, boş masaya komple taşıma ve günlük kasa özeti.
+- Masalar: varsayılan Açık Masalar görünümü, onayla etkinleşen masa/sipariş taslağı, tek satırda ürün adedi, ürün ve adet bazında veya tutarla ödeme; menüyle senkron sipariş, fiyat anlık görüntüsü, parçalı nakit/kredi kartı/yemek kartı ödemesi, kalan tutarı cariye aktarma, %10/%20 indirim, boş masaya taşıma veya dolu masayla birleştirme ve günlük kasa özeti.
+- Cihazda 12 saatlik sipariş taslağı kurtarma; belirsiz ağ yanıtında işlem anahtarıyla kayıt kontrolü ve çift sipariş/ödeme/iade koruması.
+- Nedenli ödeme türü düzeltme, parasal iade, açılış kasası ve kasa giriş/çıkışı. Yöneticiyle gün kapatma; cari dışı tamamlanmış satışların temizlenmesi, cari fişlerin korunması. [Gün kapatma rehberi](docs/GUN-KAPAT.md).
+- Kasiyer, garson ve mutfak rolleriyle çalışan kaydı; tüm çalışan yetkileri ve eski çalışan girişi kapalı.
 - Cari hesap hareketlerinden eski adisyonun ürün ve ödeme detaylarına erişim; cari tahsilat kaydı.
 - Tek `/admin` yönetim ekranı; mobilde üç sütunlu ürün kartları, tek satırlık siparişler ve bağımsız kaydırılan bölümler. Müşterinin masa seçerek gönderdiği siparişler yönetimde onaylanır.
 - Tarayıcı üzerinden adisyon yazdırma: masadaki Yazdır düğmesi yazdırma ekranını açar. Seçilen kağıda uyumlu otomatik düzen, A4 ve Possify 80 mm seçenekleri; ek program gerekmez. [Adisyon kullanım rehberi](docs/ADISYON.md).
@@ -66,7 +69,7 @@ Orijinal görüntü dosyaları yeni yüklemelerde saklanmaz. WebP kalite ayarlar
 
 ## İşletim notları
 
-Tek örnek / tek sunucu kullanın. Müşterinin masa seçerek gönderdiği sipariş istekleri yönetici onayıyla adisyona eklenir. Uygulama banka/kart ödeme geçidi içermez; harici cihazda alınan ödemeleri kaydeder. Müşteri menüsündeki Garson çağır düğmesi şimdilik pasiftir. Çağrılar etkinleştirildiğinde yönetim paneli açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.
+Tek örnek / tek sunucu kullanın. Müşterinin masa seçerek gönderdiği sipariş istekleri yönetici onayıyla adisyona eklenir. Uygulama banka/kart ödeme geçidi içermez; harici cihazda alınan ödemeleri kaydeder. Müşteri menüsündeki Garson çağır düğmesi şimdilik pasiftir. Çağrılar etkinleştirildiğinde yönetim paneli açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Planlı tam yedekleme yapılmaz. Gün kapatmada yalnız cari koruma dosyası yenilenir; satış/kasa arşivini yönetici kendisi alır. Ayrıntılar gün kapatma rehberindedir.
 
 Yönetici şifresi Ayarlar bölümünden mevcut şifre doğrulanarak değiştirilebilir. Yeni şifrenin scrypt özeti kalıcı SQLite veritabanında saklanır; diğer oturumlar geçersizleşir. `ADMIN_PASSWORD` ilk giriş içindir; panelden değiştirilen şifre sonraki dağıtımlarda korunur.
 

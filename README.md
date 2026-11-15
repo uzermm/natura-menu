@@ -10,7 +10,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 - Ayrı garson hesapları (`/garson`), siparişte kullanıcı kaydı; müşterinin menüde masa seçerek gönderdiği siparişlerin kasa/garson onayıyla adisyona eklenmesi.
 - Tarayıcı üzerinden adisyon yazdırma: masadaki Yazdır düğmesi yazdırma ekranını açar. Seçilen kağıda uyumlu otomatik düzen, A4 ve Possify 80 mm seçenekleri; ek program gerekmez. [Adisyon kullanım rehberi](docs/ADISYON.md).
 - İsteğe bağlı kampanya banner’ı: menüden ürün/porsiyon seçimi, otomatik görsel ve üstü çizili normal fiyat, belirgin kampanya fiyatı, canlı önizleme ve aç/kapat kontrolü.
-- Telefonda dikey açılır kategoriler: ilk yüklemede tümü kapalıdır; dokunulan kategori açılır, ürünler altında listelenir ve aşağı kaydırılarak gezilir. Alttan açılan ürün ayrıntıları bulunur.
+- Telefonda dikey açılır kategoriler: ilk yüklemede tümü kapalıdır; dokunulan kategori açılır, ürünler altında listelenir ve aşağı kaydırılarak gezilir. Ürünler tıklama veya detay penceresi olmadan, açıklamaları ve varsa tüm porsiyon fiyatlarıyla doğrudan listelenir.
 - Masa numarası seçerek garson çağırma; masaya özel QR kod gerekmez. Yönetim panelinde periyodik kontrol ve kullanıcı tarafından açılan ses.
 - Ürün/kategori yönetimi, yukarı/aşağı sıralama, toplu fiyat güncelleme, stok/görünürlük, etiket, alerjen ve porsiyon seçenekleri.
 - Tek bir Menü yönetimi ekranında açılır kategoriler ve altlarında ürünler; kategori içinden ürün ekleme/düzenleme, kategoriye özel toplu fiyat güncelleme ve aramayla otomatik açılan sonuçlar.

@@ -4,6 +4,7 @@ export const addLineSchema=z.object({item_id:z.string().min(1).max(80),variant:z
 const base={ticket_id:id,version};
 const quick=z.object({service_type:z.enum(['counter','takeaway']),account_name:z.string().trim().max(120)});
 export const commandSchema=z.discriminatedUnion('action',[
+ z.object({action:z.literal('open_account'),account_id:id,ticket_note:note.optional(),lines:z.array(addLineSchema).min(1).max(100)}),
  z.object({action:z.literal('open'),table}),
  z.object({action:z.literal('open_order'),table,ticket_note:note.optional(),lines:z.array(addLineSchema).min(1).max(100)}),
  z.object({action:z.literal('open_quick'),...quick.shape,ticket_note:note.optional(),lines:z.array(addLineSchema).min(1).max(100).optional()}),

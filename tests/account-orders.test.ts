@@ -1,0 +1,37 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {DatabaseSync} from 'node:sqlite';
+import {initPos,executePos,ticket,accounts,saveAccount,openAccountTicket,outstandingAccountReceipts,collectAccount,accountHistory,posSummary,type PosCommand} from '../src/lib/pos-core.ts';
+import {businessDay,closePreview,closeBusinessDay,cariExport} from '../src/lib/pos-operations.ts';
+import {tableAgeTone} from '../src/lib/table-age.ts';
+function fixture(){const d=new DatabaseSync(':memory:');d.exec(`PRAGMA foreign_keys=ON;CREATE TABLE settings(id INTEGER PRIMARY KEY,value TEXT);INSERT INTO settings VALUES(1,'{"table_count":35}');CREATE TABLE categories(id TEXT PRIMARY KEY,is_active INTEGER);INSERT INTO categories VALUES('food',1);CREATE TABLE items(id TEXT PRIMARY KEY,category_id TEXT,name TEXT,price INTEGER,variants TEXT,is_active INTEGER,sold_out INTEGER);INSERT INTO items VALUES('tea','food','Çay',2000,'[]',1,0);`);initPos(d);const a=saveAccount(d,{name:'Firma',phone:'',note:'',is_active:true},'Kasa');return {d,a};}
+const lines=(quantity:number)=>[{item_id:'tea',quantity,variant:'',note:''}];
+const run=(d:DatabaseSync,c:PosCommand)=>executePos(d,randomUUID(),c);
+test('table colour boundaries are shared at 20 and 45 minutes',()=>{assert.equal(tableAgeTone(0),'green');assert.equal(tableAgeTone(20*60000-1),'green');assert.equal(tableAgeTone(20*60000),'yellow');assert.equal(tableAgeTone(45*60000),'yellow');assert.equal(tableAgeTone(45*60000+1),'red');});
+test('cari order keeps unpaid items, merges repeated additions and supports partial item settlement',()=>{const {d,a}=fixture();try{
+ assert.equal(openAccountTicket(d,a.id),null);const key=randomUUID(),c:PosCommand={action:'open_account',account_id:a.id,lines:lines(4)};let t=executePos(d,key,c);assert.equal(executePos(d,key,c).id,t.id);assert.equal(t.linked_account_id,a.id);assert.equal(t.table_number,null);assert.equal(accounts(d)[0].balance,8000);
+ assert.throws(()=>run(d,c),/başka bir cihaz/);t=run(d,{action:'add',ticket_id:t.id,version:t.version,lines:lines(2)});assert.equal(t.lines.length,1);assert.equal(t.lines[0].quantity,6);assert.equal(accounts(d)[0].balance,12000);
+ t=run(d,{action:'pay_items',ticket_id:t.id,version:t.version,items:[{line_id:t.lines[0].id,quantity:2}],method:'cash',reference:''});assert.equal(t.status,'open');assert.equal(t.remaining,8000);assert.equal(t.lines[0].paid_quantity,2);assert.equal(accounts(d)[0].balance,8000);
+ t=run(d,{action:'add',ticket_id:t.id,version:t.version,lines:lines(1)});assert.equal(t.lines[0].quantity,7);assert.equal(openAccountTicket(d,a.id)!.remaining,10000);
+ assert.throws(()=>run(d,{action:'move',ticket_id:t.id,version:t.version,table:1}),/Cari siparişinin/);assert.throws(()=>run(d,{action:'pay',ticket_id:t.id,version:t.version,method:'account',account_id:a.id,amount:1000,reference:'',close:false}),/Cari siparişinin/);
+ assert.equal(accounts(d)[0].balance,10000);assert.ok(accountHistory(d,a.id).some(e=>e.ticket_id===t.id));
+}finally{d.close();}});
+test('open cari order survives day close and init, retains prices and items until fully closed',()=>{const {d,a}=fixture();try{
+ let t=run(d,{action:'open_account',account_id:a.id,lines:lines(3)}),p=closePreview(d);assert.equal(p.open_count,0);let snapshot:ReturnType<typeof cariExport>|undefined;closeBusinessDay(d,{request_id:randomUUID(),day_id:p.day.day_id,revision:p.revision,counted_cash:0,note:''},v=>{snapshot=v;});assert.equal(snapshot!.tables.lines.length,1);initPos(d);assert.equal(openAccountTicket(d,a.id)!.lines[0].quantity,3);assert.equal(accounts(d)[0].balance,6000);
+ d.prepare("UPDATE items SET price=2500 WHERE id='tea'").run();t=ticket(d,t.id);t=run(d,{action:'add',ticket_id:t.id,version:t.version,lines:lines(1)});assert.equal(t.lines.length,2);assert.equal(t.lines[0].unit_price,2000);assert.equal(t.lines[1].unit_price,2500);assert.equal(accounts(d)[0].balance,8500);
+ t=run(d,{action:'pay',ticket_id:t.id,version:t.version,method:'card',amount:8500,reference:'',close:true});assert.equal(t.status,'closed');assert.equal(accounts(d)[0].balance,0);assert.equal(openAccountTicket(d,a.id),null);p=closePreview(d);closeBusinessDay(d,{request_id:randomUUID(),day_id:businessDay(d).day_id,revision:p.revision,counted_cash:0,note:''},()=>{});assert.equal(ticket(d,t.id).lines.length,2);assert.equal(posSummary(d).today.card,0);
+}finally{d.close();}});
+test('cari collections split legacy debt and live order without double counting cash or debt',()=>{const {d,a}=fixture();try{
+ let old=run(d,{action:'open_order',table:1,lines:lines(2)});run(d,{action:'pay',ticket_id:old.id,version:old.version,method:'account',account_id:a.id,amount:4000,reference:'',close:true});const t=run(d,{action:'open_account',account_id:a.id,lines:lines(4)});assert.equal(accounts(d)[0].balance,12000);
+ const key=randomUUID();collectAccount(d,a.id,6000,'cash','Tahsilat',key,'Kasa');collectAccount(d,a.id,6000,'cash','Tahsilat',key,'Kasa');assert.equal(accounts(d)[0].balance,6000);assert.equal(ticket(d,t.id).remaining,6000);assert.equal(posSummary(d).today.cash,6000);
+ const entries=accountHistory(d,a.id);assert.equal(entries.reduce((sum,e)=>sum+e.amount,0),6000);assert.ok(entries.some(e=>e.ticket_id===old.id));assert.ok(entries.some(e=>e.ticket_id===t.id));assert.throws(()=>collectAccount(d,a.id,6001,'cash','',randomUUID(),'Kasa'));
+ assert.equal(outstandingAccountReceipts(d,a.id).length,0);
+}finally{d.close();}});
+test('legacy transferred receipts retain their product snapshots and exact remaining balance after amount collections',()=>{const {d,a}=fixture();try{
+ const old=run(d,{action:'open_order',table:1,lines:lines(4)});run(d,{action:'pay',ticket_id:old.id,version:old.version,method:'account',account_id:a.id,amount:8000,reference:'',close:true});collectAccount(d,a.id,2300,'card','Eski tahsilat',randomUUID(),'Kasa');const rows=outstandingAccountReceipts(d,a.id);assert.equal(rows.length,1);assert.equal(rows[0].remaining,5700);assert.equal(rows[0].ticket.lines[0].quantity,4);assert.equal(rows[0].ticket.lines[0].unit_price,2000);const p=closePreview(d);closeBusinessDay(d,{request_id:randomUUID(),day_id:p.day.day_id,revision:p.revision,counted_cash:0,note:''},()=>{});assert.equal(outstandingAccountReceipts(d,a.id)[0].remaining,5700);
+}finally{d.close();}});
+test('correction and refund on cari payments preserve balance, and closed cari cannot be added to',()=>{const {d,a}=fixture();try{
+ let t=run(d,{action:'open_account',account_id:a.id,lines:lines(4)});t=run(d,{action:'pay',ticket_id:t.id,version:t.version,method:'cash',amount:2000,reference:'',close:false});t=run(d,{action:'correct_payment',ticket_id:t.id,version:t.version,payment_id:t.payments[0].id,method:'card',reason:'Kart'});assert.equal(accounts(d)[0].balance,6000);
+ t=run(d,{action:'refund',ticket_id:t.id,version:t.version,payment_id:t.payments[1].id,amount:1000,reason:'İade'});assert.equal(accounts(d)[0].balance,6000);assert.equal(t.remaining,6000);t=run(d,{action:'pay',ticket_id:t.id,version:t.version,method:'cash',amount:6000,reference:'',close:true});assert.equal(accounts(d)[0].balance,0);assert.throws(()=>run(d,{action:'add',ticket_id:t.id,version:t.version,lines:lines(1)}),/kapatılmış/);assert.equal(d.prepare('PRAGMA foreign_key_check').all().length,0);
+}finally{d.close();}});

@@ -33,6 +33,9 @@ export function initPos(d:DatabaseSync){d.exec(`
   if(!columns.some(c=>c.name==='merged_into'))d.exec('ALTER TABLE pos_tickets ADD COLUMN merged_into TEXT REFERENCES pos_tickets(id)');
   if(!columns.some(c=>c.name==='merge_snapshot'))d.exec('ALTER TABLE pos_tickets ADD COLUMN merge_snapshot TEXT');
   if(!columns.some(c=>c.name==='account_name'))d.exec("ALTER TABLE pos_tickets ADD COLUMN account_name TEXT NOT NULL DEFAULT ''");
+  if(!columns.some(c=>c.name==='linked_account_id'))d.exec('ALTER TABLE pos_tickets ADD COLUMN linked_account_id TEXT REFERENCES pos_accounts(id)');
+  d.exec("CREATE UNIQUE INDEX IF NOT EXISTS pos_open_account ON pos_tickets(linked_account_id) WHERE status='open' AND linked_account_id IS NOT NULL");
+  d.exec('CREATE INDEX IF NOT EXISTS pos_account_tickets ON pos_tickets(linked_account_id) WHERE linked_account_id IS NOT NULL');
   const index=d.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='one_open_ticket_per_table'").get();
   if(!String(index?.sql||'').includes('service_type'))d.exec("DROP INDEX IF EXISTS one_open_ticket_per_table; CREATE UNIQUE INDEX one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open' AND service_type='table'");
   d.exec('CREATE INDEX IF NOT EXISTS pos_open_service ON pos_tickets(status,service_type,opened_at)');initOperations(d);
@@ -80,6 +83,7 @@ function appendLine(d:DatabaseSync,id:string,line:AddLine,source:OrderSource,act
  const lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());return lineId;
 }
 export type PosCommand=(
+ |{action:'open_account';account_id:string;lines:AddLine[];ticket_note?:string}
  |{action:'open';table:number}
  |{action:'open_order';table:number;lines:AddLine[];ticket_note?:string}
  |{action:'open_quick';service_type:'counter'|'takeaway';account_name:string;lines?:AddLine[];ticket_note?:string}
@@ -104,6 +108,13 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
   if(previous){if(previous.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return ticket(d,String(previous.result));}
   let id:string;
   if(command.action==='open')id=createTicket(d,command.table,actor);
+  else if(command.action==='open_account'){
+   const account=d.prepare('SELECT name FROM pos_accounts WHERE id=? AND is_active=1').get(command.account_id);if(!account)throw new PosError('Aktif cari hesap seçin.');
+   if(openAccountTicket(d,command.account_id))throw new PosError('Cari siparişi başka bir cihazda açılmış. Güncel hesabı kontrol edin.',409);
+   if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');
+   id=createQuickTicket(d,{service_type:'counter',account_name:String(account.name)},actor);d.prepare('UPDATE pos_tickets SET linked_account_id=? WHERE id=?').run(command.account_id,id);
+   for(const line of command.lines)appendLine(d,id,line,source,actor);
+  }
   else if(command.action==='open_order'){
    tableRange(d,command.table);if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table))throw new PosError('Masa başka bir cihazda açılmış. Güncel adisyonu kontrol edin.',409);
    if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');id=createTicket(d,command.table,actor);for(const line of command.lines)appendLine(d,id,line,source,actor);
@@ -114,6 +125,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
   }
   else{
    id=command.ticket_id;const financial=command.action==='refund'||command.action==='correct_payment',t=financial?ticket(d,id):editable(d,id,command.version);if(t.version!==command.version)throw new PosError('Adisyon değişti. Güncel halini kontrol edin.',409);
+   if(t.linked_account_id&&(command.quick||command.action==='label'||command.action==='move'||('method' in command&&command.method==='account')))throw new PosError('Cari siparişinin hesabı değiştirilemez; ödemeyi nakit veya kart ile alın.');
    if(command.quick){if(t.service_type==='table')throw new PosError('Masa adisyonuna hızlı sipariş bilgisi eklenemez.');const meta=quickMetadata(command.quick);d.prepare('UPDATE pos_tickets SET account_name=?,service_type=? WHERE id=?').run(meta.account_name,meta.service_type,id);t.account_name=meta.account_name;t.service_type=meta.service_type;}
    if(command.action==='refund'||command.action==='correct_payment'){adjustPayment(d,t,command,actor);}
    else if(command.action==='label'){
@@ -176,14 +188,38 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
   d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return ticket(d,id);
  });
 }
-export function accounts(d:DatabaseSync):Account[]{return d.prepare('SELECT a.*,COALESCE(SUM(l.amount),0) AS balance FROM pos_accounts a LEFT JOIN pos_ledger l ON l.account_id=a.id GROUP BY a.id ORDER BY a.name COLLATE NOCASE').all().map(row=>({...row,is_active:!!row.is_active})) as unknown as Account[];}
-export function accountHistory(d:DatabaseSync,id:string){if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);return d.prepare('SELECT * FROM pos_ledger WHERE account_id=? ORDER BY created_at DESC,rowid DESC').all(id) as unknown as AccountEntry[];}
+export function openAccountTicket(d:DatabaseSync,id:string):Ticket|null{if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);const row=d.prepare("SELECT id FROM pos_tickets WHERE linked_account_id=? AND status='open'").get(id);return row?ticket(d,String(row.id)):null;}
+export function outstandingAccountReceipts(d:DatabaseSync,id:string){
+ if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);
+ // Old amount-based collections have no item allocation. Apply those to oldest
+ // receipt balances, while retaining each original receipt and its product details.
+ const debts=d.prepare('SELECT l.ticket_id,SUM(l.amount) AS amount,MIN(l.created_at) AS created_at FROM pos_ledger l WHERE l.account_id=? GROUP BY l.ticket_id ORDER BY created_at,l.ticket_id').all(id);
+ let credit=debts.reduce((sum,r)=>sum+Math.max(0,-Number(r.amount)),0);
+ return debts.flatMap(r=>{if(!r.ticket_id||Number(r.amount)<=0)return [];const amount=Number(r.amount),covered=Math.min(credit,amount);credit-=covered;return amount>covered?[{ticket:ticket(d,String(r.ticket_id)),remaining:amount-covered}]:[];});
+}
+export function accounts(d:DatabaseSync):Account[]{return d.prepare(`SELECT a.*,COALESCE((SELECT SUM(l.amount) FROM pos_ledger l WHERE l.account_id=a.id),0) AS ledger_balance,
+ COALESCE((SELECT SUM((SELECT COALESCE(SUM(l.quantity*l.unit_price),0) FROM pos_lines l WHERE l.ticket_id=t.id AND l.voided_at IS NULL)-t.discount
+ -(SELECT COALESCE(SUM(p.amount),0) FROM pos_payments p WHERE p.ticket_id=t.id)
+ +(SELECT COALESCE(SUM(r.amount),0) FROM pos_payment_adjustments r JOIN pos_payments p ON p.id=r.payment_id WHERE p.ticket_id=t.id AND r.kind='correction')) FROM pos_tickets t WHERE t.linked_account_id=a.id AND t.status='open'),0) AS order_balance
+ FROM pos_accounts a ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
+export function accountHistory(d:DatabaseSync,id:string){
+ if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);
+ const entries=d.prepare('SELECT * FROM pos_ledger WHERE account_id=? ORDER BY created_at DESC,rowid DESC').all(id) as unknown as AccountEntry[];
+ for(const row of d.prepare('SELECT id FROM pos_tickets WHERE linked_account_id=?').all(id)){
+  const t=ticket(d,String(row.id));entries.push({id:t.id,account_id:id,ticket_id:t.id,amount:t.total,method:'account',note:`Cari siparişi #${t.number} · ${t.status==='open'?`Kalan ${t.remaining/100} ₺`:'Kapandı'}`,actor:'Kasa',created_at:t.opened_at});
+  for(const p of t.payments)if((p.net_amount??p.amount)>0)entries.push({id:p.id,account_id:id,ticket_id:t.id,amount:-(p.net_amount??p.amount),method:p.method,note:p.reference||`Cari sipariş tahsilatı #${t.number}`,actor:p.actor,created_at:p.created_at});
+ }
+ return entries.sort((a,b)=>b.created_at.localeCompare(a.created_at));
+}
 export function saveAccount(d:DatabaseSync,input:{id?:string;name:string;phone:string;note:string;is_active:boolean},actor:string){return atomic(d,()=>{const id=input.id||randomUUID();if(input.id&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);d.prepare('INSERT INTO pos_accounts VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,note=excluded.note,is_active=excluded.is_active').run(id,input.name,input.phone,input.note,Number(input.is_active));event(d,null,'account_save',actor,{...input,id});return accounts(d).find(a=>a.id===id)!;});}
 export function collectAccount(d:DatabaseSync,id:string,value:number,method:Exclude<PaymentMethod,'account'>,note:string,requestId:string,actor:string){return atomic(d,()=>{
  rejectExpiredRequest(d,requestId);const payload=JSON.stringify({id,value,method,note,actor}),old=d.prepare('SELECT payload FROM pos_requests WHERE id=?').get(requestId);
  if(old){if(old.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return accounts(d).find(a=>a.id===id)!;}
  amount(value);const a=accounts(d).find(a=>a.id===id);if(!a)throw new PosError('Cari hesap bulunamadı.',404);if(value>a.balance)throw new PosError('Tahsilat cari bakiyesini aşamaz.');
- d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),id,null,-value,method,note,actor,new Date().toISOString(),businessDay(d).day_id);event(d,null,'account_collect',actor,{id,value,method,note});
+ const legacy=Math.max(0,Number(d.prepare('SELECT COALESCE(SUM(amount),0) AS n FROM pos_ledger WHERE account_id=?').get(id)!.n)),ledgerPart=Math.min(value,legacy),orderPart=value-ledgerPart,now=new Date().toISOString(),day=businessDay(d).day_id;
+ if(ledgerPart)d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),id,null,-ledgerPart,method,note,actor,now,day);
+ if(orderPart){const t=openAccountTicket(d,id);if(!t||orderPart>t.remaining)throw new PosError('Cari siparişi değişmiş. Hesabı yenileyin.',409);d.prepare('INSERT INTO pos_payments(id,ticket_id,method,amount,account_id,reference,actor,created_at,day_id) VALUES(?,?,?,?,NULL,?,?,?,?)').run(randomUUID(),t.id,method,orderPart,note,actor,now,day);bump(d,t.id);event(d,t.id,'account_order_collect',actor,{amount:orderPart,method,note});}
+ event(d,null,'account_collect',actor,{id,value,method,note});
  d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return accounts(d).find(a=>a.id===id)!;
 });}
 export function posSummary(d:DatabaseSync):PosSummary{

@@ -29,11 +29,19 @@ Cari ödemesinin iadesi ilgili hesabın borcunu azaltır. Önceden tahsil edilmi
 
 1. Açık masaları ve hızlı siparişleri tamamlayın. Kalan tutarı tahsil edin veya cariye aktarın; hesabı kapatın. Onay bekleyen müşteri siparişlerini sonuçlandırın.
 2. **Günlük kasa → Gün kapat** düğmesine basın.
-3. Açık hesap ve bekleyen sipariş sayısı sıfır olmalıdır. Silinecek adisyon ve korunacak cari bağlantılı adisyon sayısını kontrol edin.
+3. Açık masa/hızlı sipariş ve bekleyen müşteri siparişi sayısı sıfır olmalıdır. Cari içindeki açık ürün hesapları bu engelin dışında tutulur ve korunur. Silinecek adisyon ve korunacak cari bağlantılı adisyon sayısını kontrol edin.
 4. Kasada saydığınız nakdi girin. Beklenen tutardan farklıysa fark nedenini yazın.
 5. Onay alanına **GÜNÜ KAPAT** yazıp işlemi tamamlayın.
 
-Gün özeti başka cihazda değişmişse yeniden kontrol etmeniz istenir. Açık hesap veya bekleyen sipariş varken silme yapılmaz. Cari koruma dosyası yazılamazsa da işlem durur ve satışlar silinmez. Kapatma isteğinin tekrarı yeni günün kayıtlarını tekrar temizlemez.
+Gün özeti başka cihazda değişmişse yeniden kontrol etmeniz istenir. Açık masa/hızlı sipariş veya bekleyen müşteri siparişi varken silme yapılmaz. Cari koruma dosyası yazılamazsa da işlem durur ve satışlar silinmez. Kapatma isteğinin tekrarı yeni günün kayıtlarını tekrar temizlemez.
+
+## Cari siparişleri
+
+Cari hesap kartı, masalarda kullanılan sipariş ekranını açar. Onaylanan ürünler cariye bağlı açık adisyonda saklanır; yeniden girildiğinde aynı ürünler ve ödenmemiş adetler görünür. Yeni ürünler bu hesaba eklenir. Nakit, kredi kartı veya yemek kartıyla ürün/adet ya da tutar üzerinden ödeme alınabilir. Tam ödeme ve hesap kapatmadan sonra yeni ürün girişi yeni bir cari adisyonu başlatır; geçmiş fişler korunur.
+
+Toplam cari bakiyesi, eski borç hareketleriyle doğrudan girilen cari siparişinin kalan tutarını birlikte içerir. **Hareketler** bölümünde düzenleme, toplam bakiye için tahsilat ve geçmiş fişlere erişim bulunur. Buradan alınan tahsilat önce eski aktarılmış borca, sonra açık cari siparişine uygulanır; aynı tahsilat kasaya iki kez yazılmaz. Eski tutar ödemelerinde ürün/adet ayrımı bulunmadığından, eski fişlerin ürünleri özgün halleriyle ve fişten kalan borçla gösterilir; ürünlere tahmini ödenmiş adet atanmaz.
+
+Açık cari siparişi gün kapatıldığında da ürün, fiyat, not ve kısmi ödemeleriyle saklanır. Yeni gün bu cariye eklenen ürünler güncel menü fiyatıyla eklenir; önceki ürünün kaydedilmiş fiyatı değişmez. Cari hesap bakiyesi sıfırlanmaz.
 
 ### Korunanlar
 

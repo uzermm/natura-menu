@@ -9,6 +9,14 @@ function fixture(){
  const d=new DatabaseSync(':memory:');d.exec(`PRAGMA foreign_keys=ON;CREATE TABLE settings(id INTEGER PRIMARY KEY,value TEXT);INSERT INTO settings VALUES(1,'{"table_count":35}');CREATE TABLE categories(id TEXT PRIMARY KEY,is_active INTEGER);INSERT INTO categories VALUES('food',1);CREATE TABLE items(id TEXT PRIMARY KEY,category_id TEXT,name TEXT,price INTEGER,variants TEXT,is_active INTEGER,sold_out INTEGER);INSERT INTO items VALUES('tea','food','Çay',2000,'[]',1,0),('coffee','food','Türk Kahvesi',10000,'[]',1,0),('toast','food','Tost',15000,'[{"name":"Büyük","price":18000}]',1,0);`);initPos(d);return d;
 }
 const run=(d:DatabaseSync,c:PosCommand)=>executePos(d,randomUUID(),c);
+test('table notes are saved atomically with orders and checkout, including the closing payment',()=>{
+ const d=fixture();try{
+ let t=run(d,{action:'open_order',table:1,ticket_note:'  Cam kenarı  ',lines:[{item_id:'tea',variant:'',quantity:4,note:''}]});assert.equal(t.note,'Cam kenarı');
+ assert.throws(()=>run(d,{action:'add',ticket_id:t.id,version:t.version,ticket_note:'Kaydedilmemeli',lines:[{item_id:'missing',variant:'',quantity:1,note:''}]}));assert.equal(ticket(d,t.id).note,'Cam kenarı');
+ t=run(d,{action:'discount',ticket_id:t.id,version:t.version,amount:800,note:'%10',ticket_note:'Doğum günü'});assert.equal(t.note,'Doğum günü');
+ t=run(d,{action:'pay_items',ticket_id:t.id,version:t.version,method:'cash',items:[{line_id:t.lines[0].id,quantity:4}],reference:'',ticket_note:'Son masa notu'});assert.equal(t.status,'closed');assert.equal(t.note,'Son masa notu');assert.equal(ticket(d,t.id).note,'Son masa notu');
+ }finally{d.close();}
+});
 test('confirmation opens a table atomically and duplicate product additions increase one row',()=>{
  const d=fixture();try{
  const line={item_id:'tea',variant:'',quantity:1,note:''};

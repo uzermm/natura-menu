@@ -30,8 +30,9 @@ export function PosPanel({categories,tableCount,role='admin',view='pos'}:{catego
  async function command(command:PosCommand){
   if('ticket_id' in command&&command.ticket_id.startsWith('draft-')){
    if(!current||current.id!==command.ticket_id)throw Error('Hızlı sipariş taslağı bulunamadı.');
-   if(command.action==='add')command=current.service_type==='table'?{action:'open_order',table:current.table_number!,lines:command.lines}:{action:'open_quick',service_type:command.quick?.service_type||'counter',account_name:command.quick?.account_name||'',lines:command.lines};
-   else if(command.action==='label'){const updated={...current,account_name:command.account_name.trim(),service_type:command.service_type};setArchived(updated);return updated;}
+   if(command.action==='add')command=current.service_type==='table'?{action:'open_order',table:current.table_number!,lines:command.lines,ticket_note:command.ticket_note??current.note}:{action:'open_quick',service_type:command.quick?.service_type||'counter',account_name:command.quick?.account_name||'',lines:command.lines,ticket_note:command.ticket_note??current.note};
+   else if(command.action==='note'){const updated={...current,note:command.note.trim()};setArchived(updated);return updated;}
+   else if(command.action==='label'){const updated={...current,account_name:command.account_name.trim(),service_type:command.service_type,note:command.ticket_note??current.note};setArchived(updated);return updated;}
    else throw Error('Önce siparişe ürün ekleyin.');
   }
   const payload=JSON.stringify(command);if(requestRef.current?.payload!==payload)requestRef.current={payload,id:crypto.randomUUID()};

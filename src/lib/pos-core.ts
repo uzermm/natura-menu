@@ -74,10 +74,10 @@ function appendLine(d:DatabaseSync,id:string,line:AddLine,source:OrderSource,act
 }
 export type PosCommand=(
  |{action:'open';table:number}
- |{action:'open_order';table:number;lines:AddLine[]}
- |{action:'open_quick';service_type:'counter'|'takeaway';account_name:string;lines?:AddLine[]}
+ |{action:'open_order';table:number;lines:AddLine[];ticket_note?:string}
+ |{action:'open_quick';service_type:'counter'|'takeaway';account_name:string;lines?:AddLine[];ticket_note?:string}
  |{action:'label';ticket_id:string;version:number;service_type:'counter'|'takeaway';account_name:string}
- |{action:'add';ticket_id:string;version:number;lines:AddLine[]}
+ |{action:'add';ticket_id:string;version:number;lines:AddLine[];ticket_note?:string}
  |{action:'quantity';ticket_id:string;version:number;line_id:string;quantity:number}
  |{action:'void';ticket_id:string;version:number;line_id:string;reason:string}
  |{action:'discount';ticket_id:string;version:number;amount:number;note:string}
@@ -85,7 +85,7 @@ export type PosCommand=(
  |{action:'move';ticket_id:string;version:number;table:number}
  |{action:'pay';ticket_id:string;version:number;method:PaymentMethod;amount:number;account_id?:string;reference:string;close:boolean}
  |{action:'pay_items';ticket_id:string;version:number;method:PaymentMethod;items:{line_id:string;quantity:number}[];account_id?:string;reference:string}
- |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata};
+ |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata;ticket_note?:string};
 export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,actor='Kasa',source:OrderSource='cashier'):Ticket{
  return atomic(d,()=>{
   const payload=JSON.stringify({command,actor,source}),previous=d.prepare('SELECT payload,result FROM pos_requests WHERE id=?').get(requestId);
@@ -146,6 +146,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
    }
    bump(d,id);event(d,id,command.action,actor,{command,before:{table:t.table_number,total:t.total,paid:t.paid}});
   }
+  if('ticket_note' in command&&command.ticket_note!==undefined){if(typeof command.ticket_note!=='string'||command.ticket_note.trim().length>500)throw new PosError('Not en fazla 500 karakter olabilir.');d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.ticket_note.trim(),id);}
   d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return ticket(d,id);
  });
 }

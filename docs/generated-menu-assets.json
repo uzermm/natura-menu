@@ -1,0 +1,109 @@
+{
+  "generated_with": "Built-in image generation",
+  "representative": true,
+  "format": "WebP",
+  "large_width": 1000,
+  "thumbnail_width": 480,
+  "assets": [
+    {
+      "key": "damacana",
+      "image_url": "/menu/ai-damacana-v2.webp",
+      "prompt": "Use case: product-mockup. Representative photo for a Turkish bistro category Damacana: unbranded transparent blue 19-liter refillable water carboy, blue cap, pale stone tabletop, soft natural light, square centered full product with margin, no text or logos."
+    },
+    {
+      "key": "pizza-margarita",
+      "image_url": "/menu/ai-pizza-margarita-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative photo for a Turkish bistro menu. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, a simple white ceramic plate. Square composition: one whole round pizza fully visible with a generous clean margin, camera angled 45 degrees from above. Thin-to-medium golden baked crust, real appetizing food textures. No lettering, logo, watermark, cutlery, hands, drinks, or collage. Subject: Margherita pizza: tomato sauce and melted mozzarella, a few fresh basil leaves. No meat, no mushrooms, no vegetables other than tomato and basil."
+    },
+    {
+      "key": "pizza-vegi",
+      "image_url": "/menu/ai-pizza-vegi-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative photo for a Turkish bistro menu. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, a simple white ceramic plate. Square composition: one whole round pizza fully visible with a generous clean margin, camera angled 45 degrees from above. Thin-to-medium golden baked crust, real appetizing food textures. No lettering, logo, watermark, cutlery, hands, drinks, or collage. Subject: vegetarian pizza: tomato sauce, melted mozzarella, green and red bell pepper, sliced mushrooms, black olive rings, sweet corn. Absolutely no meat or fish."
+    },
+    {
+      "key": "pizza-kavurmali",
+      "image_url": "/menu/ai-pizza-kavurmali-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative photo for a Turkish bistro menu. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, a simple white ceramic plate. Square composition: one whole round pizza fully visible with a generous clean margin, camera angled 45 degrees from above. Thin-to-medium golden baked crust, real appetizing food textures. No lettering, logo, watermark, cutlery, hands, drinks, or collage. Subject: Turkish kavurma pizza with tender browned cubes of slow-cooked beef kavurma distributed over melted mozzarella and tomato sauce, a few slim green pepper slices. Show recognizable cooked beef cubes, not salami or sausage."
+    },
+    {
+      "key": "pizza-karisik",
+      "image_url": "/menu/ai-pizza-karisik-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative photo for a Turkish bistro menu. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, a simple white ceramic plate. Square composition: one whole round pizza fully visible with a generous clean margin, camera angled 45 degrees from above. Thin-to-medium golden baked crust, real appetizing food textures. No lettering, logo, watermark, cutlery, hands, drinks, or collage. Subject: Turkish mixed pizza: melted mozzarella and tomato sauce with distinct Turkish sucuk slices, a little beef salami, mushroom slices, green pepper, black olive rings and sweet corn, balanced toppings."
+    },
+    {
+      "key": "pizza-dort-peynir",
+      "image_url": "/menu/ai-pizza-dort-peynir-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: four-cheese pizza with distinct melted mozzarella, Turkish kaşar, golden cheddar and small blue-cheese crumbles. Cheese is the only topping. No meat, mushrooms, olives or vegetables."
+    },
+    {
+      "key": "pizza-sucuklu",
+      "image_url": "/menu/ai-pizza-sucuklu-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: Turkish sucuk pizza: sliced Turkish beef garlic sausage (sucuk), dark red-brown round slices with a visibly coarse sausage texture, melted mozzarella and tomato sauce. No other toppings."
+    },
+    {
+      "key": "pizza-ton-balikli",
+      "image_url": "/menu/ai-pizza-ton-balikli-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: tuna pizza with clearly visible flaky cooked tuna chunks, melted mozzarella, tomato sauce and a few thin red onion rings. No sausage, no shellfish, no whole fish."
+    },
+    {
+      "key": "pizza-mantarli",
+      "image_url": "/menu/ai-pizza-mantarli-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: mushroom pizza covered with sliced brown and white button mushrooms, melted mozzarella and tomato sauce. No meat, peppers, olives or corn."
+    },
+    {
+      "key": "pizza-salamli",
+      "image_url": "/menu/ai-pizza-salamli-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: beef salami pizza with thin pale rose-pink round beef salami slices, melted mozzarella and tomato sauce. Salami slices have fine texture, not dark Turkish sucuk. No other toppings."
+    },
+    {
+      "key": "pizza-sut-misirli",
+      "image_url": "/menu/ai-pizza-sut-misirli-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro menu photograph. Photorealistic professional food photography, warm natural daylight, pale neutral stone table, simple white ceramic plate. Square image, one whole round pizza completely visible with a clean margin, 45 degree camera from above, appetizing thin-to-medium golden crust and realistic baked textures. No text, labels, logos, watermark, hands, cutlery or drinks. Subject: sweet corn pizza, plentiful bright yellow tender sweet corn kernels over melted mozzarella and tomato sauce. No meat, mushrooms, olives or peppers."
+    },
+    {
+      "key": "oyuncak",
+      "image_url": "/menu/ai-oyuncak-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro POS/menu photograph. Photorealistic professional commercial photography, warm natural window light, pale neutral stone tabletop, softly blurred light background. Square centered composition with clean margins around all objects, no cropped subject. No lettering, labels, logos, watermark, hands or people. Subject: a small tidy assortment of generic colorful children's toys: a little red toy car, a few wooden building blocks and a small colorful spinning top. Unbranded retail toy still life, convincing real materials. No food and no packaging or prices."
+    },
+    {
+      "key": "kuruyemis-tabagi",
+      "image_url": "/menu/ai-kuruyemis-tabagi-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro POS/menu photograph. Photorealistic professional commercial photography, warm natural window light, pale neutral stone tabletop, softly blurred light background. Square centered composition with clean margins around all objects, no cropped subject. No lettering, labels, logos, watermark, hands or people. Subject: one shallow white ceramic plate of mixed roasted nuts: hazelnuts, almonds, cashews, pistachios, peanuts and a few roasted chickpeas. Real Turkish cafe kuruyemiş tabağı, clearly visible natural nut textures, no dried fruit or candy."
+    },
+    {
+      "key": "kurabiye-tabagi",
+      "image_url": "/menu/ai-kurabiye-tabagi-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro POS/menu photograph. Photorealistic professional commercial photography, warm natural window light, pale neutral stone tabletop, softly blurred light background. Square centered composition with clean margins around all objects, no cropped subject. No lettering, labels, logos, watermark, hands or people. Subject: one white ceramic plate of assorted small fresh baked Turkish tea-time cookies: golden butter cookies, cocoa cookies, a few sesame-coated shortbread cookies and small jam-center cookies. Inviting realistic bakery textures, no nuts plate, no drinks."
+    },
+    {
+      "key": "ekstralar",
+      "image_url": "/menu/ai-ekstralar-v2.webp",
+      "prompt": "Use case: product-mockup. Asset: representative Turkish bistro POS/menu photograph. Photorealistic professional commercial photography, warm natural window light, pale neutral stone tabletop, softly blurred light background. Square centered composition with clean margins around all objects, no cropped subject. No lettering, labels, logos, watermark, hands or people. Subject: two small white ceramic dishes arranged together: one with assorted roasted mixed nuts, the other with small golden butter and cocoa cookies, representing a Turkish cafe extras/snack category. Both dishes entirely visible and recognizable, balanced simple composition, no unrelated meals or drinks."
+    }
+  ],
+  "categories": {
+    "DAMACANA": "damacana",
+    "PİZZALAR": "pizza-karisik",
+    "OYUNCAK": "oyuncak",
+    "EKSTRALAR": "ekstralar"
+  },
+  "products": {
+    "Saka": "damacana",
+    "Margaritta": "pizza-margarita",
+    "Vegi": "pizza-vegi",
+    "Kavurmalı Pizza": "pizza-kavurmali",
+    "Karışık Pizza": "pizza-karisik",
+    "4 Peynirli Pizza": "pizza-dort-peynir",
+    "Sucuklu Pizza": "pizza-sucuklu",
+    "Ton Balıklı Pizza": "pizza-ton-balikli",
+    "Mantarlı Pizza": "pizza-mantarli",
+    "Salamlı Pizza": "pizza-salamli",
+    "Süt Mısırlı Pizza": "pizza-sut-misirli",
+    "Oyuncak 150": "oyuncak",
+    "Oyuncak 100": "oyuncak",
+    "Oyunca 25": "oyuncak",
+    "Oyuncak 50": "oyuncak",
+    "Kuruyemiş Tabağı": "kuruyemis-tabagi",
+    "Kurabiye Tabağı": "kurabiye-tabagi"
+  }
+}

@@ -4,6 +4,8 @@ Yönetim panelindeki **Masalar ve adisyon** sekmesi kasa ekranıdır. İlk açı
 
 ## Masa işlemleri
 
+Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar beyazdır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.
+
 - Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
 - Ürüne dokunmak bir adet siparişi doğrudan masaya ekler. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda Ürünler ve Adisyon sekmeleri arasında geçiş yapılır.
 - Adisyon panelinde yalnız sipariş listesi kayar; toplam ve işlem düğmeleri altta sabittir. Satırlar ürün, birim fiyat, adet ve tutarı kompakt gösterir. **Ödeme al** ödeme penceresini açar; **Cariye** doğrudan cari aktarımıyla başlatır. **Diğer** içinde indirim, masa notu ve ödeme geçmişi bulunur; masa taşıma ve yazdırma alt düğmelerdedir.
@@ -24,7 +26,7 @@ Günlük kasa Türkiye saatiyle bugünkü nakit, kredi kartı, yemek kartı tahs
 
 ## Garson ve müşteri
 
-**Garson hesapları** bölümünde her çalışan için ayrı kullanıcı adı ve en az 8 karakterli şifre oluşturun. Garson adresi `/garson`'dur. Garsonlar masa açar, ürün ve not ekler, müşteri siparişi onaylar/reddeder. Cari, kasa özeti, ödeme, indirim, ürün iptali ve masa taşıma kasa yetkisindedir. Kullanıcı adı sipariş satırı ve işlem günlüğünde saklanır; ileride performans raporuna temel oluşturur. Hesap güncellemesi mevcut oturumlarını geçersiz kılar.
+**İşletme ayarları → Garson hesapları** bölümünde her çalışan için ayrı kullanıcı adı ve en az 8 karakterli şifre oluşturun. Garson adresi `/garson`'dur. Garsonlar masa açar, ürün ve not ekler, müşteri siparişi onaylar/reddeder. Cari, kasa özeti, ödeme, indirim, ürün iptali ve masa taşıma kasa yetkisindedir. Kullanıcı adı sipariş satırı ve işlem günlüğünde saklanır; ileride performans raporuna temel oluşturur. Hesap güncellemesi mevcut oturumlarını geçersiz kılar.
 
 Müşteri, menüde **Sipariş ver** düğmesiyle masa numarasını seçer. İstekler **Müşteri siparişleri** listesinde onay bekler. Masa seçimi müşteriye ait olduğu için kasa/garson masa ve ürünleri doğrular. Onaylanan istek, seçilen masanın açık adisyonuna eklenir veya masa boşsa yeni adisyon açar. Tekrar onaylamak ürünü iki kez eklemez. Müşteri başka masaların hesaplarını veya cari bilgilerini göremez. “Garson çağır” düğmesi önceki tercihe uygun olarak pasiftir.
 

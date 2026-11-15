@@ -66,6 +66,8 @@ Orijinal görüntü dosyaları yeni yüklemelerde saklanmaz. WebP kalite ayarlar
 
 ## İşletim notları
 
-Tek örnek / tek sunucu kullanın. Uygulama menü görüntüleme ve garson çağırma için kullanılır; çevrimiçi sipariş ve ödeme sunulmaz. Garson çağrılarını almak için panel açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.
+Tek örnek / tek sunucu kullanın. Müşterinin masa seçerek gönderdiği sipariş istekleri yönetici onayıyla adisyona eklenir. Uygulama banka/kart ödeme geçidi içermez; harici cihazda alınan ödemeleri kaydeder. Müşteri menüsündeki Garson çağır düğmesi şimdilik pasiftir. Çağrılar etkinleştirildiğinde yönetim paneli açık ve bağlantılı olmalı; arka plan push bildirimi sunulmaz. Yedekleme ve geri yükleme için kurulum belgesine bakın.
 
 Yönetici şifresi Ayarlar bölümünden mevcut şifre doğrulanarak değiştirilebilir. Yeni şifrenin scrypt özeti kalıcı SQLite veritabanında saklanır; diğer oturumlar geçersizleşir. `ADMIN_PASSWORD` ilk giriş içindir; panelden değiştirilen şifre sonraki dağıtımlarda korunur.
+
+15 Kasım 2026 tarihli [ayrıntılı sistem incelemesi ve öncelikli öneriler](docs/SYSTEM-REVIEW-2026-11-15.md): bağımlılık güvenliği, eski çalışan erişimi, yedekten dönüş, mobil kullanım ve yerel performans ölçümleri. Rapordaki öneriler uygulanmış değişiklikler değildir.

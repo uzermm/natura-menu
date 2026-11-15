@@ -58,3 +58,29 @@ test('customer orders require approval, keep quoted prices, append once to the s
  const rejected=randomUUID();submitCustomerOrder(d,rejected,7,lines,'');decideCustomerOrder(d,rejected,false,'Kasa');assert.throws(()=>decideCustomerOrder(d,rejected,true,'Kasa'));assert.equal(pendingOrders(d).length,0);
  }finally{d.close();}
 });
+
+test('quick sales are independent from physical tables, idempotent, partially payable and named in account history',()=>{
+ const d=fixture();try{
+ const table=run(d,{action:'open',table:1}),key=randomUUID(),input:PosCommand={action:'open_quick',service_type:'takeaway',account_name:'  Ahmet Paket  ',lines:[{item_id:'coffee',variant:'',quantity:2,note:''}]};
+ let q=executePos(d,key,input);assert.equal(q.table_number,null);assert.equal(q.service_type,'takeaway');assert.equal(q.account_name,'Ahmet Paket');assert.equal(q.total,20000);assert.equal(executePos(d,key,input).id,q.id);
+ assert.equal(run(d,{action:'open',table:1}).id,table.id);const other=run(d,{action:'open_quick',service_type:'counter',account_name:'Ahmet Paket'});assert.notEqual(other.id,q.id);assert.equal(posSummary(d).open.length,3);
+ q=run(d,{action:'pay',ticket_id:q.id,version:q.version,method:'cash',amount:5000,reference:'',close:false,quick:{service_type:'counter',account_name:'Kasadan Ahmet'}});assert.equal(q.remaining,15000);assert.equal(q.status,'open');assert.equal(q.account_name,'Kasadan Ahmet');
+ const a=saveAccount(d,{name:'Firma',phone:'',note:'',is_active:true},'Kasa');q=run(d,{action:'pay',ticket_id:q.id,version:q.version,method:'account',account_id:a.id,amount:15000,reference:'',close:true});assert.equal(q.status,'closed');assert.equal(q.remaining,0);assert.ok(!posSummary(d).open.some(t=>t.id===q.id));assert.match(accountHistory(d,a.id)[0].note,/Kasadan Ahmet/);assert.doesNotMatch(accountHistory(d,a.id)[0].note,/Masa null|Masa 1/);
+ const count=d.prepare('SELECT COUNT(*) AS n FROM pos_tickets').get()!.n;assert.throws(()=>run(d,{action:'open_quick',service_type:'counter',account_name:'Hata',lines:[{item_id:'missing',variant:'',quantity:1,note:''}]}));assert.equal(d.prepare('SELECT COUNT(*) AS n FROM pos_tickets').get()!.n,count);
+ }finally{d.close();}
+});
+
+test('named quick sales can be moved to a free physical table without replacing an occupied one',()=>{
+ const d=fixture();try{
+ run(d,{action:'open',table:1});let q=run(d,{action:'open_quick',service_type:'counter',account_name:'Tezgah',lines:[{item_id:'tea',variant:'',quantity:3,note:''}]});assert.throws(()=>run(d,{action:'move',ticket_id:q.id,version:q.version,table:1}));q=run(d,{action:'move',ticket_id:q.id,version:q.version,table:2});assert.equal(q.service_type,'table');assert.equal(q.table_number,2);assert.equal(q.total,6000);assert.equal(run(d,{action:'open',table:2}).id,q.id);
+ }finally{d.close();}
+});
+
+test('legacy ticket migration preserves ticket IDs, lines, payments and table uniqueness',()=>{
+ const d=new DatabaseSync(':memory:');try{
+ d.exec("PRAGMA foreign_keys=ON; CREATE TABLE pos_tickets(id TEXT PRIMARY KEY,number INTEGER NOT NULL UNIQUE,table_number INTEGER NOT NULL CHECK(table_number>0),status TEXT NOT NULL DEFAULT 'open',version INTEGER NOT NULL DEFAULT 1,opened_at TEXT NOT NULL,closed_at TEXT,discount INTEGER NOT NULL DEFAULT 0,note TEXT NOT NULL DEFAULT ''); CREATE UNIQUE INDEX one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open'; INSERT INTO pos_tickets(id,number,table_number,opened_at) VALUES('existing',1,1,'2026-11-15T10:00:00.000Z');");
+ d.exec("CREATE TABLE pos_accounts(id TEXT PRIMARY KEY,name TEXT NOT NULL,phone TEXT NOT NULL DEFAULT '',note TEXT NOT NULL DEFAULT '',is_active INTEGER NOT NULL DEFAULT 1); CREATE TABLE pos_lines(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),item_id TEXT NOT NULL,name TEXT NOT NULL,variant TEXT NOT NULL DEFAULT '',unit_price INTEGER NOT NULL,quantity INTEGER NOT NULL,note TEXT NOT NULL DEFAULT '',source TEXT NOT NULL,actor TEXT NOT NULL,created_at TEXT NOT NULL,voided_at TEXT,void_reason TEXT NOT NULL DEFAULT ''); CREATE TABLE pos_payments(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),method TEXT NOT NULL,amount INTEGER NOT NULL,account_id TEXT REFERENCES pos_accounts(id),reference TEXT NOT NULL DEFAULT '',actor TEXT NOT NULL,created_at TEXT NOT NULL);");d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,unit_price,quantity,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run('line','existing','tea','Çay',2000,3,'cashier','Kasa','2026-11-15T10:00:00.000Z');d.prepare('INSERT INTO pos_payments VALUES(?,?,?,?,?,?,?,?)').run('pay','existing','cash',1000,null,'','Kasa','2026-11-15T10:00:00.000Z');
+ initPos(d);const old=ticket(d,'existing');assert.equal(old.table_number,1);assert.equal(old.service_type,'table');assert.equal(old.lines[0].id,'line');assert.equal(old.paid,1000);assert.equal(old.remaining,5000);
+ run(d,{action:'open_quick',service_type:'counter',account_name:'Bir'});run(d,{action:'open_quick',service_type:'takeaway',account_name:'İki'});assert.equal(ticket(d,'existing').remaining,5000);assert.equal(d.prepare('PRAGMA foreign_key_check').all().length,0);
+ }finally{d.close();}
+});

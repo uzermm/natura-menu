@@ -2,6 +2,14 @@
 
 Yönetim panelindeki **Masalar ve adisyon** sekmesi kasa ekranıdır. İlk açılışta mevcut menü ve masa sayısı kullanılır; ürünleri tekrar tanımlamak gerekmez. Yeni tablolar mevcut SQLite dosyasına eklenir, menü ve işletme ayarları korunur.
 
+## Hızlı sipariş ve açık hesaplar
+
+Masalar ve adisyon içinde **Masalar**, **Açık masalar** ve **Hızlı sipariş** düğmeleri bulunur. Hızlı sipariş kasa satışı veya paket servis içindir; fiziksel masa seçilmez. Görselli ürün ekranı aynı şekilde açılır. Adisyonun altında **Hesap adı** alanına açıklama yazabilir, **Kasa satışı / Paket servis** türünü seçebilirsiniz.
+
+İlk ürün eklenince hesap kaydedilir. Ürün eklemeden geri dönülen boş giriş kayıt oluşturmaz. Hesap adı sonraki ürün, ödeme ve cari işleminde birlikte kaydedilir; kaydet düğmesi veya geri dönmek de adı saklar. Ödenmeyen veya kısmen ödenen hesaplar **Açık masalar** içinde kendi adlarıyla görünür. Son ödeme/cari aktarımıyla kapatılan hesaplar listeden çıkar ve Kapanan adisyonlar içinde saklanır. Hesap adı bir açıklamadır; cari hesap oluşturmaz.
+
+**Cari hesaplar**, **Kapanan adisyonlar** ve **Günlük kasa** sol menüdedir. Müşteri siparişleri de sol menüden onaylanır. Garson hesapları İşletme ayarları içindedir. Hızlı siparişler kasa yetkisindedir.
+
 ## Masa işlemleri
 
 Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar beyazdır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.

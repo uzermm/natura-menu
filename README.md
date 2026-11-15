@@ -4,6 +4,7 @@ Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme p
 
 - Natura adı ve mevcut tipografik logosu korunur.
 - Masada tam ekran sipariş: bağımsız kaydırılabilen görselli kategori ve ürün blokları, tek panelde adisyon ve ödeme; telefonda Ürünler/Adisyon sekmeleri.
+- Hesap adlı hızlı sipariş: masa seçmeden kasa satışı / paket servis; ödenmeyen hesapları Açık masalar içinde takip etme. Cari hesaplar, kapanan adisyonlar ve günlük kasa sol menüdedir.
 - Masalar ve adisyon: menüyle senkron sipariş, fiyat anlık görüntüsü, parçalı nakit/kredi kartı/yemek kartı ödemesi, kalan tutarı cariye aktarma, %10/%20 indirim, boş masaya komple taşıma ve günlük kasa özeti.
 - Cari hesap hareketlerinden eski adisyonun ürün ve ödeme detaylarına erişim; cari tahsilat kaydı.
 - Ayrı garson hesapları (`/garson`), siparişte kullanıcı kaydı; müşterinin menüde masa seçerek gönderdiği siparişlerin kasa/garson onayıyla adisyona eklenmesi.

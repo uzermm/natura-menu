@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Account,AccountEntry,OrderSource,PaymentMethod,PendingOrder,PosSummary,Ticket,TicketLine,TicketPayment } from './pos-types.ts';
+import { ticketLabel,type QuickMetadata,type Account,type AccountEntry,type OrderSource,type PaymentMethod,type PendingOrder,type PosSummary,type Ticket,type TicketLine,type TicketPayment } from './pos-types.ts';
 
 export class PosError extends Error {status:number;constructor(message:string,status=400){super(message);this.status=status;}}
 export function initPos(d:DatabaseSync){d.exec(`
  CREATE TABLE IF NOT EXISTS pos_tickets(id TEXT PRIMARY KEY,number INTEGER NOT NULL UNIQUE,table_number INTEGER NOT NULL CHECK(table_number>0),status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','closed')),version INTEGER NOT NULL DEFAULT 1,opened_at TEXT NOT NULL,closed_at TEXT,discount INTEGER NOT NULL DEFAULT 0 CHECK(discount>=0),note TEXT NOT NULL DEFAULT '');
- CREATE UNIQUE INDEX IF NOT EXISTS one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open';
  CREATE TABLE IF NOT EXISTS pos_lines(id TEXT PRIMARY KEY,ticket_id TEXT NOT NULL REFERENCES pos_tickets(id),item_id TEXT NOT NULL,name TEXT NOT NULL,variant TEXT NOT NULL DEFAULT '',unit_price INTEGER NOT NULL CHECK(unit_price>=0),quantity INTEGER NOT NULL CHECK(quantity BETWEEN 1 AND 999),note TEXT NOT NULL DEFAULT '',source TEXT NOT NULL,actor TEXT NOT NULL,created_at TEXT NOT NULL,voided_at TEXT,void_reason TEXT NOT NULL DEFAULT '');
  CREATE INDEX IF NOT EXISTS pos_lines_ticket ON pos_lines(ticket_id);
  CREATE TABLE IF NOT EXISTS pos_accounts(id TEXT PRIMARY KEY,name TEXT NOT NULL,phone TEXT NOT NULL DEFAULT '',note TEXT NOT NULL DEFAULT '',is_active INTEGER NOT NULL DEFAULT 1);
@@ -23,6 +22,14 @@ export function initPos(d:DatabaseSync){d.exec(`
  CREATE INDEX IF NOT EXISTS pos_closed_history ON pos_tickets(status,closed_at);
  `);
  if(!d.prepare('PRAGMA table_info(pos_staff)').all().some(column=>column.name==='session_version'))d.exec('ALTER TABLE pos_staff ADD COLUMN session_version INTEGER NOT NULL DEFAULT 1');
+ atomic(d,()=>{
+  const columns=d.prepare('PRAGMA table_info(pos_tickets)').all();
+  if(!columns.some(c=>c.name==='service_type'))d.exec("ALTER TABLE pos_tickets ADD COLUMN service_type TEXT NOT NULL DEFAULT 'table' CHECK(service_type IN ('table','counter','takeaway'))");
+  if(!columns.some(c=>c.name==='account_name'))d.exec("ALTER TABLE pos_tickets ADD COLUMN account_name TEXT NOT NULL DEFAULT ''");
+  const index=d.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='one_open_ticket_per_table'").get();
+  if(!String(index?.sql||'').includes('service_type'))d.exec("DROP INDEX IF EXISTS one_open_ticket_per_table; CREATE UNIQUE INDEX one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open' AND service_type='table'");
+  d.exec('CREATE INDEX IF NOT EXISTS pos_open_service ON pos_tickets(status,service_type,opened_at)');
+ });
 }
 function atomic<T>(d:DatabaseSync,fn:()=>T):T{d.exec('BEGIN IMMEDIATE');try{const result=fn();d.exec('COMMIT');return result;}catch(error){d.exec('ROLLBACK');throw error;}}
 function event(d:DatabaseSync,ticketId:string|null,action:string,actor:string,data:unknown){d.prepare('INSERT INTO pos_events VALUES(?,?,?,?,?,?)').run(randomUUID(),ticketId,action,actor,JSON.stringify(data),new Date().toISOString());}
@@ -33,12 +40,19 @@ export function ticket(d:DatabaseSync,id:string):Ticket{
  const lines=d.prepare('SELECT * FROM pos_lines WHERE ticket_id=? ORDER BY created_at,rowid').all(id) as unknown as TicketLine[];
  const payments=d.prepare("SELECT p.*,COALESCE(a.name,'') AS account_name FROM pos_payments p LEFT JOIN pos_accounts a ON a.id=p.account_id WHERE ticket_id=? ORDER BY p.created_at,p.rowid").all(id) as unknown as TicketPayment[];
  const subtotal=lines.filter(l=>!l.voided_at).reduce((sum,l)=>sum+l.unit_price*l.quantity,0),total=subtotal-Number(row.discount),paid=payments.reduce((sum,p)=>sum+p.amount,0);
- return {...row,lines,payments,subtotal,total,paid,remaining:total-paid} as Ticket;
+ return {...row,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,subtotal,total,paid,remaining:total-paid} as Ticket;
 }
 function editable(d:DatabaseSync,id:string,version:number){const t=ticket(d,id);if(t.status!=='open')throw new PosError('Bu adisyon kapatılmış.');if(t.version!==version)throw new PosError('Adisyon başka bir cihazda değişti. Güncel halini kontrol edip tekrar deneyin.',409);return t;}
 function bump(d:DatabaseSync,id:string){d.prepare('UPDATE pos_tickets SET version=version+1 WHERE id=?').run(id);}
 function tableRange(d:DatabaseSync,table:number){const settings=JSON.parse(d.prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);if(!Number.isInteger(table)||table<1||table>settings.table_count)throw new PosError('Geçerli bir masa seçin.');}
-function createTicket(d:DatabaseSync,table:number,actor:string){tableRange(d,table);const open=d.prepare("SELECT id FROM pos_tickets WHERE table_number=? AND status='open'").get(table);if(open)return String(open.id);const id=randomUUID(),number=Number(d.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM pos_tickets').get()!.n);d.prepare('INSERT INTO pos_tickets(id,number,table_number,opened_at) VALUES(?,?,?,?)').run(id,number,table,new Date().toISOString());event(d,id,'open',actor,{table});return id;}
+function createTicket(d:DatabaseSync,table:number,actor:string){tableRange(d,table);const open=d.prepare("SELECT id FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(table);if(open)return String(open.id);const id=randomUUID(),number=Number(d.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM pos_tickets').get()!.n);d.prepare('INSERT INTO pos_tickets(id,number,table_number,opened_at) VALUES(?,?,?,?)').run(id,number,table,new Date().toISOString());event(d,id,'open',actor,{table});return id;}
+function quickMetadata(value:QuickMetadata){if(!['counter','takeaway'].includes(value.service_type)||typeof value.account_name!=='string'||value.account_name.trim().length>120)throw new PosError('Geçerli bir hesap adı ve satış türü seçin.');return {...value,account_name:value.account_name.trim()};}
+function createQuickTicket(d:DatabaseSync,input:QuickMetadata,actor:string){
+ const meta=quickMetadata(input),id=randomUUID(),number=Number(d.prepare('SELECT COALESCE(MAX(number),0)+1 AS n FROM pos_tickets').get()!.n);
+ // Keep the legacy positive table_number constraint without rebuilding financial tables.
+ // This value is ignored for non-table tickets and never exposed as a physical table.
+ d.prepare('INSERT INTO pos_tickets(id,number,table_number,opened_at,service_type,account_name) VALUES(?,?,1,?,?,?)').run(id,number,new Date().toISOString(),meta.service_type,meta.account_name);event(d,id,'open_quick',actor,meta);return id;
+}
 export interface AddLine {item_id:string;variant:string;quantity:number;note:string;expected_unit_price?:number;}
 function quoteLine(d:DatabaseSync,line:AddLine){
  quantity(line.quantity);
@@ -53,8 +67,10 @@ function quoteLine(d:DatabaseSync,line:AddLine){
 function appendLine(d:DatabaseSync,id:string,line:AddLine,source:OrderSource,actor:string){
  const quoted=quoteLine(d,line),lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());return lineId;
 }
-export type PosCommand=
+export type PosCommand=(
  |{action:'open';table:number}
+ |{action:'open_quick';service_type:'counter'|'takeaway';account_name:string;lines?:AddLine[]}
+ |{action:'label';ticket_id:string;version:number;service_type:'counter'|'takeaway';account_name:string}
  |{action:'add';ticket_id:string;version:number;lines:AddLine[]}
  |{action:'quantity';ticket_id:string;version:number;line_id:string;quantity:number}
  |{action:'void';ticket_id:string;version:number;line_id:string;reason:string}
@@ -62,16 +78,23 @@ export type PosCommand=
  |{action:'note';ticket_id:string;version:number;note:string}
  |{action:'move';ticket_id:string;version:number;table:number}
  |{action:'pay';ticket_id:string;version:number;method:PaymentMethod;amount:number;account_id?:string;reference:string;close:boolean}
- |{action:'close';ticket_id:string;version:number};
+ |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata};
 export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,actor='Kasa',source:OrderSource='cashier'):Ticket{
  return atomic(d,()=>{
   const payload=JSON.stringify({command,actor,source}),previous=d.prepare('SELECT payload,result FROM pos_requests WHERE id=?').get(requestId);
   if(previous){if(previous.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return ticket(d,String(previous.result));}
   let id:string;
   if(command.action==='open')id=createTicket(d,command.table,actor);
+  else if(command.action==='open_quick'){
+   id=createQuickTicket(d,command,actor);
+   if(command.lines){if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');for(const line of command.lines)appendLine(d,id,line,source,actor);}
+  }
   else{
    id=command.ticket_id;const t=editable(d,id,command.version);
-   if(command.action==='add'){
+   if(command.quick){if(t.service_type==='table')throw new PosError('Masa adisyonuna hızlı sipariş bilgisi eklenemez.');const meta=quickMetadata(command.quick);d.prepare('UPDATE pos_tickets SET account_name=?,service_type=? WHERE id=?').run(meta.account_name,meta.service_type,id);t.account_name=meta.account_name;t.service_type=meta.service_type;}
+   if(command.action==='label'){
+    if(t.service_type==='table')throw new PosError('Hesap adı yalnız hızlı siparişlerde değiştirilebilir.');const meta=quickMetadata(command);d.prepare('UPDATE pos_tickets SET account_name=?,service_type=? WHERE id=?').run(meta.account_name,meta.service_type,id);
+   }else if(command.action==='add'){
     if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');
     for(const line of command.lines)appendLine(d,id,line,source,actor);
    }else if(command.action==='quantity'||command.action==='void'){
@@ -83,15 +106,15 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
    }else if(command.action==='note')d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.note,id);
    else if(command.action==='move'){
     tableRange(d,command.table);if(command.table===t.table_number)throw new PosError('Farklı bir masa seçin.');
-    if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open'").get(command.table))throw new PosError('Hedef masa dolu. Boş bir masa seçin.');
-    d.prepare('UPDATE pos_tickets SET table_number=? WHERE id=?').run(command.table,id);
+    if(d.prepare("SELECT 1 FROM pos_tickets WHERE table_number=? AND status='open' AND service_type='table'").get(command.table))throw new PosError('Hedef masa dolu. Boş bir masa seçin.');
+    d.prepare("UPDATE pos_tickets SET table_number=?,service_type='table' WHERE id=?").run(command.table,id);
    }else if(command.action==='pay'){
     amount(command.amount);if(command.amount>t.remaining)throw new PosError('Ödeme kalan tutarı aşamaz.');
     if(command.close&&command.amount!==t.remaining)throw new PosError('Masayı kapatmak için kalan tutarın tamamını ödeyin.');
     const paymentId=randomUUID(),now=new Date().toISOString();let accountId:string|null=null;
     if(command.method==='account'){
      accountId=command.account_id||'';if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1').get(accountId))throw new PosError('Aktif bir cari hesap seçin.');
-     d.prepare('INSERT INTO pos_ledger VALUES(?,?,?,?,?,?,?,?)').run(randomUUID(),accountId,id,command.amount,'account',`Adisyon #${t.number} · Masa ${t.table_number}`,actor,now);
+     d.prepare('INSERT INTO pos_ledger VALUES(?,?,?,?,?,?,?,?)').run(randomUUID(),accountId,id,command.amount,'account',`Adisyon #${t.number} · ${ticketLabel(t)}`,actor,now);
     }
     d.prepare('INSERT INTO pos_payments VALUES(?,?,?,?,?,?,?,?)').run(paymentId,id,command.method,command.amount,accountId,command.reference,actor,now);
     if(command.close)d.prepare("UPDATE pos_tickets SET status='closed',closed_at=? WHERE id=?").run(now,id);

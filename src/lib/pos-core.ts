@@ -230,9 +230,9 @@ export function collectAccount(d:DatabaseSync,id:string,value:number,method:Excl
  event(d,null,'account_collect',actor,{id,value,method,note});
  d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return accounts(d).find(a=>a.id===id)!;
 });}
-export function posSummary(d:DatabaseSync):PosSummary{
- const today=dayTotals(d);
- return {open:d.prepare("SELECT id FROM pos_tickets WHERE status='open' ORDER BY table_number").all().map(r=>ticket(d,String(r.id))),recent:d.prepare("SELECT id FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=? ORDER BY closed_at DESC LIMIT 40").all(today.day_id).map(r=>ticket(d,String(r.id))),accounts:accounts(d),pending:pendingOrders(d),today};
+export function posSummary(d:DatabaseSync,includeFinance=true):PosSummary{
+ const day=businessDay(d),today=includeFinance?dayTotals(d):{...day,opening_cash:0,opening_breakdown:null,expected_cash:0,cash_in:0,cash_out:0,refunds:0,date:day.opened_at.slice(0,10),closed_count:0,cash:0,card:0,meal_card:0,account:0,discount:0};
+ return {open:d.prepare("SELECT id FROM pos_tickets WHERE status='open'"+(includeFinance?'':" AND service_type='table' AND linked_account_id IS NULL")+' ORDER BY table_number').all().map(r=>ticket(d,String(r.id))),recent:includeFinance?d.prepare("SELECT id FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=? ORDER BY closed_at DESC LIMIT 40").all(today.day_id).map(r=>ticket(d,String(r.id))):[],accounts:includeFinance?accounts(d):[],pending:pendingOrders(d),today};
 }
 export function pendingOrders(d:DatabaseSync):PendingOrder[]{return d.prepare("SELECT * FROM pos_orders WHERE status='pending' ORDER BY created_at").all().map(row=>({...row,lines:JSON.parse(String(row.lines))})) as PendingOrder[];}
 export function submitCustomerOrder(d:DatabaseSync,id:string,table:number,lines:AddLine[],note:string){return atomic(d,()=>{

@@ -4,9 +4,10 @@ import { ZodError } from 'zod';
 import { db, transaction } from './db';
 import { sameOrigin, sessionSecret } from './security';
 import { validSession } from './auth';
+import {employeeSession} from './employee-session';
 export class HttpError extends Error {constructor(public status:number,message:string){super(message);}}
 export async function requireAdmin(req?:Request) {
- if(!validSession((await cookies()).get('natura_session')?.value))throw new HttpError(401,'Lütfen yönetici girişi yapın.');
+ const c=await cookies();if(!validSession(c.get('natura_session')?.value)){if(employeeSession(db(),c.get('natura_staff')?.value))throw new HttpError(403,'Bu işlem yalnız yöneticiye açık.');throw new HttpError(401,'Lütfen yönetici girişi yapın.');}
  if(req&&!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');
 }
 export function requireOrigin(req:Request){if(!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');}

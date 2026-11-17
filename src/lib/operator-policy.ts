@@ -1,0 +1,9 @@
+import type {OperatorRole} from './employee-session.ts';
+import type {PosCommand} from './pos-core.ts';
+import type {Ticket} from './pos-types.ts';
+import {PosError} from './pos-error.ts';
+export function assertOrderPermission(role:OperatorRole,c:PosCommand,t?:Ticket){
+ if(role!=='waiter')return;
+ if(!['open_order','add','note'].includes(c.action)||c.quick||t&&(t.service_type!=='table'||t.linked_account_id))throw new PosError('Garson yalnız masa siparişi ekleyebilir ve masa notunu düzenleyebilir.',403);
+}
+export function assertWaiterTicket(t:Ticket){if(t.service_type!=='table'||t.linked_account_id||t.status!=='open')throw new PosError('Bu adisyona erişim yetkiniz yok.',403);}

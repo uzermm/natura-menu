@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
+import {currentOperator} from '@/lib/operator';
 import { redirect,notFound } from 'next/navigation';
-import { validSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { ticket,PosError } from '@/lib/pos-core';
 import { paymentLabels,ticketLabel,serviceLabels } from '@/lib/pos-types';
@@ -9,7 +8,7 @@ export const dynamic='force-dynamic';
 export const metadata={title:'Adisyon | Natura Bistro',robots:{index:false,follow:false}};
 const price=(n:number)=>(n/100).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 export default async function ReceiptPage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{format?:string;print?:string}>}){
- if(!validSession((await cookies()).get('natura_session')?.value))redirect('/admin/login');
+ const operator=await currentOperator();if(!operator)redirect('/admin/login');if(operator.role==='waiter')notFound();
  const {id}=await params,query=await searchParams;const format:ReceiptFormat=query.format==='a4'?'a4':query.format==='thermal'?'thermal':'auto';
  let t;try{t=ticket(db(),id);}catch(error){if(error instanceof PosError)notFound();throw error;}
  const mergedTarget=t.merged_into?ticket(db(),t.merged_into):null;

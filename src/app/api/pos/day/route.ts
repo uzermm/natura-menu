@@ -1,10 +1,11 @@
+import {requireCashier} from '@/lib/operator';
 import {writeFileSync,renameSync,mkdirSync} from 'node:fs';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {db,dataDir} from '@/lib/db';
-import {requireAdmin,jsonBody,noStore,HttpError} from '@/lib/api';
-import {businessDay,dayTotals,closePreview,closeBusinessDay,cariExport,rejectExpiredRequest} from '@/lib/pos-operations';
+import {jsonBody,noStore,HttpError} from '@/lib/api';
+import {businessDay,dayTotals,closePreview,closeBusinessDay,rejectExpiredRequest} from '@/lib/pos-operations';
 import {recordPosEvent} from '@/lib/pos-core';
 import {posErrorResponse} from '@/lib/pos-response';
 import {cashBreakdownSchema} from '@/lib/cash-breakdown';
@@ -15,9 +16,9 @@ const cashAction=z.discriminatedUnion('action',[
  z.object({action:z.literal('opening_preset'),...base,breakdown:cashBreakdownSchema,preset_version:z.number().int().positive()}),
  z.object({action:z.enum(['in','out']),...base,amount:amount.min(1),note:note.min(1)}),
 ]);
-export async function GET(req:Request){try{await requireAdmin();if(new URL(req.url).searchParams.get('export')==='cari')return Response.json(cariExport(db()),{headers:{...noStore,'Content-Disposition':'attachment; filename="natura-cari.json"'}});return Response.json({...closePreview(db()),opening_preset:openingPreset(db())},{headers:noStore});}catch(error){return posErrorResponse(error);}}
+export async function GET(req:Request){try{await requireCashier();if(new URL(req.url).searchParams.get('export')==='cari'){const {cariExcel}=await import('@/lib/cari-excel');const data=await cariExcel(db());return new Response(new Uint8Array(data),{headers:{...noStore,'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':'attachment; filename="natura-cari.xlsx"'}});}return Response.json({...closePreview(db()),opening_preset:openingPreset(db())},{headers:noStore});}catch(error){return posErrorResponse(error);}}
 export async function POST(req:Request){try{
- await requireAdmin(req);const raw=await jsonBody(req);
+ const operator=await requireCashier(req);const raw=await jsonBody(req);
  if(raw.action==='close'){
   const v=z.object({action:z.literal('close'),request_id:z.string().uuid(),day_id:z.string().uuid(),revision:z.string(),counted_cash:z.number().int().min(0).max(1000000000),note:z.string().trim().max(500),confirm:z.literal('GÜNÜ KAPAT')}).parse(raw);
   const result=closeBusinessDay(db(),v,snapshot=>{mkdirSync(dataDir,{recursive:true});const tmp=path.join(dataDir,'cari-koruma.tmp'),dest=path.join(dataDir,'cari-koruma.json');writeFileSync(tmp,JSON.stringify(snapshot),{mode:0o600});renameSync(tmp,dest);});return Response.json(result,{headers:noStore});
@@ -28,7 +29,7 @@ export async function POST(req:Request){try{
   else if(v.action==='opening'){
    recordOpeningCash(d,v.amount,v.breakdown,v.opening_version,v.note);
    if(v.save_preset){if(!v.breakdown||v.preset_version===undefined)throw new HttpError(400,'Açılış şablonunu yenileyin.');saveOpeningPreset(d,v.breakdown,v.preset_version);}
-  }else d.prepare('INSERT INTO pos_cash_moves VALUES(?,?,?,?,?,?,?)').run(randomUUID(),day.day_id,v.action,v.amount,v.note,'Kasa',new Date().toISOString());
-  recordPosEvent(d,'cash_'+v.action,'Kasa',v);d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(v.request_id,payload,'cash',new Date().toISOString());d.exec('COMMIT');return Response.json(dayTotals(d));
+  }else d.prepare('INSERT INTO pos_cash_moves VALUES(?,?,?,?,?,?,?)').run(randomUUID(),day.day_id,v.action,v.amount,v.note,operator.actor,new Date().toISOString());
+  recordPosEvent(d,'cash_'+v.action,operator.actor,v);d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(v.request_id,payload,'cash',new Date().toISOString());d.exec('COMMIT');return Response.json(dayTotals(d));
  }catch(error){d.exec('ROLLBACK');throw error;}
 }catch(error){return posErrorResponse(error);}}

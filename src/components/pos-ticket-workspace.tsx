@@ -18,7 +18,7 @@ import {saveDraft,clearDraft,type OrderDraft} from '@/lib/order-draft';
 import { groupLines,lineKey,type GroupedLine } from '@/lib/pos-lines';
 import {api} from '@/lib/client';
 
-type Props={onAccountsChange:()=>Promise<void>;ticket:Ticket;categories:Category[];accounts:PosSummary['accounts'];tableCount:number;openTickets:Ticket[];calls:WaiterCall[];onResolveCall:(id:string)=>Promise<void>;role:'admin'|'waiter';busy:boolean;connected:boolean;error:string;onBack:()=>void;dayId:string;initialDraft?:OrderDraft|null;onCommand:(command:PosCommand,requestId?:string)=>Promise<Ticket>};
+type Props={onAccountsChange:()=>Promise<void>;ticket:Ticket;categories:Category[];accounts:PosSummary['accounts'];tableCount:number;openTickets:Ticket[];calls:WaiterCall[];onResolveCall:(id:string)=>Promise<void>;role:'admin'|'cashier'|'waiter';busy:boolean;connected:boolean;error:string;onBack:()=>void;dayId:string;initialDraft?:OrderDraft|null;onCommand:(command:PosCommand,requestId?:string)=>Promise<Ticket>};
 type Tool='history'|'move'|'payment'|'items'|'account'|'payments'|null;
 const date=(value:string)=>new Date(value).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 
@@ -45,7 +45,7 @@ export function PosTicketWorkspace({ticket:t,categories,accounts,tableCount,open
  const lineCounts=useMemo(()=>{const result=new Map<string,number>();for(const line of [...t.lines,...pending])if(!line.voided_at)result.set(line.item_id,(result.get(line.item_id)||0)+line.quantity);return result;},[t.lines,pending]);
  useEffect(()=>{productScroll.current?.scrollTo({top:0});},[category,search]);
  useEffect(()=>{const node=orderScroll.current;if(node)node.scrollTop=node.scrollHeight;},[t.lines.length]);
- const open=t.status==='open',cashier=role==='admin',disabled=busy||!connected||!!submission||sessionDay.current!==dayId;
+ const open=t.status==='open',cashier=role!=='waiter',disabled=busy||!connected||!!submission||sessionDay.current!==dayId;
  const liveLines=grouped.filter(line=>!line.voided_at),count=liveLines.reduce((sum,line)=>sum+line.quantity-(line.paid_quantity||0),0);
  const query=search.trim().toLocaleLowerCase('tr-TR');
  const chosen=activeCategories.find(c=>c.id===category);
@@ -56,7 +56,7 @@ export function PosTicketWorkspace({ticket:t,categories,accounts,tableCount,open
  async function run(command:PosCommand,requestId?:string){setLocalError('');try{let payload=prepared(command);if(requestId){payload=preparedRequests.current.get(requestId)??payload;preparedRequests.current.set(requestId,payload);}await onCommand(payload,requestId);if(requestId)preparedRequests.current.delete(requestId);return true;}catch(error){setLocalError((error as Error).message);return false;}}
  async function add(item:Item,variant='',quantity=1,note=''){
   const unitPrice=item.variants.find(v=>v.name===variant)?.price??item.price;
-  const line:TicketLine={id:'pending-'+crypto.randomUUID(),ticket_id:t.id,item_id:item.id,name:item.name,variant,quantity,unit_price:unitPrice,note:note.trim(),source:role==='admin'?'cashier':'waiter',actor:'Onay bekliyor',created_at:new Date().toISOString(),voided_at:null,void_reason:''};
+  const line:TicketLine={id:'pending-'+crypto.randomUUID(),ticket_id:t.id,item_id:item.id,name:item.name,variant,quantity,unit_price:unitPrice,note:note.trim(),source:role!=='waiter'?'cashier':'waiter',actor:'Onay bekliyor',created_at:new Date().toISOString(),voided_at:null,void_reason:''};
   setPending(old=>{const existing=old.find(l=>lineKey(l)===lineKey(line));return existing?old.map(l=>l.id===existing.id?{...l,quantity:Math.min(999,l.quantity+quantity)}:l):[...old,line];});return true;
  }
  async function confirm(){if(!pending.length||sessionDay.current!==dayId)return false;setLocalError('');const lines=pending.map(l=>({item_id:l.item_id,variant:l.variant,quantity:l.quantity,note:l.note,expected_unit_price:l.unit_price}));const command:PosCommand=draft?(isAccount?{action:'open_account',account_id:t.linked_account_id!,lines,ticket_note:tableNote.trim()}:isQuick?{action:'open_quick',service_type:quickType,account_name:quickName.trim(),lines,ticket_note:tableNote.trim()}:{action:'open_order',table:t.table_number!,lines,ticket_note:tableNote.trim()}):prepared({action:'add',ticket_id:t.id,version:t.version,lines,ticket_note:tableNote.trim()});const attempt=submission??{id:crypto.randomUUID(),command};setSubmission(attempt);if(latestDraft.current)saveDraft({...latestDraft.current,submission:attempt});try{await onCommand(attempt.command,attempt.id);clearDraft();latestDraft.current=null;setSubmission(null);setPending([]);return true;}catch(error){const status=(error as Error&{status?:number}).status;if(status&&status>=400&&status<500)setSubmission(null);setLocalError((error as Error).message);return false;}}

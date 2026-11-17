@@ -1,0 +1,11 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {Download} from 'lucide-react';
+import {Button} from './ui/button';
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from './ui/dialog';
+type InstallEvent=Event&{prompt:()=>Promise<void>;userChoice:Promise<{outcome:string}>};
+let available:InstallEvent|null=null;
+export function AppRegistration(){useEffect(()=>{const install=(e:Event)=>{e.preventDefault();available=e as InstallEvent;};window.addEventListener('beforeinstallprompt',install);if('serviceWorker' in navigator)void navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).catch(()=>{});return()=>window.removeEventListener('beforeinstallprompt',install);},[]);return null;}
+export function AppInstall(){const [help,setHelp]=useState(false),[installed,setInstalled]=useState(false);useEffect(()=>{const standalone=matchMedia('(display-mode: standalone)');const update=()=>setInstalled(standalone.matches||!!(navigator as Navigator&{standalone?:boolean}).standalone);update();standalone.addEventListener('change',update);window.addEventListener('appinstalled',update);return()=>{standalone.removeEventListener('change',update);window.removeEventListener('appinstalled',update);};},[]);if(installed)return null;
+ return <><Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" aria-label="Uygulamayı yükle" onClick={async()=>{if(available){const event=available;available=null;await event.prompt();await event.userChoice;}else setHelp(true);}}><Download size={17}/></Button><Dialog open={help} onOpenChange={setHelp}><DialogContent><DialogHeader><DialogTitle>Uygulamayı ana ekrana ekle</DialogTitle><DialogDescription>Natura, ayrı bir uygulama penceresinde açılır.</DialogDescription></DialogHeader><div className="space-y-4 text-sm"><p><strong>iPhone / iPad:</strong> Safari’de Paylaş menüsünü açıp “Ana Ekrana Ekle”yi seçin.</p><p><strong>Android:</strong> Chrome menüsünden “Uygulamayı yükle” veya “Ana ekrana ekle”yi seçin.</p><p><strong>Bilgisayar:</strong> Chrome veya Edge adres çubuğundaki yükleme simgesini ya da tarayıcı menüsündeki uygulama yükleme seçeneğini kullanın.</p><p className="text-xs text-muted-foreground">Sipariş ve ödeme işlemleri internet bağlantısı gerektirir.</p></div></DialogContent></Dialog></>;
+}

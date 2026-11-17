@@ -67,18 +67,30 @@ Sayım ve fark bilgileri kapanış ekranında kontrol edilir; satış/kasa rapor
 
 Gün kapatılırken `/app/data/cari-koruma.json` adlı tek cari koruma dosyası yenilenir. Her gün ayrı klasör veya tam veritabanı yedeği oluşturulmaz. Dosya yalnız cari hesapları, hareketleri ve bağlı fişleri içerir; çalışan şifrelerini ve ilgisiz satışları içermez.
 
-**Cari verilerini indir** düğmesiyle aynı içerik yönetici oturumunda indirilebilir. Cari verileri canlı veritabanında da korunur. Bu yerel dosya sunucu dışı yedek değildir; sunucu dışına aktarımı yönetici kendisi yapar. Bu sürümde içe aktarma ekranı yoktur.
+**Cari Excel indir** düğmesi, cari bakiyelerini, hareketlerini, fişleri, ürün detaylarını, ödemeleri ve iade/düzeltmeleri ayrı sayfalarda içeren `.xlsx` dosyası indirir. Parasal değerler sayıdır; telefon numaraları baştaki sıfırları korunarak metin olarak saklanır. Excel dökümü uygulama içine geri yükleme dosyası değildir. Cari verileri canlı veritabanında da korunur. Bu yerel dosya sunucu dışı yedek değildir; sunucu dışına aktarımı yönetici kendisi yapar. Bu sürümde içe aktarma ekranı yoktur.
 
 Silinmiş işlemlerin gecikmiş ağ isteğiyle yeniden yazılmasını önlemek için 30 gün boyunca yalnız anonim istek kimlikleri tutulur; bu kayıtlarda satış içeriği veya tutar bulunmaz. SQLite boşalan alanı yeni kayıtlar için kullanır; gün kapatmada ağır bir veritabanı sıkıştırma işi çalıştırılmaz.
 
 ## Çalışanlar
 
-**İşletme ayarları → Çalışanlar → Çalışan ekle** üzerinden ad, kullanıcı adı, şifre ve rol girilir. Roller: **Kasiyer**, **Garson**, **Mutfak**.
+**İşletme ayarları → Çalışanlar → Çalışan ekle** üzerinden ad, kullanıcı adı, şifre ve rol girilir. Roller: **Kasiyer**, **Garson**.
 
-Bu sürümde bütün çalışan yetkileri boştur. Aktif kayıt veya rol seçimi giriş/işlem hakkı vermez. Eski garson giriş servisi ve eski oturumlar kabul edilmez. Şimdilik işlemleri yönetici yapar; ortak yetki sistemi ayrıca açılacaktır.
+**Yönetici:** Bütün bölümler ve çalışan/şifre ayarları açıktır.
+
+**Kasiyer:** İşletme ayarları dışında bütün bölümler açıktır. İşletme ayarlarını, çalışanları ve yönetici şifresini değiştiremez.
+
+**Garson:** Masaları ve müşteri siparişlerini görür; masa siparişi ekler, masa notunu değiştirir, garson çağrısını sonuçlandırır ve müşteri siparişini onaylar/reddeder. Onaylanmamış taslaktaki adetleri değiştirebilir. Onaylanmış ürünü iptal etme/değiştirme, ödeme, indirim, taşıma/birleştirme, cari, hızlı satış, rapor, yazdırma ve menü yönetimi kapalıdır.
+
+Giriş, `/admin/login` ekranındaki **Çalışan** seçeneğinden kullanıcı adı ve şifreyle yapılır. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
 
 ## Taslak kurtarma
 
 Onaylanmamış ürünler, masa/satış türü, hesap adı ve notlar cihazda en fazla 12 saat saklanır. Sayfa yenilenince **Taslağı geri getir** veya **Taslağı sil** seçilir. Ürünler kendiliğinden gönderilmez.
 
 Onay yanıtı kaybolmuşsa sistem işlem anahtarını kontrol eder. Sipariş sunucuda kayıtlıysa taslağı tekrar eklemek yerine kayıtlı hesabı açar. Fiyat değişmişse veya hesap kapanmışsa yeniden kontrol gerekir. Önceki güne ait taslak gün kapatma sonrasında otomatik gönderilmez; temizlenir. Taslaklar başka cihazlara aktarılmaz ve sürekli sunucuya yazılmaz.
+
+## Uygulamayı yükleme
+
+Sol menüde **Masalar → Hızlı Sipariş** ayrı bir sayfadır. İşlem onaylanmadan gerçek satış açılmaz; ödenmemiş hızlı satışlar Açık Masalar içinde kalır.
+
+Giriş ve yönetim ekranındaki indirme simgesiyle uygulamayı yükleyin. Chrome/Edge üzerinde yükleme istemi, Safari üzerinde Paylaş → Ana Ekrana Ekle kullanılabilir. Uygulama yönetim ekranıyla açılır. Siparişler ve ödemeler internet bağlantısı gerektirir; özel veriler çevrimdışı önbelleğe alınmaz ve arkaplanda sipariş tekrar gönderimi yapılmaz.

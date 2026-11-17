@@ -15,9 +15,9 @@ export function PasswordForm(){
   setBusy(true);
   try{await api('/api/admin/password',values);form.reset();setSuccess(true);}catch(error){setError((error as Error).message);}finally{setBusy(false);}
  }}>
-  <div><h2 id="password-title" className="serif text-2xl">Yönetici şifresi</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Şifrenizi buradan değiştirebilirsiniz. Diğer cihazlardaki açık oturumlar kapatılır.</p></div>
+  <div><h2 id="password-title" className="serif text-2xl">Yönetici şifresi</h2></div>
   <div className="space-y-2"><Label htmlFor="current-password">Mevcut şifre</Label><Input id="current-password" name="currentPassword" type="password" autoComplete="current-password" required maxLength={256}/></div>
-  <div className="space-y-2"><Label htmlFor="new-password">Yeni şifre</Label><Input id="new-password" name="newPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={256}/><p className="text-xs text-muted-foreground">En az 8 karakter kullanın.</p></div>
+  <div className="space-y-2"><Label htmlFor="new-password">Yeni şifre</Label><Input id="new-password" name="newPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={256}/></div>
   <div className="space-y-2"><Label htmlFor="confirm-password">Yeni şifre tekrar</Label><Input id="confirm-password" name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} maxLength={256}/></div>
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
   {success&&<p role="status" className="rounded-xl bg-green-50 p-3 text-sm text-green-800">Şifreniz değiştirildi.</p>}

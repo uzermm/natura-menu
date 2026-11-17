@@ -56,11 +56,11 @@ export default function AdminMenuManager({categories,busy,onEditCategory,onDelet
         <Button variant="ghost" size="icon" disabled={busy} className="text-red-600" aria-label={`${item.name} ürününü sil`} onClick={()=>onDeleteItem(item)}><Trash2 size={16}/></Button>
        </div>
       </article>)}
-      {!items.length&&<p className="rounded-xl border border-dashed p-7 text-center text-sm text-muted-foreground">{c.items.length?'Bu aramada eşleşen ürün yok.':'Bu kategoride henüz ürün yok. Ürün ekleyerek başlayın.'}</p>}
+      {!items.length&&<p className="rounded-xl border border-dashed p-7 text-center text-sm text-muted-foreground">{c.items.length?'Bu aramada eşleşen ürün yok.':'Bu kategoride henüz ürün yok.'}</p>}
      </div>}
     </div>
    </section>;
   })}
-  {!visible.length&&<div className="rounded-2xl border border-dashed p-10 text-center"><p className="font-semibold">{categories.length?'Eşleşen kategori veya ürün bulunamadı.':'Henüz kategori yok.'}</p><p className="mt-2 text-sm text-muted-foreground">{categories.length?'Başka bir arama deneyin.':'Kategori ekle düğmesiyle menünüzü oluşturmaya başlayın.'}</p></div>}
+  {!visible.length&&<div className="rounded-2xl border border-dashed p-10 text-center"><p className="font-semibold">{categories.length?'Eşleşen kategori veya ürün bulunamadı.':'Henüz kategori yok.'}</p></div>}
  </div>;
 }

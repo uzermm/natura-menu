@@ -1,7 +1,8 @@
 import {randomUUID} from 'node:crypto';
 import type {DatabaseSync} from 'node:sqlite';
 import {PosError} from './pos-error.ts';
-import {DEFAULT_OPENING_BREAKDOWN,cashBreakdownSchema} from './cash-breakdown.ts';
+import {DEFAULT_OPENING_BREAKDOWN,cashBreakdownSchema,cashTotal} from './cash-breakdown.ts';
+import {openingPreset} from './cash-opening.ts';
 import type {PaymentMethod,Ticket} from './pos-types.ts';
 const date=(v=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(v);
 function addColumn(d:DatabaseSync,table:string,name:string,definition:string){if(!d.prepare(`PRAGMA table_info(${table})`).all().some(c=>c.name===name))d.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);}
@@ -31,6 +32,8 @@ export function businessDay(d:DatabaseSync){return d.prepare('SELECT day_id,open
 export function rejectExpiredRequest(d:DatabaseSync,id:string){if(d.prepare('SELECT 1 FROM pos_request_tombstones WHERE id=?').get(id))throw new PosError('Bu işlem kapanmış güne ait. Ekranı yenileyin.',409);}
 export function dayTotals(d:DatabaseSync){
  const day=businessDay(d),totals={cash:0,card:0,meal_card:0,account:0};
+ const openingRows=day.opening_breakdown?cashBreakdownSchema.parse(JSON.parse(day.opening_breakdown)):day.opening_cash===null?openingPreset(d).breakdown:null;
+ const openingCash=day.opening_cash??cashTotal(openingRows!);
  const payments=d.prepare('SELECT method,SUM(amount) AS value FROM pos_payments WHERE day_id=? GROUP BY method').all(day.day_id);
  const collections=d.prepare("SELECT method,SUM(-amount) AS value FROM pos_ledger WHERE day_id=? AND amount<0 AND method IN ('cash','card','meal_card') GROUP BY method").all(day.day_id);
  const reversals=d.prepare('SELECT method,SUM(-amount) AS value FROM pos_payment_adjustments WHERE day_id=? GROUP BY method').all(day.day_id);
@@ -38,7 +41,7 @@ export function dayTotals(d:DatabaseSync){
  const closed=d.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(discount),0) AS discount FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=?").get(day.day_id)!;
  const moves=d.prepare("SELECT COALESCE(SUM(CASE WHEN kind='in' THEN amount ELSE 0 END),0) AS cash_in,COALESCE(SUM(CASE WHEN kind='out' THEN amount ELSE 0 END),0) AS cash_out FROM pos_cash_moves WHERE day_id=?").get(day.day_id)!;
  const refunds=Number(d.prepare("SELECT COALESCE(SUM(amount),0) AS n FROM pos_payment_adjustments WHERE kind='refund' AND day_id=?").get(day.day_id)!.n);
- return {...day,opening_breakdown:day.opening_breakdown?cashBreakdownSchema.parse(JSON.parse(day.opening_breakdown)):null,date:date(new Date(day.opened_at)),...totals,closed_count:Number(closed.count),discount:Number(closed.discount),refunds,cash_in:Number(moves.cash_in),cash_out:Number(moves.cash_out),expected_cash:(day.opening_cash||0)+totals.cash+Number(moves.cash_in)-Number(moves.cash_out)};
+ return {...day,opening_cash:openingCash,opening_breakdown:openingRows,date:date(new Date(day.opened_at)),...totals,closed_count:Number(closed.count),discount:Number(closed.discount),refunds,cash_in:Number(moves.cash_in),cash_out:Number(moves.cash_out),expected_cash:openingCash+totals.cash+Number(moves.cash_in)-Number(moves.cash_out)};
 }
 export type PaymentChange={action:'refund';payment_id:string;amount:number;reason:string}|{action:'correct_payment';payment_id:string;method:PaymentMethod;account_id?:string;reason:string};
 export function adjustPayment(d:DatabaseSync,t:Ticket,c:PaymentChange,actor:string){

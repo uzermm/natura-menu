@@ -6,9 +6,8 @@ Bu sürümde satış geçmişini her akşam yönetici temizler. Zamanlanmış g�
 
 Sol menüde **Günlük kasa** bölümünü açın.
 
-- **Açılış kasası:** Hazır döküm 2 × 100 TL, 4 × 50 TL, 5 × 20 TL, 10 × 10 TL ve 10 × 5 TL; toplam **650 TL**. Adetleri değiştirip kaydedin. Kaydedilmezse hesaplama sıfır açılış kabul eder.
-- **Açılış kasasını düzenle:** Bugünün dökümünü değiştirir. Kaydedilmiş toplam değişiyorsa düzeltme nedeni gerekir.
-- **Açılış dökümünü düzenle:** Sonraki açılışlarda hazır gelecek adetleri değiştirir; bugünün kasasını değiştirmez. Açılış sırasında da **Bu dökümü sonraki açılışlar için de kaydet** seçilebilir. Bu tercih gün kapatılırken korunur.
+- **Açılış kasası kartı:** Üst kartlarda para dökümü ve altında toplamı görünür. İlk hazır döküm 2 × 100 TL, 4 × 50 TL, 5 × 20 TL, 10 × 10 TL ve 10 × 5 TL; toplam **650 TL**. Karttaki kalemle adetleri değiştirip kaydedin.
+- Kaydedilen döküm değiştirilene kadar sabit kalır; gün kapatıldığında da korunur ve yeni günün açılış nakdine otomatik uygulanır. Her gün yeniden açılış girmek gerekmez. Bugün önceden kaydedilmiş bir açılış varsa tutarı korunur; kalemle düzenlendiğinde hem bugün hem sonraki günler için yeni döküm kaydedilir.
 - **Kasa girişi / Kasa çıkışı:** Satış dışı nakit hareketi. Tutar ve açıklama gerekir.
 - **Kasada beklenen nakit:** Açılış + net nakit tahsilat + giriş − çıkış.
 - Kart ve yemek kartı, harici cihazda yapılan tahsilatın kaydıdır.
@@ -56,11 +55,11 @@ Açık cari siparişi gün kapatıldığında da ürün, fiyat, not ve kısmi ö
 ### Temizlenenler
 
 - Cariyle bağlantısı olmayan tamamlanmış satışlar, satırlar, ödemeler ve iadeler.
-- Günün kasa giriş/çıkışları ve açılış nakdi.
+- Günün kasa giriş/çıkışları. Sabit açılış dökümü korunur.
 - Sonuçlanmış müşteri sipariş istekleri ve garson çağrıları.
 - Korunan cari adisyonları dışında kalan işlem günlükleri ve eski istek içerikleri.
 
-Yeni günün kasa toplamları ve Kapanan adisyonlar ekranı sıfırdan başlar. Saklanan cari fişler, Cari hesaplar içindeki **Ürün ve fiş detayı** üzerinden açılabilir; yeni günün satış listesine veya tahsilatına yeniden eklenmez.
+Yeni günün satış ve tahsilat toplamları ve Kapanan adisyonlar ekranı sıfırdan başlar; beklenen nakit sabit açılış kasasıyla başlar. Saklanan cari fişler, Cari hesaplar içindeki **Ürün ve fiş detayı** üzerinden açılabilir; yeni günün satış listesine veya tahsilatına yeniden eklenmez.
 
 Sayım ve fark bilgileri kapanış ekranında kontrol edilir; satış/kasa raporları gün kapatma sonrasında arşivlenmez. Excel aktarımınızı önce tamamlayın. Adisyon kimlikleri ve korunmuş kayıtların numaraları değiştirilmez.
 

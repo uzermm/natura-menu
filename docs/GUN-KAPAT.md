@@ -120,3 +120,7 @@ Gün kapatmada bildirim olayları temizlenir; cihaz abonelikleri ve anahtarlar k
 ## Masa renk süresi
 
 Masa ve Açık Masalar kartlarının rengi, son onaylanan ürün girişinden itibaren hesaplanır: 0–20 dakika yeşil, 20–45 dakika sarı, 45 dakikanın üzeri kırmızı. Yeni ürün, aynı ürüne ek adet veya onaylanan müşteri siparişi süreyi sıfırlar. Ödeme, not, adet azaltma ve yalnız taşıma işlemleri sıfırlamaz. Birleştirilen hesapta iki masanın en yeni ürün giriş zamanı korunur. Gerçek masa açılış saati ve fiş tarihleri değişmez. İlk geçişte mevcut hesapların son sipariş zamanı ürün ve işlem geçmişinden alınır.
+
+### Ekranlar arasında bağlantı
+
+Sekme veya uygulama değiştirmek canlı bağlantıyı kapatmaz; zaten açık ya da bağlanmakta olan bağlantı tekrar oluşturulmaz. Sunucu bağlantıyı sabit dört dakikalık süreyle kapatmaz; kalp atışları ve oturum kontrolü devam eder. Dönüşte veriler sessizce eşitlenir. Telefon bağlantıyı askıya almışsa eski hat sessizce yenilenir. Kısa geçişlerde ve sağlıklı yedek yenilemede bağlantı uyarısı çıkmaz; gerçek çevrimdışı durumda veya uzun süre sunucuya ulaşılamadığında uyarı görünür.

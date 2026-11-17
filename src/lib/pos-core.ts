@@ -203,7 +203,7 @@ export function accounts(d:DatabaseSync):Account[]{return d.prepare(`SELECT a.*,
  COALESCE((SELECT SUM((SELECT COALESCE(SUM(l.quantity*l.unit_price),0) FROM pos_lines l WHERE l.ticket_id=t.id AND l.voided_at IS NULL)-t.discount
  -(SELECT COALESCE(SUM(p.amount),0) FROM pos_payments p WHERE p.ticket_id=t.id)
  +(SELECT COALESCE(SUM(r.amount),0) FROM pos_payment_adjustments r JOIN pos_payments p ON p.id=r.payment_id WHERE p.ticket_id=t.id AND r.kind='correction')) FROM pos_tickets t WHERE t.linked_account_id=a.id AND t.status='open'),0) AS order_balance
- FROM pos_accounts a WHERE a.deleted_at IS NULL ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
+ FROM pos_accounts a WHERE a.deleted_at IS NULL ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,name:String(row.name).toLocaleUpperCase('tr-TR'),balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
 export function accountHistory(d:DatabaseSync,id:string){
  if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);
  const entries=d.prepare('SELECT * FROM pos_ledger WHERE account_id=? ORDER BY created_at DESC,rowid DESC').all(id) as unknown as AccountEntry[];
@@ -213,7 +213,7 @@ export function accountHistory(d:DatabaseSync,id:string){
  }
  return entries.sort((a,b)=>b.created_at.localeCompare(a.created_at));
 }
-export function saveAccount(d:DatabaseSync,input:{id?:string;name:string;phone:string;note:string;is_active:boolean},actor:string){return atomic(d,()=>{const id=input.id||randomUUID();if(input.id&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND deleted_at IS NULL').get(id))throw new PosError('Cari hesap bulunamadı.',404);d.prepare('INSERT INTO pos_accounts(id,name,phone,note,is_active) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,note=excluded.note,is_active=excluded.is_active').run(id,input.name,input.phone,input.note,Number(input.is_active));event(d,null,'account_save',actor,{...input,id});return accounts(d).find(a=>a.id===id)!;});}
+export function saveAccount(d:DatabaseSync,input:{id?:string;name:string;phone:string;note:string;is_active:boolean},actor:string){return atomic(d,()=>{const id=input.id||randomUUID();if(input.id&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND deleted_at IS NULL').get(id))throw new PosError('Cari hesap bulunamadı.',404);d.prepare('INSERT INTO pos_accounts(id,name,phone,note,is_active) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,note=excluded.note,is_active=excluded.is_active').run(id,input.name.toLocaleUpperCase('tr-TR'),input.phone,input.note,Number(input.is_active));event(d,null,'account_save',actor,{...input,id});return accounts(d).find(a=>a.id===id)!;});}
 export function deleteAccount(d:DatabaseSync,id:string,actor:string){return atomic(d,()=>{
  const row=d.prepare('SELECT deleted_at FROM pos_accounts WHERE id=?').get(id);if(!row)throw new PosError('Cari hesap bulunamadı.',404);if(row.deleted_at)return {ok:true};
  const a=accounts(d).find(a=>a.id===id)!;if(a.balance!==0)throw new PosError('Bakiyesi sıfır olmayan cari silinemez. Önce borç veya alacak bakiyesini kapatın.');

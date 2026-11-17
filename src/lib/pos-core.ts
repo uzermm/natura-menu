@@ -1,3 +1,4 @@
+import {initOrderActivity,recordOrderActivity} from './order-activity.ts';
 import {reopenTicket} from './reopen-ticket.ts';
 import { randomUUID } from 'node:crypto';
 import {initMenuVisibility} from './menu-visibility.ts';
@@ -40,7 +41,7 @@ export function initPos(d:DatabaseSync){initMenuVisibility(d);d.exec(`
   d.exec('CREATE INDEX IF NOT EXISTS pos_account_tickets ON pos_tickets(linked_account_id) WHERE linked_account_id IS NOT NULL');
   const index=d.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name='one_open_ticket_per_table'").get();
   if(!String(index?.sql||'').includes('service_type'))d.exec("DROP INDEX IF EXISTS one_open_ticket_per_table; CREATE UNIQUE INDEX one_open_ticket_per_table ON pos_tickets(table_number) WHERE status='open' AND service_type='table'");
-  d.exec('CREATE INDEX IF NOT EXISTS pos_open_service ON pos_tickets(status,service_type,opened_at)');initOperations(d);
+  d.exec('CREATE INDEX IF NOT EXISTS pos_open_service ON pos_tickets(status,service_type,opened_at)');initOperations(d);initOrderActivity(d);
  });
 }
 function atomic<T>(d:DatabaseSync,fn:()=>T):T{d.exec('BEGIN IMMEDIATE');try{const result=fn();d.exec('COMMIT');return result;}catch(error){d.exec('ROLLBACK');throw error;}}
@@ -82,8 +83,8 @@ function quoteLine(d:DatabaseSync,line:AddLine,qrMenu=false){
 }
 function appendLine(d:DatabaseSync,id:string,line:AddLine,source:OrderSource,actor:string){
  const quoted=quoteLine(d,line),existing=d.prepare('SELECT id,quantity FROM pos_lines WHERE ticket_id=? AND item_id=? AND name=? AND variant=? AND unit_price=? AND note=? AND source=? AND actor=? AND voided_at IS NULL ORDER BY created_at,rowid LIMIT 1').get(id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.note,source,actor);
- if(existing){quantity(Number(existing.quantity)+line.quantity);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(line.quantity,String(existing.id));return String(existing.id);}
- const lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());return lineId;
+ if(existing){quantity(Number(existing.quantity)+line.quantity);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(line.quantity,String(existing.id));recordOrderActivity(d,id);return String(existing.id);}
+ const lineId=randomUUID();d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(lineId,id,line.item_id,quoted.name,quoted.variant,quoted.unit_price,line.quantity,line.note,source,actor,new Date().toISOString());recordOrderActivity(d,id);return lineId;
 }
 export type PosCommand=(
  |{action:'open_account';account_id:string;lines:AddLine[];ticket_note?:string}
@@ -143,7 +144,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
     const group=t.lines.filter(l=>!l.voided_at&&lineKey(l)===lineKey(line)),qty=group.reduce((s,l)=>s+l.quantity,0),paidQty=group.reduce((s,l)=>s+(l.paid_quantity||0),0);
     if(command.action==='quantity'){
      quantity(command.quantity);if(command.quantity<paidQty)throw new PosError('Ödenmiş ürün adedi azaltılamaz.');const delta=command.quantity-qty;if(t.subtotal+delta*line.unit_price<t.discount+t.paid+(t.refunded||0))throw new PosError('Ödenen tutarın altına düşülemez.');
-     if(delta>0){quantity(line.quantity+delta);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(delta,line.id);}
+     if(delta>0){quantity(line.quantity+delta);d.prepare('UPDATE pos_lines SET quantity=quantity+? WHERE id=?').run(delta,line.id);recordOrderActivity(d,id);}
      else{let remove=-delta;for(const member of [...group].reverse()){const take=Math.min(remove,member.quantity-(member.paid_quantity||0));if(!take)continue;const next=member.quantity-take;if(next)d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(next,member.id);else d.prepare('UPDATE pos_lines SET voided_at=?,void_reason=? WHERE id=?').run(new Date().toISOString(),'Adet düzeltmesi',member.id);remove-=take;if(!remove)break;}}
     }else{
      if(!command.reason.trim())throw new PosError('İptal nedenini yazın.');if(qty===paidQty)throw new PosError('Ödenmiş ürün iptal edilemez.');if(t.subtotal-(qty-paidQty)*line.unit_price<t.discount+t.paid+(t.refunded||0))throw new PosError('Ödenen tutarın altına düşülemez.');
@@ -163,7 +164,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
      d.prepare('UPDATE pos_payments SET ticket_id=? WHERE ticket_id=?').run(target.id,id);
      d.prepare('UPDATE pos_orders SET ticket_id=? WHERE ticket_id=?').run(target.id,id);
      d.prepare("UPDATE pos_tickets SET status='closed',closed_at=?,merged_into=?,merge_snapshot=?,version=version+1 WHERE id=?").run(now,target.id,JSON.stringify(snapshot),id);
-     d.prepare('UPDATE pos_tickets SET discount=discount+?,note=? WHERE id=?').run(t.discount,combinedNote,target.id);
+     d.prepare('UPDATE pos_tickets SET discount=discount+?,note=?,last_order_at=? WHERE id=?').run(t.discount,combinedNote,[target.last_order_at||target.opened_at,t.last_order_at||t.opened_at].sort().at(-1)!,target.id);
      event(d,id,'merge',actor,{target_id:target.id,table:command.table,total:t.total,paid:t.paid});id=target.id;mergedSource=true;
     }else{
      if(command.target_ticket_id||command.target_version)throw new PosError('Hedef masa artık aynı hesap değil. Yeniden seçin.',409);
@@ -255,7 +256,7 @@ export function decideCustomerOrder(d:DatabaseSync,id:string,accept:boolean,acto
   for(const line of lines)quoteLine(d,{...line,expected_unit_price:undefined},true);
   ticketId=createTicket(d,Number(order.table_number),actor);
   for(const line of lines)d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(randomUUID(),ticketId,line.item_id,line.name,line.variant,line.unit_price,line.quantity,[line.note,String(order.note)].filter(Boolean).join(' · '),'customer',actor,new Date().toISOString());
-  bump(d,ticketId);
+  recordOrderActivity(d,ticketId);bump(d,ticketId);
  }
  d.prepare('UPDATE pos_orders SET status=?,ticket_id=? WHERE id=?').run(accept?'accepted':'rejected',ticketId,id);event(d,ticketId,accept?'order_accept':'order_reject',actor,{id});return {ticket_id:ticketId};
 });}

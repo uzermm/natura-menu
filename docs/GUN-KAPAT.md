@@ -81,7 +81,7 @@ Silinmiş işlemlerin gecikmiş ağ isteğiyle yeniden yazılmasını önlemek i
 
 **Garson:** Masaları ve müşteri siparişlerini görür; masa siparişi ekler, masa notunu değiştirir, garson çağrısını sonuçlandırır ve müşteri siparişini onaylar/reddeder. Onaylanmamış taslaktaki adetleri değiştirebilir. Onaylanmış ürünü iptal etme/değiştirme, ödeme, indirim, taşıma/birleştirme, cari, hızlı satış, rapor, yazdırma ve menü yönetimi kapalıdır.
 
-Yönetici ve çalışanlar `/admin/login` ekranındaki ortak **Kullanıcı adı / Şifre** alanlarından giriş yapar. Yönetici için ilk kullanıcı adı `admin`, şifre mevcut yönetici şifresidir. Önceden `admin` adlı çalışan varsa yöneticiye sıradaki boş `admin1`, `admin2` adı ayrılır. Yönetici kendi adını İşletme ayarları → Yönetici kullanıcı adı bölümünden mevcut şifresiyle; çalışan adlarını Çalışanlar → Düzenle üzerinden değiştirebilir. Kullanıcı adları bütün hesaplar arasında benzersizdir. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın kullanıcı adı, şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
+Yönetici ve çalışanlar `/admin/login` ekranındaki ortak **Kullanıcı adı / Şifre** alanlarından giriş yapar. Yönetici giriş adı `beyoglumutfagi@gmail.com`, şifre mevcut yönetici şifresidir. Bu sürüm mevcut yönetici adını bir defa bu e-posta adresine geçirir; sonraki düzenlemeleri korur. Kullanıcı adları e-posta biçiminde de olabilir. Yönetici kendi adını İşletme ayarları → Yönetici kullanıcı adı bölümünden mevcut şifresiyle; çalışan adlarını Çalışanlar → Düzenle üzerinden değiştirebilir. Kullanıcı adları bütün hesaplar arasında benzersizdir. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın kullanıcı adı, şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
 
 ## Taslak kurtarma
 
@@ -100,3 +100,7 @@ Giriş ve yönetim ekranındaki indirme simgesiyle uygulamayı yükleyin. Chrome
 Yalnız yönetici, Kapanan adisyonlar içindeki fişi açıp **Adisyonu yeniden aç** düğmesini kullanabilir. Neden zorunludur. Mevcut ürünler, ödemeler ve tahsilatlar korunur; iade veya yeni tahsilat oluşturulmaz. Hesaba yeni ürün eklenebilir. Aynı masada/cari hesapta başka açık adisyon varsa, kaynak adisyon başka masaya birleştirilmişse veya adisyon önceki kapatılmış güne aitse yeniden açılamaz. Açılan hesap tekrar tamamlanana kadar gün kapatma engeli sürer.
 
 Genel bakış bölümü kaldırılmıştır. Çağrılar Masalar bölümünden yönetilir.
+
+## Sol menü ve kullanıcı bilgileri
+
+Bilgisayarda sol menü çift ok veya üst çubuktaki menü düğmesiyle gizlenir/açılır. Tercih cihazda korunur; menü gizlenince içerik genişler. Mobilde üstteki menü düğmesi soldan panel açar; sayfa seçimi, kapatma düğmesi, dış alana dokunma veya Escape ile kapanır. Alt kartta oturumdaki ad, kullanıcı adı ve rol görünür. Yönetici kendi kullanıcı adını kaydedince kart da hemen güncellenir.

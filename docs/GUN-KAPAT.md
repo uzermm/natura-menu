@@ -6,7 +6,9 @@ Bu sürümde satış geçmişini her akşam yönetici temizler. Zamanlanmış g�
 
 Sol menüde **Günlük kasa** bölümünü açın.
 
-- **Açılış kasası:** Günün başlangıcındaki nakit. Bir kez girilir; girilmezse hesaplama sıfır açılış kabul eder.
+- **Açılış kasası:** Hazır döküm 2 × 100 TL, 4 × 50 TL, 5 × 20 TL, 10 × 10 TL ve 10 × 5 TL; toplam **650 TL**. Adetleri değiştirip kaydedin. Kaydedilmezse hesaplama sıfır açılış kabul eder.
+- **Açılış kasasını düzenle:** Bugünün dökümünü değiştirir. Kaydedilmiş toplam değişiyorsa düzeltme nedeni gerekir.
+- **Açılış dökümünü düzenle:** Sonraki açılışlarda hazır gelecek adetleri değiştirir; bugünün kasasını değiştirmez. Açılış sırasında da **Bu dökümü sonraki açılışlar için de kaydet** seçilebilir. Bu tercih gün kapatılırken korunur.
 - **Kasa girişi / Kasa çıkışı:** Satış dışı nakit hareketi. Tutar ve açıklama gerekir.
 - **Kasada beklenen nakit:** Açılış + net nakit tahsilat + giriş − çıkış.
 - Kart ve yemek kartı, harici cihazda yapılan tahsilatın kaydıdır.
@@ -36,6 +38,8 @@ Cari ödemesinin iadesi ilgili hesabın borcunu azaltır. Önceden tahsil edilmi
 Gün özeti başka cihazda değişmişse yeniden kontrol etmeniz istenir. Açık masa/hızlı sipariş veya bekleyen müşteri siparişi varken silme yapılmaz. Cari koruma dosyası yazılamazsa da işlem durur ve satışlar silinmez. Kapatma isteğinin tekrarı yeni günün kayıtlarını tekrar temizlemez.
 
 ## Cari siparişleri
+
+Cari kartının sağ üstündeki kalem, ad/işletme adı, telefon, not ve aktiflik bilgisini düzenler. Aynı penceredeki **Cariyi sil** işlemi ayrıca onay ister. Borç/alacak bakiyesi veya açık cari adisyonu varken silinemez. Silinen kart listeden kaldırılır; eski hesap hareketleri ve bağlı fişler korunur. Geçmiş bir cari ödemesine sonradan iade yapılırsa oluşan bakiye görünür kalması için kart pasif olarak tekrar listelenir.
 
 Cari hesap kartı, masalarda kullanılan sipariş ekranını açar. Onaylanan ürünler cariye bağlı açık adisyonda saklanır; yeniden girildiğinde aynı ürünler ve ödenmemiş adetler görünür. Yeni ürünler bu hesaba eklenir. Nakit, kredi kartı veya yemek kartıyla ürün/adet ya da tutar üzerinden ödeme alınabilir. Tam ödeme ve hesap kapatmadan sonra yeni ürün girişi yeni bir cari adisyonu başlatır; geçmiş fişler korunur.
 

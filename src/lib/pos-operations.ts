@@ -1,6 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import type {DatabaseSync} from 'node:sqlite';
 import {PosError} from './pos-error.ts';
+import {DEFAULT_OPENING_BREAKDOWN,cashBreakdownSchema} from './cash-breakdown.ts';
 import type {PaymentMethod,Ticket} from './pos-types.ts';
 const date=(v=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).format(v);
 function addColumn(d:DatabaseSync,table:string,name:string,definition:string){if(!d.prepare(`PRAGMA table_info(${table})`).all().some(c=>c.name===name))d.exec(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`);}
@@ -16,13 +17,17 @@ export function initOperations(d:DatabaseSync){
  CREATE TABLE IF NOT EXISTS pos_request_tombstones(id TEXT PRIMARY KEY,expires_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS employees(id TEXT PRIMARY KEY,username TEXT NOT NULL UNIQUE,name TEXT NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL CHECK(role IN ('cashier','waiter','kitchen')),is_active INTEGER NOT NULL DEFAULT 1,permissions TEXT NOT NULL DEFAULT '[]' CHECK(permissions='[]'));`);
  addColumn(d,'pos_payments','day_id',"TEXT NOT NULL DEFAULT ''");addColumn(d,'pos_ledger','day_id',"TEXT NOT NULL DEFAULT ''");addColumn(d,'pos_tickets','closed_day_id',"TEXT NOT NULL DEFAULT ''");
+ addColumn(d,'pos_accounts','deleted_at','TEXT');
+ addColumn(d,'pos_day','opening_breakdown','TEXT');addColumn(d,'pos_day','opening_version','INTEGER NOT NULL DEFAULT 0');
+ d.exec('CREATE TABLE IF NOT EXISTS pos_cash_settings(id INTEGER PRIMARY KEY CHECK(id=1),breakdown TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 1)');
+ d.prepare('INSERT OR IGNORE INTO pos_cash_settings(id,breakdown) VALUES(1,?)').run(JSON.stringify(DEFAULT_OPENING_BREAKDOWN));
  d.exec('CREATE INDEX IF NOT EXISTS pos_payments_period ON pos_payments(day_id,method);CREATE INDEX IF NOT EXISTS pos_ledger_period ON pos_ledger(day_id,method);CREATE INDEX IF NOT EXISTS pos_closed_period ON pos_tickets(closed_day_id,status)');
  if(!d.prepare('SELECT 1 FROM pos_day WHERE id=1').get()){
-  const id=randomUUID(),today=date(),now=new Date(today+'T00:00:00+03:00').toISOString();d.prepare('INSERT INTO pos_day VALUES(1,?,?,NULL,NULL,NULL)').run(id,now);
+  const id=randomUUID(),today=date(),now=new Date(today+'T00:00:00+03:00').toISOString();d.prepare('INSERT INTO pos_day(id,day_id,opened_at,opening_cash,last_close_id,last_closed_at) VALUES(1,?,?,NULL,NULL,NULL)').run(id,now);
   for(const [table,column] of [['pos_payments','created_at'],['pos_ledger','created_at'],['pos_tickets','closed_at']])d.prepare(`UPDATE ${table} SET ${table==='pos_tickets'?'closed_day_id':'day_id'}=? WHERE substr(datetime(${column},'+3 hours'),1,10)=?`).run(id,today);
  }
 }
-export function businessDay(d:DatabaseSync){return d.prepare('SELECT day_id,opened_at,opening_cash,last_closed_at FROM pos_day WHERE id=1').get() as unknown as {day_id:string;opened_at:string;opening_cash:number|null;last_closed_at:string|null};}
+export function businessDay(d:DatabaseSync){return d.prepare('SELECT day_id,opened_at,opening_cash,opening_breakdown,opening_version,last_closed_at FROM pos_day WHERE id=1').get() as unknown as {day_id:string;opened_at:string;opening_cash:number|null;opening_breakdown:string|null;opening_version:number;last_closed_at:string|null};}
 export function rejectExpiredRequest(d:DatabaseSync,id:string){if(d.prepare('SELECT 1 FROM pos_request_tombstones WHERE id=?').get(id))throw new PosError('Bu işlem kapanmış güne ait. Ekranı yenileyin.',409);}
 export function dayTotals(d:DatabaseSync){
  const day=businessDay(d),totals={cash:0,card:0,meal_card:0,account:0};
@@ -33,7 +38,7 @@ export function dayTotals(d:DatabaseSync){
  const closed=d.prepare("SELECT COUNT(*) AS count,COALESCE(SUM(discount),0) AS discount FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=?").get(day.day_id)!;
  const moves=d.prepare("SELECT COALESCE(SUM(CASE WHEN kind='in' THEN amount ELSE 0 END),0) AS cash_in,COALESCE(SUM(CASE WHEN kind='out' THEN amount ELSE 0 END),0) AS cash_out FROM pos_cash_moves WHERE day_id=?").get(day.day_id)!;
  const refunds=Number(d.prepare("SELECT COALESCE(SUM(amount),0) AS n FROM pos_payment_adjustments WHERE kind='refund' AND day_id=?").get(day.day_id)!.n);
- return {...day,date:date(new Date(day.opened_at)),...totals,closed_count:Number(closed.count),discount:Number(closed.discount),refunds,cash_in:Number(moves.cash_in),cash_out:Number(moves.cash_out),expected_cash:(day.opening_cash||0)+totals.cash+Number(moves.cash_in)-Number(moves.cash_out)};
+ return {...day,opening_breakdown:day.opening_breakdown?cashBreakdownSchema.parse(JSON.parse(day.opening_breakdown)):null,date:date(new Date(day.opened_at)),...totals,closed_count:Number(closed.count),discount:Number(closed.discount),refunds,cash_in:Number(moves.cash_in),cash_out:Number(moves.cash_out),expected_cash:(day.opening_cash||0)+totals.cash+Number(moves.cash_in)-Number(moves.cash_out)};
 }
 export type PaymentChange={action:'refund';payment_id:string;amount:number;reason:string}|{action:'correct_payment';payment_id:string;method:PaymentMethod;account_id?:string;reason:string};
 export function adjustPayment(d:DatabaseSync,t:Ticket,c:PaymentChange,actor:string){
@@ -44,13 +49,17 @@ export function adjustPayment(d:DatabaseSync,t:Ticket,c:PaymentChange,actor:stri
  if(c.action==='correct_payment'){
   if(p.day_id!==day.day_id)throw new PosError('Ödeme türü yalnız açık günün kayıtlarında düzeltilebilir.');
   if(c.method===p.method&&(c.method!=='account'||c.account_id===p.account_id))throw new PosError('Farklı bir ödeme türü veya cari hesap seçin.');
-  if(c.method==='account'&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1').get(c.account_id||''))throw new PosError('Aktif cari hesap seçin.');
+  if(c.method==='account'&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1 AND deleted_at IS NULL').get(c.account_id||''))throw new PosError('Aktif cari hesap seçin.');
   replacement=randomUUID();d.prepare('INSERT INTO pos_payments(id,ticket_id,method,amount,account_id,reference,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(replacement,t.id,c.method,value,c.method==='account'?c.account_id!:null,reason,actor,now,day.day_id);
   if(c.method==='account')d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),c.account_id!,t.id,value,'account',`Ödeme türü düzeltildi · ${reason}`,actor,now,day.day_id);
   d.prepare('UPDATE pos_payment_items SET payment_id=? WHERE payment_id=?').run(replacement,p.id);
  }
  d.prepare('INSERT INTO pos_payment_adjustments VALUES(?,?,?,?,?,?,?,?,?,?)').run(id,p.id,c.action==='refund'?'refund':'correction',value,p.method,reason,actor,now,day.day_id,replacement);
- if(p.method==='account')d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),p.account_id,t.id,-value,'account_refund',`${c.action==='refund'?'Cari iadesi':'Ödeme türü düzeltmesi'} · ${reason}`,actor,now,day.day_id);
+ if(p.method==='account'){
+  // A later refund can create customer credit on an archived account.
+  d.prepare('UPDATE pos_accounts SET deleted_at=NULL,is_active=0 WHERE id=? AND deleted_at IS NOT NULL').run(p.account_id);
+  d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),p.account_id,t.id,-value,'account_refund',`${c.action==='refund'?'Cari iadesi':'Ödeme türü düzeltmesi'} · ${reason}`,actor,now,day.day_id);
+ }
  if(c.action==='refund'){
   const allocations=d.prepare('SELECT a.id,a.amount-COALESCE((SELECT SUM(r.amount) FROM pos_refund_items r WHERE r.allocation_id=a.id),0) AS available FROM pos_payment_items a WHERE a.payment_id=? ORDER BY a.rowid').all(p.id),sum=allocations.reduce((s,a)=>s+Number(a.available),0);let prefix=0;
   if(sum>0)for(const a of allocations){const next=prefix+Number(a.available),part=Number(BigInt(next)*BigInt(value)/BigInt(sum)-BigInt(prefix)*BigInt(value)/BigInt(sum));if(part>0)d.prepare('INSERT INTO pos_refund_items VALUES(?,?,?)').run(id,a.id,part);prefix=next;}
@@ -74,6 +83,6 @@ export function closeBusinessDay(d:DatabaseSync,input:{request_id:string;day_id:
   // Calls are not financial records and can be discarded at the operator's day close.
   if(d.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='waiter_calls'").get())d.exec('DELETE FROM waiter_calls');
   d.prepare("INSERT OR IGNORE INTO pos_request_tombstones VALUES(?,datetime('now','+30 days'))").run(input.request_id);
-  const now=new Date().toISOString(),next=randomUUID();d.prepare('UPDATE pos_day SET day_id=?,opened_at=?,opening_cash=NULL,last_close_id=?,last_closed_at=? WHERE id=1').run(next,now,input.request_id,now);d.exec('COMMIT');return {closed_at:now,day_id:next};
+  const now=new Date().toISOString(),next=randomUUID();d.prepare('UPDATE pos_day SET day_id=?,opened_at=?,opening_cash=NULL,opening_breakdown=NULL,opening_version=0,last_close_id=?,last_closed_at=? WHERE id=1').run(next,now,input.request_id,now);d.exec('COMMIT');return {closed_at:now,day_id:next};
  }catch(error){d.exec('ROLLBACK');throw error;}
 }

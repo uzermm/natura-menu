@@ -12,7 +12,7 @@ export interface AccountEntry {id:string;account_id:string;ticket_id:string|null
 export interface PendingOrder {id:string;number:number;table_number:number;lines:(AddOrderLine)[];status:'pending'|'accepted'|'rejected';created_at:string;note:string;ticket_id:string|null;}
 export interface AddOrderLine {item_id:string;name:string;variant:string;quantity:number;unit_price:number;note:string;}
 export interface Staff {id:string;username:string;name:string;is_active:boolean;}
-export interface PosSummary {open:Ticket[];recent:Ticket[];accounts:Account[];pending:PendingOrder[];today:{day_id:string;opened_at:string;opening_cash:number|null;last_closed_at:string|null;expected_cash:number;cash_in:number;cash_out:number;refunds:number;date:string;closed_count:number;cash:number;card:number;meal_card:number;account:number;discount:number;};}
+export interface PosSummary {open:Ticket[];recent:Ticket[];accounts:Account[];pending:PendingOrder[];today:{day_id:string;opened_at:string;opening_cash:number|null;opening_breakdown?:{value:number;quantity:number}[]|null;opening_version?:number;last_closed_at:string|null;expected_cash:number;cash_in:number;cash_out:number;refunds:number;date:string;closed_count:number;cash:number;card:number;meal_card:number;account:number;discount:number;};}
 export const paymentLabels:Record<PaymentMethod,string>={cash:'Nakit',card:'Kredi kartı',meal_card:'Yemek kartı',account:'Cari hesap'};
 export const serviceLabels:Record<ServiceType,string>={table:'Masa',counter:'Kasa satışı',takeaway:'Paket servis'};
 export function ticketLabel(t:Pick<Ticket,'service_type'|'table_number'|'account_name'|'number'>){return t.service_type==='table'?`Masa ${t.table_number}`:t.account_name||`Hızlı sipariş #${t.number}`;}

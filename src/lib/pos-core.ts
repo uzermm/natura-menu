@@ -111,7 +111,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
   let id:string;
   if(command.action==='open')id=createTicket(d,command.table,actor);
   else if(command.action==='open_account'){
-   const account=d.prepare('SELECT name FROM pos_accounts WHERE id=? AND is_active=1').get(command.account_id);if(!account)throw new PosError('Aktif cari hesap seçin.');
+   const account=d.prepare('SELECT name FROM pos_accounts WHERE id=? AND is_active=1 AND deleted_at IS NULL').get(command.account_id);if(!account)throw new PosError('Aktif cari hesap seçin.');
    if(openAccountTicket(d,command.account_id))throw new PosError('Cari siparişi başka bir cihazda açılmış. Güncel hesabı kontrol edin.',409);
    if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');
    id=createQuickTicket(d,{service_type:'counter',account_name:String(account.name)},actor);d.prepare('UPDATE pos_tickets SET linked_account_id=? WHERE id=?').run(command.account_id,id);
@@ -174,7 +174,7 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
     if(close&&value!==t.remaining)throw new PosError('Masayı kapatmak için kalan tutarın tamamını ödeyin.');
     const paymentId=randomUUID(),now=new Date().toISOString();let accountId:string|null=null;
     if(command.method==='account'){
-     accountId=command.account_id||'';if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1').get(accountId))throw new PosError('Aktif bir cari hesap seçin.');
+     accountId=command.account_id||'';if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND is_active=1 AND deleted_at IS NULL').get(accountId))throw new PosError('Aktif bir cari hesap seçin.');
      d.prepare('INSERT INTO pos_ledger(id,account_id,ticket_id,amount,method,note,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(randomUUID(),accountId,id,value,'account',`Adisyon #${t.number} · ${ticketLabel(t)}`,actor,now,businessDay(d).day_id);
     }
     d.prepare('INSERT INTO pos_payments(id,ticket_id,method,amount,account_id,reference,actor,created_at,day_id) VALUES(?,?,?,?,?,?,?,?,?)').run(paymentId,id,command.method,value,accountId,command.reference,actor,now,businessDay(d).day_id);
@@ -203,7 +203,7 @@ export function accounts(d:DatabaseSync):Account[]{return d.prepare(`SELECT a.*,
  COALESCE((SELECT SUM((SELECT COALESCE(SUM(l.quantity*l.unit_price),0) FROM pos_lines l WHERE l.ticket_id=t.id AND l.voided_at IS NULL)-t.discount
  -(SELECT COALESCE(SUM(p.amount),0) FROM pos_payments p WHERE p.ticket_id=t.id)
  +(SELECT COALESCE(SUM(r.amount),0) FROM pos_payment_adjustments r JOIN pos_payments p ON p.id=r.payment_id WHERE p.ticket_id=t.id AND r.kind='correction')) FROM pos_tickets t WHERE t.linked_account_id=a.id AND t.status='open'),0) AS order_balance
- FROM pos_accounts a ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
+ FROM pos_accounts a WHERE a.deleted_at IS NULL ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
 export function accountHistory(d:DatabaseSync,id:string){
  if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);
  const entries=d.prepare('SELECT * FROM pos_ledger WHERE account_id=? ORDER BY created_at DESC,rowid DESC').all(id) as unknown as AccountEntry[];
@@ -213,7 +213,13 @@ export function accountHistory(d:DatabaseSync,id:string){
  }
  return entries.sort((a,b)=>b.created_at.localeCompare(a.created_at));
 }
-export function saveAccount(d:DatabaseSync,input:{id?:string;name:string;phone:string;note:string;is_active:boolean},actor:string){return atomic(d,()=>{const id=input.id||randomUUID();if(input.id&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);d.prepare('INSERT INTO pos_accounts VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,note=excluded.note,is_active=excluded.is_active').run(id,input.name,input.phone,input.note,Number(input.is_active));event(d,null,'account_save',actor,{...input,id});return accounts(d).find(a=>a.id===id)!;});}
+export function saveAccount(d:DatabaseSync,input:{id?:string;name:string;phone:string;note:string;is_active:boolean},actor:string){return atomic(d,()=>{const id=input.id||randomUUID();if(input.id&&!d.prepare('SELECT 1 FROM pos_accounts WHERE id=? AND deleted_at IS NULL').get(id))throw new PosError('Cari hesap bulunamadı.',404);d.prepare('INSERT INTO pos_accounts(id,name,phone,note,is_active) VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,phone=excluded.phone,note=excluded.note,is_active=excluded.is_active').run(id,input.name,input.phone,input.note,Number(input.is_active));event(d,null,'account_save',actor,{...input,id});return accounts(d).find(a=>a.id===id)!;});}
+export function deleteAccount(d:DatabaseSync,id:string,actor:string){return atomic(d,()=>{
+ const row=d.prepare('SELECT deleted_at FROM pos_accounts WHERE id=?').get(id);if(!row)throw new PosError('Cari hesap bulunamadı.',404);if(row.deleted_at)return {ok:true};
+ const a=accounts(d).find(a=>a.id===id)!;if(a.balance!==0)throw new PosError('Bakiyesi sıfır olmayan cari silinemez. Önce borç veya alacak bakiyesini kapatın.');
+ if(d.prepare("SELECT 1 FROM pos_tickets WHERE linked_account_id=? AND status='open'").get(id))throw new PosError('Cari siparişi açık. Önce hesabı kapatın.');
+ d.prepare('UPDATE pos_accounts SET deleted_at=?,is_active=0 WHERE id=?').run(new Date().toISOString(),id);event(d,null,'account_delete',actor,{id});return {ok:true};
+});}
 export function collectAccount(d:DatabaseSync,id:string,value:number,method:Exclude<PaymentMethod,'account'>,note:string,requestId:string,actor:string){return atomic(d,()=>{
  rejectExpiredRequest(d,requestId);const payload=JSON.stringify({id,value,method,note,actor}),old=d.prepare('SELECT payload FROM pos_requests WHERE id=?').get(requestId);
  if(old){if(old.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return accounts(d).find(a=>a.id===id)!;}

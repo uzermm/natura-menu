@@ -1,3 +1,6 @@
+import {after} from 'next/server';
+import {queuePush} from '@/lib/push-store';
+import {flushPush} from '@/lib/push-worker';
 import { randomUUID } from 'node:crypto';
 import { db,getSettings,transaction } from '@/lib/db';
 import { waiterCallSchema } from '@/lib/validation';
@@ -11,8 +14,8 @@ export async function POST(req:Request){try{
   if(existing)return {ok:true,message:'Çağrınız zaten iletildi. Ekibimiz sizinle ilgilenecek.'};
   const recent=db().prepare('SELECT created_at FROM waiter_calls WHERE table_number=? ORDER BY created_at DESC LIMIT 1').get(table);
   if(recent&&Date.now()-Date.parse(String(recent.created_at))<60000)throw new HttpError(429,'Yeni bir çağrı için bir dakika bekleyin.');
-  db().prepare('INSERT INTO waiter_calls(id,table_number,created_at) VALUES(?,?,?)').run(randomUUID(),table,new Date().toISOString());
+  const callId=randomUUID();db().prepare('INSERT INTO waiter_calls(id,table_number,created_at) VALUES(?,?,?)').run(callId,table,new Date().toISOString());queuePush(db(),'call',callId,table);
   db().prepare("DELETE FROM waiter_calls WHERE resolved_at IS NOT NULL AND created_at < datetime('now','-30 days')").run();
   return {ok:true,message:'Çağrınız iletildi. Ekibimiz birazdan yanınızda.'};
- });return Response.json(result);
+ });after(flushPush);return Response.json(result);
 }catch(e){return errorResponse(e);}}

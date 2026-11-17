@@ -104,3 +104,15 @@ Genel bakış bölümü kaldırılmıştır. Çağrılar Masalar bölümünden y
 ## Sol menü ve kullanıcı bilgileri
 
 Bilgisayarda sol menü çift ok veya üst çubuktaki menü düğmesiyle gizlenir/açılır. Tercih cihazda korunur; menü gizlenince içerik genişler. Mobilde üstteki menü düğmesi soldan panel açar; sayfa seçimi, kapatma düğmesi, dış alana dokunma veya Escape ile kapanır. Alt kartta oturumdaki ad, kullanıcı adı ve rol görünür. Yönetici kendi kullanıcı adını kaydedince kart da hemen güncellenir.
+
+## Canlı bağlantı ve mobil bildirimler
+
+Mobil üst bant sayfa kaydırılırken sabit kalır. Açık ekranlar tek bir sunucu izleyicisinden yaklaşık 2 saniyede güncellenir. Bağlantı kopunca otomatik yeniden denenir; canlı bağlantı engellenirse 10 saniyelik hafif yenileme kullanılır. Sağlıklı bağlantıda adisyon verileri ayrıca 30 saniyede bir koşullu kontrol edilir. Okuma istekleri yanıt vermiyorsa süre aşımıyla yeniden bağlantı kurulabilir; sipariş ve ödeme yazıları bu nedenle otomatik tekrar gönderilmez.
+
+Üstteki **zil** düğmesine dokunup bildirim izni verin. Android üzerinde güncel Chrome; iPhone/iPad üzerinde iOS 16.4 veya sonrası ve ana ekrana eklenmiş uygulama gerekir. iPhone’da ana ekrandaki Natura simgesinden açıp izin verin. İzin telefon/tarayıcı tarafından verilir; uygulama kendiliğinden izin açamaz.
+
+Yeni müşteri siparişi ve garson çağrısı için Web Push gönderilir. Uygulama arka plandayken sürekli ekran kodu çalıştırılmaz; işletim sistemi bildirim için servis çalışanını uyandırır. Bildirime dokununca ilgili siparişler/masalar sayfası açılır. İnternet, sistemin bildirim/odak/pil ayarları ve cihaz desteği teslimatı etkileyebilir. Gerçek telefonda son izin ve teslimat kontrolü yapılmalıdır.
+
+Bildirim anahtarları otomatik üretilip kalıcı SQLite verisinde korunur; elle anahtar veya ayrı servis kurmak gerekmez. Cihaz aboneliği kullanıcıya bağlıdır. Çıkışta o cihazın aboneliği kaldırılır; pasif hesaplar ve değişen kimlik bilgileriyle kalan eski abonelikler gönderimden çıkarılır. Aynı olay/cihaz için gönderim kaydı tutulur. Geçici hatalar en fazla üç kez denenir; beş dakikayı aşan veya sonuçlanmış çağrı/siparişler gönderilmez. Mevcut Docker sağlık kontrolü bekleyen bildirimleri de yeniden dener; ek zamanlanmış görev yoktur.
+
+Gün kapatmada bildirim olayları temizlenir; cihaz abonelikleri ve anahtarlar korunur. Özel ekran/finans verileri çevrimdışı önbelleğe alınmaz.

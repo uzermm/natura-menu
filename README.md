@@ -75,3 +75,9 @@ Tek örnek / tek sunucu kullanın. Müşterinin masa seçerek gönderdiği sipar
 Yönetici şifresi Ayarlar bölümünden mevcut şifre doğrulanarak değiştirilebilir. Yeni şifrenin scrypt özeti kalıcı SQLite veritabanında saklanır; diğer oturumlar geçersizleşir. `ADMIN_PASSWORD` ilk giriş içindir; panelden değiştirilen şifre sonraki dağıtımlarda korunur.
 
 15 Kasım 2026 tarihli [ayrıntılı sistem incelemesi ve öncelikli öneriler](docs/SYSTEM-REVIEW-2026-11-15.md): bağımlılık güvenliği, eski çalışan erişimi, yedekten dönüş, mobil kullanım ve yerel performans ölçümleri. Rapordaki öneriler uygulanmış değişiklikler değildir.
+
+## Canlı güncellemeler ve Web Push
+
+Mobil üst çubuk sabittir. Yönetim ekranları yetkili SSE akışıyla yaklaşık 2 saniyede güncellenir; kopmada otomatik yeniden bağlantı ve 10 saniyelik sorgu yedeği vardır. Tek sunucu izleyicisi yalnız aktif bağlantı varken çalışır.
+
+Zil düğmesi Web Push iznini ve cihaz aboneliğini açar. iOS 16.4+ üzerinde uygulama ana ekrana eklenmelidir. VAPID anahtarları SQLite içinde otomatik/kalıcı üretilir; ek ortam değişkeni gerekmez. Bildirimler yanıtı geciktirmeden Next `after()` üzerinden gönderilir; mevcut sağlık kontrolü geçici hataları yeniden dener. Cihazda bildirim izni ve gerçek telefon teslimat testi gerekir.

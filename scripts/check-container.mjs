@@ -47,7 +47,7 @@ try {
  assert.equal((await request('/api/waiter',{table:1})).status,200); // Duplicate requests create only one call.
  assert.equal((await request('/api/admin/calls')).data.filter(c=>!c.resolved_at&&c.table_number===1).length,1);
  assert.equal((await request('/admin')).status,200); // Server -> Client serialization with a call present.
- const qr=await request('/api/admin/qr?table=1');assert.equal(qr.status,200);assert.match(qr.data,/<svg/);
+ assert.equal((await request('/admin/qr')).status,404);assert.equal((await request('/api/admin/qr?table=1')).status,404);
  const image=state.categories[0].items.find(i=>i.image_url).image_url;assert.equal((await fetch(base+image)).status,200);
  const posCheck=await checkPos({base,origin,adminCookie:cookie});
  assert.doesNotMatch(menu.data,/Yalnızca mevcut ürünleri göster/);
@@ -65,7 +65,7 @@ try {
  const after=(await request('/api/admin/state')).data;
  assert.equal(after.settings.table_count,30);assert.equal(after.calls.filter(c=>!c.resolved_at).length,1);assert.deepEqual(after.settings.campaign,campaign);
  const exported=docker('exec',name,'node','scripts/backup.mjs');assert.match(exported,/Backup ready:/);
- console.log('PASS: Linux container, non-root volume writes, menu, login, QR, waiter call, restart persistence and online backup.');
+ console.log('PASS: Linux container, non-root volume writes, menu, login, removed QR screens, waiter call, restart persistence and online backup.');
 } catch(error) {
  try {console.error(docker('logs',name));}catch{}
  throw error;

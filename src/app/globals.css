@@ -25,4 +25,4 @@ input, select, textarea { font-size:16px; }
 .no-scrollbar { scrollbar-width:none; } .no-scrollbar::-webkit-scrollbar { display:none; }
 .safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
 @media (prefers-reduced-motion:reduce) { *, *:before, *:after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }
-@media print { .no-print {display:none!important} .qr-grid {display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:12px!important} .qr-card {break-inside:avoid;border:1px solid #ddd;padding:12px} body {background:white} }
+@media print { .no-print {display:none!important} body {background:white} }

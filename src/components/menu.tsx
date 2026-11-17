@@ -9,8 +9,6 @@ import { CustomerOrder } from '@/components/customer-order';
 import { MenuProductGrid } from '@/components/menu-product-grid';
 import { thumbnail,type Category,type Settings } from '@/lib/types';
 
-// Set to true when waiter calls are ready to be offered again.
-const WAITER_CALL_ENABLED=false;
 
 type Props={categories:Category[];settings:Settings;table:number;invalidTable:boolean};
 const title=(name:string)=>name.toLocaleLowerCase('tr-TR').replace(/(^|[ &])\S/g,c=>c.toLocaleUpperCase('tr-TR'));
@@ -23,7 +21,7 @@ export default function Menu({categories,settings,table,invalidTable}:Props) {
  function toast(message:string){clearTimeout(noticeTimer.current);setNotice(message);noticeTimer.current=setTimeout(()=>setNotice(''),5000);}
  function scrollToCategory(id:string){document.getElementById('menu-category-'+id)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}
  function toggleCategory(id:string){setCategory(current=>current===id?'':id);if(category!==id)requestAnimationFrame(()=>scrollToCategory(id));}
- function waiter(){if(WAITER_CALL_ENABLED)setWaiterOpen(true);}
+ function waiter(){setWaiterOpen(true);}
  return <div className="min-h-screen pb-36 md:pb-28">
   <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8 md:py-7"><Brand compact/>{selectedTable>0&&<span className="rounded-full bg-[#e9eee3] px-3 py-2 text-xs font-semibold">Masa {selectedTable}</span>}</header>
   {invalidTable&&<div className="mx-5 mb-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 md:mx-auto md:max-w-5xl">Masa bağlantınız geçersiz veya artık kullanımda değil. Garson çağırırken masa numaranızı seçebilirsiniz.</div>}
@@ -43,8 +41,8 @@ export default function Menu({categories,settings,table,invalidTable}:Props) {
    </div>
    <footer className="px-6 pb-2 pt-12 text-center"><Leaf size={19} className="mx-auto mb-3 text-[#9ca78d]"/><p className="serif text-lg text-[#66745d]">Afiyetle, Natura.</p>{settings.address&&<p className="mt-3 text-xs text-muted-foreground">{settings.address}</p>}{settings.hours&&<p className="mt-1 text-xs text-muted-foreground">{settings.hours}</p>}<p className="mx-auto mt-4 max-w-sm text-[10px] leading-4 text-[#8d9286]">Fiyatlar Türk lirasıdır. Gıda alerjiniz varsa sipariş öncesi ekibimize bilgi verin. Temsili görseller sunumdan farklılık gösterebilir.</p></footer>
   </main>
-  <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-[#e6e7dd] bg-[#f9f8f3]/95 px-4 pt-3 backdrop-blur-xl"><div className="mx-auto flex max-w-[1088px] gap-3"><CustomerOrder categories={categories} tableCount={settings.table_count} initialTable={selectedTable}/><button disabled={!WAITER_CALL_ENABLED} title={WAITER_CALL_ENABLED?undefined:'Garson çağırma şimdilik kullanılamıyor.'} onClick={waiter} className="flex h-14 flex-1 items-center justify-center gap-3 rounded-2xl bg-[#305c3e] px-4 text-sm font-semibold text-white shadow-[0_6px_20px_#305c3e22] disabled:cursor-not-allowed disabled:bg-[#e1e4dc] disabled:text-[#8a9181] disabled:shadow-none"><Bell size={18}/><span>Garson çağır</span>{selectedTable>0&&<span className="rounded-lg bg-white/15 px-2 py-1 text-xs">Masa {selectedTable}</span>}</button></div></div>
+  <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-[#e6e7dd] bg-[#f9f8f3]/95 px-4 pt-3 backdrop-blur-xl"><div className="mx-auto flex max-w-[1088px] gap-3"><CustomerOrder categories={categories} tableCount={settings.table_count} initialTable={selectedTable}/><button onClick={waiter} className="flex h-14 flex-1 items-center justify-center gap-3 rounded-2xl bg-[#305c3e] px-4 text-sm font-semibold text-white shadow-[0_6px_20px_#305c3e22] disabled:cursor-not-allowed disabled:bg-[#e1e4dc] disabled:text-[#8a9181] disabled:shadow-none"><Bell size={18}/><span>Garson çağır</span>{selectedTable>0&&<span className="rounded-lg bg-white/15 px-2 py-1 text-xs">Masa {selectedTable}</span>}</button></div></div>
   {notice&&<div role="status" className="fixed inset-x-4 bottom-28 z-[70] mx-auto flex max-w-md items-center gap-3 rounded-2xl border bg-white p-4 text-sm shadow-xl"><Check size={18} className="shrink-0 text-[#3a7d44]"/>{notice}<button onClick={()=>setNotice('')} className="ml-auto h-8 w-8 shrink-0" aria-label="Bildirimi kapat"><X size={16}/></button></div>}
-  <WaiterSheet open={WAITER_CALL_ENABLED&&waiterOpen} onOpenChange={setWaiterOpen} tableCount={settings.table_count} initialTable={selectedTable} onCalled={(number,message)=>{setSelectedTable(number);toast(message);}}/>
+  <WaiterSheet open={waiterOpen} onOpenChange={setWaiterOpen} tableCount={settings.table_count} initialTable={selectedTable} onCalled={(number,message)=>{setSelectedTable(number);toast(message);}}/>
  </div>;
 }

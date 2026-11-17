@@ -60,7 +60,7 @@ Dokploy yönlendirme etiketlerini oluşturur. Sunucunun dışına ayrıca `3000`
 - Adres ve çalışma saatlerini doldurun.
 - **İşletme ayarları → Kampanya banner’ı:** Banner’ı açın, menüden ürün seçin, varsa porsiyonunu belirleyin ve kampanya fiyatını girip kaydedin. Görsel ve normal fiyat menüden alınır. Menü fiyatı küçük ve üstü çizili, kampanya fiyatı büyük gösterilir. Banner kapalıysa üstte kutu veya boş alan kalmaz. Ürün gizlenir/tükenir veya kampanya fiyatı menü fiyatından düşük olmaktan çıkarsa banner otomatik gizlenir. Eski karşılama/duyuru alanları artık gösterilmez.
 - Alerjen, porsiyon ve etiket bilgilerini ürün ürün mutfakla doğrulayın. Kaynakta bulunmayan alerjenler tahmin edilerek eklenmedi.
-- **Masa QR kodları → Yazdır / PDF kaydet:** Masa kodlarını basın. Her kodda masa bilgisi doğrulaması vardır.
+- **Masa QR kodları:** Kod oluşturma ve yazdırma ekranları kaldırıldı. Müşteriler garson çağrısı için masa numarasını menüden seçer.
 - **Garson çağrıları:** Paneli açık tutun ve **Ses aç** düğmesine bir kez basın. Panel çağrıları 5 saniyede bir kontrol eder. Ses için tarayıcının kullanıcı etkileşimi gerekir. Telefon ekranı kilitli / tarayıcı arka plandayken bildirim garantisi yoktur; servis sırasında paneli açık bir cihazda tutun.
 - **Garson çağırma:** Müşteri düğmeye basar, açılan ekranda masa numarasını seçer ve çağrıyı onaylar. Masaya özel QR kod gerekmez. Seçenekler paneldeki masa sayısına göre 1’den başlar. Kullanım dışı masalar sunucuda da reddedilir; aynı masanın bekleyen çağrısı çoğaltılmaz. Mevcut masaya özel QR bağlantıları varsa masa seçimini önceden doldurabilir.
 
@@ -96,7 +96,7 @@ Depodaki eski `scripts/backup.mjs` aracı yalnız elle çağrıldığında çal�
 - **Giriş yapılamıyor:** Panelden şifre değiştirdiyseniz en son belirlediğiniz şifreyi kullanın. İlk kurulumda `ADMIN_PASSWORD` en az 8 karakter; `SESSION_SECRET` en az 32 karakter olmalı. Örnek değerler kabul edilmez. Değişiklikten sonra yeniden Deploy yapın. HTTPS üzerinden giriş yapın.
 - **Geçersiz istek kaynağı:** `APP_URL` ile tarayıcıda kullandığınız adres aynı olmalı. Alan adının önüne `www` eklemeyin.
 - **Permission denied / SQLite yazılamıyor:** Volume `/app/data` yoluna bağlı mı ve `uid 1000` yazabiliyor mu kontrol edin.
-- **QR geçersiz:** Anahtar değiştirilmiş veya masa sayısı azaltılmış olabilir. Panelden güncel QR kodunu alın.
+- **Eski masa bağlantısı geçersiz:** Anahtar değiştirilmiş veya masa sayısı azaltılmış olabilir. Ana menü bağlantısını açıp güncel masa numarasını seçin.
 - **Garson sesi yok:** Ses aç düğmesine basın, tarayıcı ses iznini ve cihazın sesini kontrol edin; paneli ön planda tutun.
 
 Resmî kaynaklar: [Dokploy Docker Compose](https://docs.dokploy.com/docs/core/docker-compose), [Compose alan adları](https://docs.dokploy.com/docs/core/docker-compose/domains), [Volume yedekleri](https://docs.dokploy.com/docs/core/volume-backups), [Next.js sunucu dağıtımı](https://nextjs.org/docs/app/getting-started/deploying).

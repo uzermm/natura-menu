@@ -1,3 +1,4 @@
+import {reopenTicket} from './reopen-ticket.ts';
 import { randomUUID } from 'node:crypto';
 import {initMenuVisibility} from './menu-visibility.ts';
 import {PosError} from './pos-error.ts';
@@ -100,6 +101,7 @@ export type PosCommand=(
  |{action:'pay_items';ticket_id:string;version:number;method:PaymentMethod;items:{line_id:string;quantity:number}[];account_id?:string;reference:string}
  |{action:'refund';ticket_id:string;version:number;payment_id:string;amount:number;reason:string}
  |{action:'correct_payment';ticket_id:string;version:number;payment_id:string;method:PaymentMethod;account_id?:string;reason:string}
+ |{action:'reopen';ticket_id:string;version:number;reason:string}
  |{action:'close';ticket_id:string;version:number})&{quick?:QuickMetadata;ticket_note?:string};
 export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,actor='Kasa',source:OrderSource='cashier',expectedDayId?:string):Ticket{
  return atomic(d,()=>{
@@ -126,10 +128,11 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
    if(command.lines){if(!command.lines.length||command.lines.length>100)throw new PosError('1–100 ürün seçin.');for(const line of command.lines)appendLine(d,id,line,source,actor);}
   }
   else{
-   id=command.ticket_id;const financial=command.action==='refund'||command.action==='correct_payment',t=financial?ticket(d,id):editable(d,id,command.version);if(t.version!==command.version)throw new PosError('Adisyon değişti. Güncel halini kontrol edin.',409);
+   id=command.ticket_id;const financial=command.action==='refund'||command.action==='correct_payment'||command.action==='reopen',t=financial?ticket(d,id):editable(d,id,command.version);if(t.version!==command.version)throw new PosError('Adisyon değişti. Güncel halini kontrol edin.',409);
    if(t.linked_account_id&&(command.quick||command.action==='label'||command.action==='move'||('method' in command&&command.method==='account')))throw new PosError('Cari siparişinin hesabı değiştirilemez; ödemeyi nakit veya kart ile alın.');
    if(command.quick){if(t.service_type==='table')throw new PosError('Masa adisyonuna hızlı sipariş bilgisi eklenemez.');const meta=quickMetadata(command.quick);d.prepare('UPDATE pos_tickets SET account_name=?,service_type=? WHERE id=?').run(meta.account_name,meta.service_type,id);t.account_name=meta.account_name;t.service_type=meta.service_type;}
-   if(command.action==='refund'||command.action==='correct_payment'){adjustPayment(d,t,command,actor);}
+   if(command.action==='reopen'){reopenTicket(d,t,businessDay(d).day_id,command.reason);}
+   else if(command.action==='refund'||command.action==='correct_payment'){adjustPayment(d,t,command,actor);}
    else if(command.action==='label'){
     if(t.service_type==='table')throw new PosError('Hesap adı yalnız hızlı siparişlerde değiştirilebilir.');const meta=quickMetadata(command);d.prepare('UPDATE pos_tickets SET account_name=?,service_type=? WHERE id=?').run(meta.account_name,meta.service_type,id);
    }else if(command.action==='add'){

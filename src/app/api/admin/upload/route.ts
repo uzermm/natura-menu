@@ -1,4 +1,4 @@
-import {requireCashier} from '@/lib/operator';
+import {requireAdmin} from '@/lib/api';
 import { randomUUID } from 'node:crypto';
 import { mkdir,writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import { dataDir } from '@/lib/db';
 import { errorResponse,HttpError } from '@/lib/api';
 export const runtime='nodejs';
 export async function POST(req:Request){try{
- await requireCashier(req);
+ await requireAdmin(req);
  if(Number(req.headers.get('content-length')||0)>12*1024*1024)throw new HttpError(413,'Görsel en fazla 10 MB olmalı.');
  const data=await req.formData();const file=data.get('file');
  if(!(file instanceof File)||file.size>10*1024*1024||file.size===0)throw new HttpError(400,'En fazla 10 MB boyutunda bir görsel seçin.');

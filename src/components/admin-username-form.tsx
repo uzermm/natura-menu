@@ -1,0 +1,9 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {api} from '@/lib/client';
+import {Button} from './ui/button';
+import {Input} from './ui/input';
+import {Label} from './ui/label';
+export function AdminUsernameForm(){const [username,setUsername]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState(false);useEffect(()=>{void api<{username:string}>('/api/admin/profile',undefined,'GET').then(v=>setUsername(v.username)).catch(e=>setError(e.message));},[]);
+ return <form className="max-w-2xl space-y-4 rounded-2xl border bg-white p-5 md:p-7" onSubmit={async e=>{e.preventDefault();const form=e.currentTarget,fd=new FormData(form);setBusy(true);setError('');setSuccess(false);try{const v=await api<{username:string}>('/api/admin/profile',{username,currentPassword:String(fd.get('currentPassword'))});setUsername(v.username);form.reset();setSuccess(true);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}><div><h2 className="serif text-2xl">Yönetici kullanıcı adı</h2><p className="mt-2 text-sm text-muted-foreground">Diğer cihazlardaki yönetici oturumları kapatılır; bu cihazda oturumunuz devam eder.</p></div><Label htmlFor="admin-username">Kullanıcı adı</Label><Input id="admin-username" name="username" value={username} onChange={e=>setUsername(e.target.value)} autoCapitalize="none" autoComplete="username" minLength={3} maxLength={40} pattern="[a-z0-9._-]+" required/><Label htmlFor="admin-username-password">Mevcut şifre</Label><Input id="admin-username-password" name="currentPassword" type="password" autoComplete="current-password" maxLength={256} required/>{error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{success&&<p role="status" className="text-sm text-green-700">Kullanıcı adınız güncellendi.</p>}<Button disabled={busy||!username} className="w-full">Kullanıcı adını kaydet</Button></form>;
+}

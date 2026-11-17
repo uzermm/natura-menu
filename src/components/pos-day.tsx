@@ -18,7 +18,7 @@ type Preset={breakdown:CashBreakdown;version:number};
 type Preview={day:Summary;revision:string;open_count:number;pending_count:number;kept_count:number;delete_count:number;opening_preset:Preset};
 const clone=(rows:CashBreakdown)=>rows.map(r=>({...r}));
 
-export function PosDay({summary:s,onChange}:{summary:Summary;onChange:()=>Promise<void>}){
+export function PosDay({summary:s,onChange,canEditOpening=false}:{summary:Summary;canEditOpening?:boolean;onChange:()=>Promise<void>}){
  const [tool,setTool]=useState<Tool|null>(null),[preview,setPreview]=useState<Preview|null>(null);
  const [amount,setAmount]=useState(''),[note,setNote]=useState(''),[confirm,setConfirm]=useState('');
  const [busy,setBusy]=useState(false),[locked,setLocked]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -33,7 +33,7 @@ export function PosDay({summary:s,onChange}:{summary:Summary;onChange:()=>Promis
  const title=tool==='close'?'Gün kapat':tool==='opening'?(previousOpening===null?'Açılış kasası':'Açılış kasasını düzenle'):tool==='in'?'Kasa girişi':'Kasa çıkışı';
 
  async function start(kind:Tool){
-  if(busy)return;setError('');setNotice('');setNote('');setConfirm('');setAmount('');setTool(kind);setPreview(null);setLocked(false);attempt.current=null;setContextDay(s.day_id);setPreviousOpening(s.opening_cash);setOpeningVersion(s.opening_version??0);
+  if(busy||kind==='opening'&&!canEditOpening)return;setError('');setNotice('');setNote('');setConfirm('');setAmount('');setTool(kind);setPreview(null);setLocked(false);attempt.current=null;setContextDay(s.day_id);setPreviousOpening(s.opening_cash);setOpeningVersion(s.opening_version??0);
   if(kind==='in'||kind==='out')return;
   setBusy(true);try{
    const p=await api<Preview>('/api/pos/day',undefined,'GET');setPreview(p);setContextDay(p.day.day_id);setPreviousOpening(p.day.opening_cash);setOpeningVersion(p.day.opening_version??0);setPreset(p.opening_preset);
@@ -57,7 +57,7 @@ export function PosDay({summary:s,onChange}:{summary:Summary;onChange:()=>Promis
   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-800"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500"/>Kasa açık</span><span className="inline-flex items-center gap-1.5"><Clock3 size={14}/>{new Date(s.opened_at).toLocaleString('tr-TR')}</span></div>
   <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.9fr)_minmax(0,2fr)]">
    <div aria-label="Açılış kasası kartı" className="rounded-2xl bg-[#244b39] p-5 text-white shadow-sm sm:p-6">
-    <div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="rounded-xl bg-white/10 p-2.5 text-amber-200"><Wallet size={22}/></span><h2 className="text-lg font-bold tracking-tight sm:text-xl">Açılış kasası</h2></div><Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" aria-label="Açılış kasasını düzenle" onClick={()=>start('opening')}><Pencil size={17}/></Button></div>
+    <div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="rounded-xl bg-white/10 p-2.5 text-amber-200"><Wallet size={22}/></span><h2 className="text-lg font-bold tracking-tight sm:text-xl">Açılış kasası</h2></div>{canEditOpening&&<Button type="button" variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-xl border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white" aria-label="Açılış kasasını düzenle" onClick={()=>start('opening')}><Pencil size={17}/></Button>}</div>
     <div className="mt-5 space-y-2.5">{s.opening_breakdown?.map(row=><div key={row.value} className="flex items-center justify-between gap-3 text-sm"><span className="text-emerald-50/85"><span className="font-semibold text-white">{row.quantity} adet</span> × {money(row.value)}</span><span className="font-medium tabular-nums text-emerald-50/85">{money(row.quantity*row.value)}</span></div>)}</div>
     <div className="mt-5 flex flex-wrap items-end justify-between gap-2 border-t border-white/20 pt-4"><div><p className="text-xs font-medium text-emerald-100/80">Toplam açılış nakdi</p><strong className="mt-1 block break-words text-3xl font-bold tracking-tight tabular-nums">{money(s.opening_cash??0)}</strong></div><span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-medium text-emerald-50">Sabit döküm</span></div>
    </div>

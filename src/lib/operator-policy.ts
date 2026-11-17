@@ -3,6 +3,7 @@ import type {PosCommand} from './pos-core.ts';
 import type {Ticket} from './pos-types.ts';
 import {PosError} from './pos-error.ts';
 export function assertOrderPermission(role:OperatorRole,c:PosCommand,t?:Ticket){
+ if(c.action==='reopen'&&role!=='admin')throw new PosError('Adisyon yeniden açma yetkisi yalnız yöneticiye ait.',403);
  if(role!=='waiter')return;
  if(!['open_order','add','note'].includes(c.action)||c.quick||t&&(t.service_type!=='table'||t.linked_account_id))throw new PosError('Garson yalnız masa siparişi ekleyebilir ve masa notunu düzenleyebilir.',403);
 }

@@ -6,7 +6,7 @@ Bu sürümde satış geçmişini her akşam yönetici temizler. Zamanlanmış g�
 
 Sol menüde **Günlük kasa** bölümünü açın.
 
-- **Açılış kasası kartı:** Üst kartlarda para dökümü ve altında toplamı görünür. İlk hazır döküm 2 × 100 TL, 4 × 50 TL, 5 × 20 TL, 10 × 10 TL ve 10 × 5 TL; toplam **650 TL**. Karttaki kalemle adetleri değiştirip kaydedin.
+- **Açılış kasası kartı:** Üst kartlarda para dökümü ve altında toplamı görünür. İlk hazır döküm 2 × 100 TL, 4 × 50 TL, 5 × 20 TL, 10 × 10 TL ve 10 × 5 TL; toplam **650 TL**. Yalnız yönetici karttaki kalemle adetleri değiştirip kaydedebilir; kasiyer kartı görüntüler.
 - Kaydedilen döküm değiştirilene kadar sabit kalır; gün kapatıldığında da korunur ve yeni günün açılış nakdine otomatik uygulanır. Her gün yeniden açılış girmek gerekmez. Bugün önceden kaydedilmiş bir açılış varsa tutarı korunur; kalemle düzenlendiğinde hem bugün hem sonraki günler için yeni döküm kaydedilir.
 - **Kasa girişi / Kasa çıkışı:** Satış dışı nakit hareketi. Tutar ve açıklama gerekir.
 - **Kasada beklenen nakit:** Açılış + net nakit tahsilat + giriş − çıkış.
@@ -77,11 +77,11 @@ Silinmiş işlemlerin gecikmiş ağ isteğiyle yeniden yazılmasını önlemek i
 
 **Yönetici:** Bütün bölümler ve çalışan/şifre ayarları açıktır.
 
-**Kasiyer:** İşletme ayarları dışında bütün bölümler açıktır. İşletme ayarlarını, çalışanları ve yönetici şifresini değiştiremez.
+**Kasiyer:** Masalar, hızlı sipariş, müşteri siparişleri, cari hesaplar, kapanan adisyonlar ve günlük kasa açıktır. Menü yönetimi, işletme ayarları, kullanıcı adı/şifre yönetimi, açılış kasası dökümü düzenleme ve kapanan adisyonu yeniden açma kapalıdır.
 
 **Garson:** Masaları ve müşteri siparişlerini görür; masa siparişi ekler, masa notunu değiştirir, garson çağrısını sonuçlandırır ve müşteri siparişini onaylar/reddeder. Onaylanmamış taslaktaki adetleri değiştirebilir. Onaylanmış ürünü iptal etme/değiştirme, ödeme, indirim, taşıma/birleştirme, cari, hızlı satış, rapor, yazdırma ve menü yönetimi kapalıdır.
 
-Giriş, `/admin/login` ekranındaki **Çalışan** seçeneğinden kullanıcı adı ve şifreyle yapılır. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
+Yönetici ve çalışanlar `/admin/login` ekranındaki ortak **Kullanıcı adı / Şifre** alanlarından giriş yapar. Yönetici için ilk kullanıcı adı `admin`, şifre mevcut yönetici şifresidir. Önceden `admin` adlı çalışan varsa yöneticiye sıradaki boş `admin1`, `admin2` adı ayrılır. Yönetici kendi adını İşletme ayarları → Yönetici kullanıcı adı bölümünden mevcut şifresiyle; çalışan adlarını Çalışanlar → Düzenle üzerinden değiştirebilir. Kullanıcı adları bütün hesaplar arasında benzersizdir. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın kullanıcı adı, şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
 
 ## Taslak kurtarma
 
@@ -94,3 +94,9 @@ Onay yanıtı kaybolmuşsa sistem işlem anahtarını kontrol eder. Sipariş sun
 Sol menüde **Masalar → Hızlı Sipariş** ayrı bir sayfadır. İşlem onaylanmadan gerçek satış açılmaz; ödenmemiş hızlı satışlar Açık Masalar içinde kalır.
 
 Giriş ve yönetim ekranındaki indirme simgesiyle uygulamayı yükleyin. Chrome/Edge üzerinde yükleme istemi, Safari üzerinde Paylaş → Ana Ekrana Ekle kullanılabilir. Uygulama yönetim ekranıyla açılır. Siparişler ve ödemeler internet bağlantısı gerektirir; özel veriler çevrimdışı önbelleğe alınmaz ve arkaplanda sipariş tekrar gönderimi yapılmaz.
+
+## Kapanan adisyonu yeniden açma
+
+Yalnız yönetici, Kapanan adisyonlar içindeki fişi açıp **Adisyonu yeniden aç** düğmesini kullanabilir. Neden zorunludur. Mevcut ürünler, ödemeler ve tahsilatlar korunur; iade veya yeni tahsilat oluşturulmaz. Hesaba yeni ürün eklenebilir. Aynı masada/cari hesapta başka açık adisyon varsa, kaynak adisyon başka masaya birleştirilmişse veya adisyon önceki kapatılmış güne aitse yeniden açılamaz. Açılan hesap tekrar tamamlanana kadar gün kapatma engeli sürer.
+
+Genel bakış bölümü kaldırılmıştır. Çağrılar Masalar bölümünden yönetilir.

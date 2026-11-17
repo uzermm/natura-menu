@@ -4,7 +4,7 @@ import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {db,dataDir} from '@/lib/db';
-import {jsonBody,noStore,HttpError} from '@/lib/api';
+import {jsonBody,noStore,HttpError,requireAdmin} from '@/lib/api';
 import {businessDay,dayTotals,closePreview,closeBusinessDay,rejectExpiredRequest} from '@/lib/pos-operations';
 import {recordPosEvent} from '@/lib/pos-core';
 import {posErrorResponse} from '@/lib/pos-response';
@@ -18,7 +18,7 @@ const cashAction=z.discriminatedUnion('action',[
 ]);
 export async function GET(req:Request){try{await requireCashier();if(new URL(req.url).searchParams.get('export')==='cari'){const {cariExcel}=await import('@/lib/cari-excel');const data=await cariExcel(db());return new Response(new Uint8Array(data),{headers:{...noStore,'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':'attachment; filename="natura-cari.xlsx"'}});}return Response.json({...closePreview(db()),opening_preset:openingPreset(db())},{headers:noStore});}catch(error){return posErrorResponse(error);}}
 export async function POST(req:Request){try{
- const operator=await requireCashier(req);const raw=await jsonBody(req);
+ const operator=await requireCashier(req);const raw=await jsonBody(req);if(raw.action==='opening'||raw.action==='opening_preset')await requireAdmin(req);
  if(raw.action==='close'){
   const v=z.object({action:z.literal('close'),request_id:z.string().uuid(),day_id:z.string().uuid(),revision:z.string(),counted_cash:z.number().int().min(0).max(1000000000),note:z.string().trim().max(500),confirm:z.literal('GÜNÜ KAPAT')}).parse(raw);
   const result=closeBusinessDay(db(),v,snapshot=>{mkdirSync(dataDir,{recursive:true});const tmp=path.join(dataDir,'cari-koruma.tmp'),dest=path.join(dataDir,'cari-koruma.json');writeFileSync(tmp,JSON.stringify(snapshot),{mode:0o600});renameSync(tmp,dest);});return Response.json(result,{headers:noStore});

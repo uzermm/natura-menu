@@ -19,6 +19,7 @@ export const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('pay_items'),...base,method:z.enum(['cash','card','meal_card','account']),items:z.array(z.object({line_id:id,quantity:z.number().int().min(1).max(999)})).min(1).max(100),account_id:id.optional(),reference:note.default('')}),
  z.object({action:z.literal('refund'),...base,payment_id:id,amount,reason:note.min(1)}),
  z.object({action:z.literal('correct_payment'),...base,payment_id:id,method:z.enum(['cash','card','meal_card','account']),account_id:id.optional(),reason:note.min(1)}),
+ z.object({action:z.literal('reopen'),...base,reason:note.min(1)}),
  z.object({action:z.literal('close'),...base}),
 ]).and(z.object({quick:quick.optional(),ticket_note:note.optional()}));
 export const posRequestSchema=z.object({request_id:id,day_id:id.optional(),command:commandSchema});

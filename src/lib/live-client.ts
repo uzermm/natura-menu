@@ -4,7 +4,7 @@ import {api} from './client';
 import type {WaiterCall} from './types';
 let liveConnected=false;
 export const isLiveConnected=()=>liveConnected;
-export type LiveActivity={calls:WaiterCall[];pending_order_ids:string[];revision?:string};
+export type LiveActivity={menu_revision?:number;calls:WaiterCall[];pending_order_ids:string[];revision?:string};
 export function useLiveActivity(){
  const [activity,setActivity]=useState<LiveActivity|null>(null),[connected,setConnected]=useState(false),[showReconnectWarning,setShowReconnectWarning]=useState(false);
  useEffect(()=>{

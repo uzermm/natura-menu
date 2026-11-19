@@ -12,3 +12,10 @@ export function resolveCampaign(categories:Category[],campaign:Campaign|null) {
  if(!Number.isInteger(campaign.price)||campaign.price<=0||campaign.price>=regularPrice)return null;
  return {item,variant:variant?.name||'',regularPrice,campaignPrice:campaign.price,title:campaign.title?.trim()||'Natura fırsatı'};
 }
+
+export function campaignUnitPrice(item:{id:string;price:number;image_url?:string;is_active:unknown;qr_visible?:unknown;sold_out:unknown;variants:{name:string;price:number}[]},categoryVisible:unknown,campaign:Campaign|null,variant:string){
+ const regular=item.variants.find(v=>v.name===variant)?.price??item.price;
+ if(!campaign||campaign.item_id!==item.id||campaign.variant!==variant||!item.is_active||item.qr_visible===false||item.qr_visible===0||!categoryVisible||item.sold_out||!item.image_url)return regular;
+ return Number.isSafeInteger(campaign.price)&&campaign.price>0&&campaign.price<regular?campaign.price:regular;
+}
+export function saleCategories(categories:Category[],campaign:Campaign|null):Category[]{return categories.map(c=>({...c,items:c.items.map(i=>({...i,price:campaignUnitPrice(i,c.is_active&&c.qr_visible!==false,campaign,''),variants:i.variants.map(v=>({...v,price:campaignUnitPrice(i,c.is_active&&c.qr_visible!==false,campaign,v.name)})),original_price:!i.variants.length&&campaignUnitPrice(i,c.is_active&&c.qr_visible!==false,campaign,'')<i.price?i.price:i.original_price}))}));}

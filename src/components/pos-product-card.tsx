@@ -15,6 +15,6 @@ export function PosProductCard({item,count,disabled,eager,onAdd,onOptions}:{item
    </div>
    <h3 className="hidden min-h-12 px-3 pt-3 text-[13px] font-bold leading-[18px] lg:line-clamp-2 lg:block">{item.name}</h3>
   </button>
-  <div className="lg:flex lg:items-center lg:justify-between lg:px-3 lg:pb-3"><strong className="hidden text-sm text-[#305c3e] lg:block">{price}{item.variants.length>0&&'+'}</strong><button type="button" aria-label={`${item.name} seçenekleri`} disabled={disabled||item.sold_out} onClick={onOptions} className="absolute right-0 top-0 flex h-7 w-7 touch-manipulation items-center justify-center rounded-bl-xl bg-white/90 text-[#527240] lg:static lg:h-8 lg:w-8 lg:rounded-lg lg:bg-[#eff3e9]"><SlidersHorizontal size={13}/></button></div>
+  <div className="lg:flex lg:items-center lg:justify-between lg:px-3 lg:pb-3"><strong className="hidden text-sm text-[#305c3e] lg:block">{price}{item.variants.length>0&&'+'}</strong><button type="button" aria-label={`${item.name} seçenekleri`} disabled={disabled||item.sold_out} onClick={onOptions} className="absolute right-0 top-0 flex h-10 w-10 touch-manipulation items-start justify-end p-1 text-[#527240] lg:static lg:h-11 lg:w-11 lg:items-center lg:justify-center lg:rounded-lg lg:bg-[#eff3e9]"><span className="rounded-md bg-white/90 p-1 lg:bg-transparent lg:p-0"><SlidersHorizontal size={13}/></span></button></div>
  </article>;
 }

@@ -45,7 +45,7 @@ export function db() {
  }catch(e){d.exec('ROLLBACK');d.close();throw e;}
  singleton=d;return d;
 }
-export function getSettings():Settings{const value=JSON.parse(db().prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);const campaign=campaignSchema.safeParse(value.campaign);return {table_count:value.table_count,address:value.address,hours:value.hours,campaign:campaign.success?campaign.data:null};}
+export function getSettings():Settings{const row=db().prepare('SELECT value,version FROM settings WHERE id=1').get()!;const value=JSON.parse(row.value as string);const campaign=campaignSchema.safeParse(value.campaign);return {version:Number(row.version),table_count:value.table_count,address:value.address,hours:value.hours,campaign:campaign.success?campaign.data:null};}
 function readItem(row:Record<string,unknown>):Item {return {...row,qr_visible:!!row.qr_visible,is_active:!!row.is_active,sold_out:!!row.sold_out,featured:!!row.featured,image_generated:!!row.image_generated,allergens_verified:!!row.allergens_verified,allergens:JSON.parse(row.allergens as string),tags:JSON.parse(row.tags as string),variants:JSON.parse(row.variants as string)} as Item;}
 export function getCategories(admin=false):Category[] {
  const d=db();const rows=d.prepare(`SELECT * FROM items ${admin?'':'WHERE is_active=1 AND qr_visible=1'} ORDER BY display_order,name`).all().map(readItem);

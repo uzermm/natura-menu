@@ -9,7 +9,7 @@ import { CampaignBanner } from './campaign-banner';
 import { resolveCampaign } from '@/lib/campaign';
 import { money,type Category,type Settings } from '@/lib/types';
 
-export default function SettingsForm({settings,categories,onSave}:{settings:Settings;categories:Category[];onSave:(s:Settings)=>Promise<void>}) {
+export default function SettingsForm({settings,categories,onSave,onReload}:{settings:Settings;categories:Category[];onSave:(s:Settings)=>Promise<void>;onReload:()=>Promise<void>}) {
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const [enabled,setEnabled]=useState(!!settings.campaign);
  const [itemId,setItemId]=useState(settings.campaign?.item_id||'');
@@ -22,7 +22,7 @@ export default function SettingsForm({settings,categories,onSave}:{settings:Sett
  const offer=enabled?resolveCampaign(categories,{item_id:itemId,variant,price,title:campaignTitle}):null;
  return <form className="max-w-2xl space-y-6" onSubmit={async e=>{
   e.preventDefault();const fd=new FormData(e.currentTarget);setBusy(true);setError('');
-  try{await onSave({table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price,title:campaignTitle}:null});}
+  try{await onSave({version:settings.version,table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price,title:campaignTitle}:null});}
   catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }}>
   <section className="space-y-5 rounded-2xl border bg-white p-5 md:p-7" aria-labelledby="campaign-settings-title">
@@ -42,7 +42,7 @@ export default function SettingsForm({settings,categories,onSave}:{settings:Sett
    <div className="space-y-2"><Label htmlFor="address">Adres</Label><Textarea id="address" name="address" defaultValue={settings.address} maxLength={300}/></div>
    <div className="space-y-2"><Label htmlFor="hours">Çalışma saatleri</Label><Input id="hours" name="hours" defaultValue={settings.hours} maxLength={160} placeholder="Örn. Her gün 09.00–23.00"/></div>
   </section>
-  {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+  {error&&<Button type="button" variant="outline" onClick={()=>void onReload()}>Güncel ayarları yükle</Button>}{error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
   <Button disabled={busy} className="h-12 w-full rounded-xl">{busy?'Kaydediliyor…':'Ayarları kaydet'}</Button>
  </form>;
 }

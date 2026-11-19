@@ -1,3 +1,5 @@
+import {DatabaseSync} from 'node:sqlite';
+import {Readable} from 'node:stream';
 import {requireCashier} from '@/lib/operator';
 import {writeFileSync,renameSync,mkdirSync} from 'node:fs';
 import path from 'node:path';
@@ -16,10 +18,12 @@ const cashAction=z.discriminatedUnion('action',[
  z.object({action:z.literal('opening_preset'),...base,breakdown:cashBreakdownSchema,preset_version:z.number().int().positive()}),
  z.object({action:z.enum(['in','out']),...base,amount:amount.min(1),note:note.min(1)}),
 ]);
-export async function GET(req:Request){try{await requireCashier();if(new URL(req.url).searchParams.get('export')==='cari'){const {cariExcel}=await import('@/lib/cari-excel');const data=await cariExcel(db());return new Response(new Uint8Array(data),{headers:{...noStore,'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':'attachment; filename="natura-cari.xlsx"'}});}return Response.json({...closePreview(db()),opening_preset:openingPreset(db())},{headers:noStore});}catch(error){return posErrorResponse(error);}}
+let exporting=false;
+export async function GET(req:Request){try{await requireCashier();if(new URL(req.url).searchParams.get('export')==='cari'){if(exporting)throw new HttpError(409,'Cari Excel hazırlanıyor. Mevcut indirmeyi tamamlayın.');db();const {cariExcelStream}=await import('@/lib/cari-excel');const reader=new DatabaseSync(path.join(dataDir,'natura.sqlite'),{readOnly:true});reader.exec('PRAGMA busy_timeout=5000');exporting=true;const stream=cariExcelStream(reader,true);stream.once('close',()=>{exporting=false;});req.signal.addEventListener('abort',()=>stream.destroy(),{once:true});return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>,{headers:{...noStore,'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':'attachment; filename="natura-cari.xlsx"'}});}return Response.json({...closePreview(db()),opening_preset:openingPreset(db())},{headers:noStore});}catch(error){return posErrorResponse(error);}}
 export async function POST(req:Request){try{
  const operator=await requireCashier(req);const raw=await jsonBody(req);if(raw.action==='opening'||raw.action==='opening_preset')await requireAdmin(req);
  if(raw.action==='close'){
+  await requireAdmin(req);
   const v=z.object({action:z.literal('close'),request_id:z.string().uuid(),day_id:z.string().uuid(),revision:z.string(),counted_cash:z.number().int().min(0).max(1000000000),note:z.string().trim().max(500),confirm:z.literal('GÜNÜ KAPAT')}).parse(raw);
   const result=closeBusinessDay(db(),v,snapshot=>{mkdirSync(dataDir,{recursive:true});const tmp=path.join(dataDir,'cari-koruma.tmp'),dest=path.join(dataDir,'cari-koruma.json');writeFileSync(tmp,JSON.stringify(snapshot),{mode:0o600});renameSync(tmp,dest);});return Response.json(result,{headers:noStore});
  }

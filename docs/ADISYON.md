@@ -12,7 +12,7 @@ Masalar içinde sırasıyla **Açık Masalar**, **Masalar** ve **Hızlı Sipari�
 
 ## Masa işlemleri
 
-Açık masalar adisyonun açılışından itibaren geçen süreye göre yeşil (15 dakika altı), sarı (15–30 dakika) ve kırmızı (30 dakika üzeri) dolgu alır. Boş masalar siyah dolgu ve beyaz yazıyla gösterilir. Bekleyen garson çağrısı olan masalar süre renginden bağımsız olarak mor dolgu ve zil simgesi alır. Boş masaya gelen çağrı Açık Masalar içinde de görünür; masa açılmadan İlgilenildi ile karşılanabilir. Ayrı çağrılar sekmesi yoktur. Mobil yenile düğmesi üstte ses düğmesinin yanındadır. Dakika bilgisi masa kartında görünür. Renkler mevcut 15 saniyelik ekran kontrolünde, veri değişmese bile yerel saatle güncellenir; ek sunucu sorgusu yapılmaz.
+Açık masalarda süre son onaylanan ürün girişinden hesaplanır: 0–20 dakika yeşil, 20–45 dakika sarı, 45 dakika üzeri kırmızı. Yeni ürün veya adet artışı süreyi sıfırlar; ödeme, not ve adet azaltma sıfırlamaz. Boş masalar siyah dolgu/beyaz yazıdır. Bekleyen çağrı mor dolgu ve zil simgesiyle görünür. Mobilde yenile düğmesi ve renk açıklama yazıları gösterilmez; otomatik bağlantı ve renk hesaplama devam eder.
 
 - Masaya dokunduğunuzda tam ekran sipariş alanı açılır: solda görselli kategoriler, ortada görselli ürünler, sağda sipariş ve ödeme alanı birlikte bulunur. Kategori ve ürün alanları kendi içlerinde bağımsız kayar; sayfanın tamamı hareket etmez.
 - Ürüne dokunmak sipariş taslağındaki adedi artırır; aynı ürün, fiyat, porsiyon ve nota sahip seçimler tek satırda görünür. **Siparişi onayla** ürünleri masaya kaydeder. Porsiyonlu üründe seçenek ekranı açılır. Ürünün seçenek düğmesiyle adet ve not girilebilir. Telefonda ürünler ve siparişler aynı anda görünür.
@@ -36,7 +36,7 @@ Günlük kasa Türkiye saatiyle bugünkü nakit, kredi kartı, yemek kartı tahs
 
 ## Ortak yönetim ekranı ve müşteri
 
-Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; İşletme ayarları içinden kasiyer, garson ve mutfak rolleriyle çalışan eklenebilir. Bu sürümde bütün çalışan yetkileri ve eski çalışan giriş servisi kapalıdır. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. Sipariş listesine iki satır daha yer açmak için sağ alt bölüm mobilde 80 piksel yukarı genişletilmiştir; aynı anda görünen ürün sayısı ekranın yüksekliğine bağlıdır. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
+Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; İşletme ayarları içinden kasiyer ve garson rolleriyle çalışan eklenir. Kasiyer menü/işletme ayarlarını, açılış kasası düzenlemeyi, gün kapatmayı ve yeniden adisyon açmayı kullanamaz. Garson yalnız masa siparişi, ürün adedi/notu, çağrı karşılama ve müşteri siparişi onayını kullanır. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. Sipariş listesine iki satır daha yer açmak için sağ alt bölüm mobilde 80 piksel yukarı genişletilmiştir; aynı anda görünen ürün sayısı ekranın yüksekliğine bağlıdır. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
 
 Müşteri, menüde **Sipariş ver** düğmesiyle masa numarasını seçer. İstekler **Müşteri siparişleri** listesinde onay bekler. Masa seçimi müşteriye ait olduğu için yönetici masa ve ürünleri doğrular. Onaylanan istek, seçilen masanın açık adisyonuna eklenir veya masa boşsa yeni adisyon açar. Tekrar onaylamak ürünü iki kez eklemez. Müşteri başka masaların hesaplarını veya cari bilgilerini göremez. “Garson çağır” düğmesi önceki tercihe uygun olarak pasiftir.
 
@@ -46,6 +46,8 @@ Adisyondaki **Yazdır**, yeni sekmede adisyonu açıp doğrudan tarayıcının y
 
 Sunucuda Redis, websocket servisi, ek veritabanı veya sürekli çalışan rapor işi yoktur. Yönetim ekranı 15 saniyede küçük sürüm kontrolü yapar; veri değişmediyse 304 cevabıyla veri taşınmaz. Sekme görünmüyorsa kontroller durur. Ürün kataloğu sipariş ekleme açıldığında alınır; her kontrolde tekrar gönderilmez. Müşteri menüsü arka planda sipariş sorgusu yapmaz. Yazdırma yalnızca kullanıcı Yazdır düğmesine bastığında tarayıcıda yapılır. Yeni müşteri siparişleri yönetim panelindeki bildirim sayısına ve açılmışsa ses uyarısına dahildir.
 
-Ödemeler, cari hareketleri ve masa işlemleri SQLite transaction ile kaydedilir. İstek anahtarı tekrar gönderilen ödemeyi ikinci kez yazmayı önler; adisyon sürümü çakışan cihaz işlemlerini reddeder. Denetim günlüğü `pos_events` tablosundadır. Önceki yedekleme komutu yeni adisyon, cari ve çalışan tablolarını da içerir. Düzenli veritabanı yedeği alın.
+Ödemeler, cari hareketleri ve masa işlemleri SQLite transaction ile kaydedilir. İstek anahtarı tekrar gönderilen ödemeyi ikinci kez yazmayı önler; adisyon sürümü çakışan cihaz işlemlerini reddeder. Denetim günlüğü `pos_events` tablosundadır. Zamanlanmış tam yedekleme çalışmaz. Gün kapatmada yalnız cari kayıtları ve bağlı fişler korunur; tek cari koruma dosyası yenilenir.
 
 Günlük kasa, manuel gün kapatma ve cari dışı kayıtların temizlenmesi için [Gün kapatma rehberine](GUN-KAPAT.md) bakın. Sipariş taslakları aynı cihazda 12 saate kadar geri getirilebilir; eski güne ait taslaklar kendiliğinden gönderilmez.
+
+19 Kasım 2026 düzeltmeleri ve doğrulama kapsamı: [Sistem düzeltmeleri](REVIEW-FIXES-2026-11-19.md).

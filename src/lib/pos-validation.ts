@@ -14,6 +14,7 @@ export const commandSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('void'),...base,line_id:id,reason:note.min(1)}),
  z.object({action:z.literal('discount'),...base,amount:z.number().int().min(0).max(100000000),note}),
  z.object({action:z.literal('note'),...base,note}),
+ z.object({action:z.literal('line_note'),...base,line_id:id,note}),
  z.object({action:z.literal('move'),...base,table,target_ticket_id:id.optional(),target_version:version.optional()}),
  z.object({action:z.literal('pay'),...base,method:z.enum(['cash','card','meal_card','account']),amount,account_id:id.optional(),reference:note.default(''),close:z.boolean()}),
  z.object({action:z.literal('pay_items'),...base,method:z.enum(['cash','card','meal_card','account']),items:z.array(z.object({line_id:id,quantity:z.number().int().min(1).max(999)})).min(1).max(100),account_id:id.optional(),reference:note.default('')}),
@@ -25,4 +26,4 @@ export const commandSchema=z.discriminatedUnion('action',[
 export const posRequestSchema=z.object({request_id:id,day_id:id.optional(),command:commandSchema});
 export const customerOrderSchema=z.object({request_id:id,table,lines:z.array(addLineSchema).min(1).max(50),note:note.default('')});
 export const accountSchema=z.object({id:id.optional(),name:z.string().trim().min(1).max(120),phone:z.string().trim().max(40),note,is_active:z.boolean()});
-export const collectSchema=z.object({id,amount,method:z.enum(['cash','card','meal_card']),note,request_id:id});
+export const collectSchema=z.object({day_id:id,id,amount,method:z.enum(['cash','card','meal_card']),note,request_id:id});

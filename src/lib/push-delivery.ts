@@ -1,3 +1,4 @@
+import {recordDiagnostic} from './diagnostics.ts';
 import type {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
 import * as webpush from 'web-push';
@@ -13,8 +14,8 @@ export async function deliverPush(d:DatabaseSync,send:Sender=webpush.sendNotific
   const sub=d.prepare('SELECT * FROM push_subscriptions WHERE endpoint=?').get(row.endpoint);if(!sub){done();return;}
   if(pushOwnerVersion(d,String(sub.owner_id))!==sub.version){d.prepare('DELETE FROM push_subscriptions WHERE endpoint=?').run(sub.endpoint);done();return;}
   if(now-Number(row.created_at)>=300000||!pushStillNeeded(d,String(row.kind),String(row.reference_id))){done();return;}
-  try{await send(JSON.parse(String(sub.data)),String(row.payload),{vapidDetails:{...pushKeys(d),subject:'mailto:beyoglumutfagi@gmail.com'},TTL:Math.max(1,Math.floor((Number(row.created_at)+300000-now)/1000)),urgency:'high',topic:createHash('sha256').update(String(row.event_id)).digest('base64url').slice(0,32),timeout:5000});done();}
-  catch(error){const status=Number((error as {statusCode?:number}).statusCode||0),attempts=Number(row.attempts)+1;if(status===404||status===410)d.prepare('DELETE FROM push_subscriptions WHERE endpoint=?').run(sub.endpoint);if(attempts>=3||status>=400&&status<500&&status!==429){done();return;}d.prepare("UPDATE push_deliveries SET status='pending',attempts=?,next_at=?,updated_at=? WHERE event_id=? AND endpoint=?").run(attempts,now+30000*attempts,now,row.event_id,row.endpoint);}
+  try{await send(JSON.parse(String(sub.data)),String(row.payload),{vapidDetails:{...pushKeys(d),subject:'mailto:beyoglumutfagi@gmail.com'},TTL:Math.max(1,Math.floor((Number(row.created_at)+300000-now)/1000)),urgency:'high',topic:createHash('sha256').update(String(row.event_id)).digest('base64url').slice(0,32),timeout:5000});recordDiagnostic('push.delivered');done();}
+  catch(error){recordDiagnostic('push.retry');const status=Number((error as {statusCode?:number}).statusCode||0),attempts=Number(row.attempts)+1;if(status===404||status===410)d.prepare('DELETE FROM push_subscriptions WHERE endpoint=?').run(sub.endpoint);if(attempts>=3||status>=400&&status<500&&status!==429){done();return;}d.prepare("UPDATE push_deliveries SET status='pending',attempts=?,next_at=?,updated_at=? WHERE event_id=? AND endpoint=?").run(attempts,now+30000*attempts,now,row.event_id,row.endpoint);}
  }
  let index=0;await Promise.all(Array.from({length:Math.min(4,rows.length)},async()=>{while(index<rows.length)await work(rows[index++]);}));
 }

@@ -1,0 +1,15 @@
+'use client';
+import {useRef,useState} from 'react';
+import {api} from '@/lib/client';
+import {money} from '@/lib/types';
+import type {AccountEntry} from '@/lib/pos-types';
+import {Button} from './ui/button';
+import {Input} from './ui/input';
+import {Label} from './ui/label';
+export function CariCollectionActions({entry,dayId,onChange}:{entry:AccountEntry;dayId:string;onChange:()=>Promise<void>}){
+ const [kind,setKind]=useState<'refund'|'correct'|null>(null),[amount,setAmount]=useState(String((entry.collection_available||0)/100)),[method,setMethod]=useState(entry.method==='card'?'cash':'card'),[reason,setReason]=useState(''),[busy,setBusy]=useState(false),[locked,setLocked]=useState(false),[error,setError]=useState('');const attempt=useRef<{request_id:string;[key:string]:unknown}|null>(null);
+ if(!entry.collection_available)return null;
+ return <div className="w-full space-y-2"><div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" disabled={busy||locked} onClick={()=>setKind('refund')}>Tahsilatı geri al</Button>{entry.day_id===dayId&&<Button size="sm" variant="outline" disabled={busy||locked} onClick={()=>setKind('correct')}>Ödeme türünü düzelt</Button>}</div>{kind&&<form className="space-y-3 rounded-xl border bg-amber-50/40 p-3" onSubmit={async e=>{e.preventDefault();setBusy(true);setError('');const payload=attempt.current??{action:'adjust_collection',kind,ledger_id:entry.id,day_id:dayId,request_id:crypto.randomUUID(),amount:Math.round(Number(amount.replace(',','.'))*100),method,reason};attempt.current=payload;setLocked(true);try{await api('/api/pos/accounts',payload);attempt.current=null;setLocked(false);setKind(null);await onChange();}catch(e){const err=e as Error&{status?:number};setError(err.message);if(err.status&&err.status>=400&&err.status<500){attempt.current=null;setLocked(false);}}finally{setBusy(false);}}}>
+ <p className="text-xs font-bold">Düzeltilebilir tahsilat: {money(entry.collection_available)}</p>{kind==='refund'?<><Label htmlFor={'return-'+entry.id}>Geri alınacak tutar (₺)</Label><Input id={'return-'+entry.id} disabled={locked||busy} value={amount} onChange={e=>setAmount(e.target.value)} inputMode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" required/></>:<><Label htmlFor={'method-'+entry.id}>Yeni ödeme türü</Label><select id={'method-'+entry.id} disabled={locked||busy} value={method} onChange={e=>setMethod(e.target.value)} className="h-11 w-full rounded-xl border bg-white px-3">{[['cash','Nakit'],['card','Kredi kartı'],['meal_card','Yemek kartı']].filter(([id])=>id!==entry.method).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></>}
+ <Label htmlFor={'reason-'+entry.id}>İşlem nedeni</Label><Input id={'reason-'+entry.id} required maxLength={500} value={reason} onChange={e=>setReason(e.target.value)} disabled={locked||busy}/>{error&&<p role="alert" className="text-xs text-red-700">{error}</p>}<Button type="submit" disabled={busy}>{locked?'İşlemi tekrar kontrol et':'Kaydet'}</Button>{!locked&&<Button type="button" variant="ghost" onClick={()=>setKind(null)}>Vazgeç</Button>}</form>}</div>;
+}

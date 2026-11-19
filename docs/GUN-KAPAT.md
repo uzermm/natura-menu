@@ -77,9 +77,9 @@ Silinmiş işlemlerin gecikmiş ağ isteğiyle yeniden yazılmasını önlemek i
 
 **Yönetici:** Bütün bölümler ve çalışan/şifre ayarları açıktır.
 
-**Kasiyer:** Masalar, hızlı sipariş, müşteri siparişleri, cari hesaplar, kapanan adisyonlar ve günlük kasa açıktır. Menü yönetimi, işletme ayarları, kullanıcı adı/şifre yönetimi, açılış kasası dökümü düzenleme ve kapanan adisyonu yeniden açma kapalıdır.
+**Kasiyer:** Masalar, hızlı sipariş, müşteri siparişleri, cari hesaplar, kapanan adisyonlar ve günlük kasa açıktır. Menü yönetimi, işletme ayarları, kullanıcı adı/şifre yönetimi, açılış kasası dökümü düzenleme, gün kapatma ve kapanan adisyonu yeniden açma kapalıdır.
 
-**Garson:** Masaları ve müşteri siparişlerini görür; masa siparişi ekler, masa notunu değiştirir, garson çağrısını sonuçlandırır ve müşteri siparişini onaylar/reddeder. Onaylanmamış taslaktaki adetleri değiştirebilir. Onaylanmış masa ürünlerinin ödenmemiş adetlerini artı/eksiyle değiştirebilir; ödenmiş adetlerin altına inemez. Ürün iptali, ödeme, indirim, taşıma/birleştirme, cari, hızlı satış, rapor, yazdırma ve menü yönetimi kapalıdır.
+**Garson:** Masaları ve müşteri siparişlerini görür; masa siparişi ekler, masa ve ödenmemiş ürün notunu değiştirir, garson çağrısını sonuçlandırır ve müşteri siparişini onaylar/reddeder. Onaylanmamış taslaktaki adetleri değiştirebilir. Onaylanmış masa ürünlerinin ödenmemiş adetlerini artı/eksiyle değiştirebilir; ödenmiş adetlerin altına inemez. Ürün iptali, ödeme, indirim, taşıma/birleştirme, cari, hızlı satış, rapor, yazdırma ve menü yönetimi kapalıdır.
 
 Yönetici ve çalışanlar `/admin/login` ekranındaki ortak **Kullanıcı adı / Şifre** alanlarından giriş yapar. Yönetici giriş adı `beyoglumutfagi@gmail.com`, şifre mevcut yönetici şifresidir. Bu sürüm mevcut yönetici adını bir defa bu e-posta adresine geçirir; sonraki düzenlemeleri korur. Kullanıcı adları e-posta biçiminde de olabilir. Yönetici kendi adını İşletme ayarları → Yönetici kullanıcı adı bölümünden mevcut şifresiyle; çalışan adlarını Çalışanlar → Düzenle üzerinden değiştirebilir. Kullanıcı adları bütün hesaplar arasında benzersizdir. Ayrı garson ekranı yoktur. Yetkiler sunucuda da denetlenir. Çalışanın kullanıcı adı, şifresi, rolü veya aktifliği değişince önceki oturumu geçersizleşir. Eski Mutfak kayıtları giriş yapamaz; iki rolden birine geçirilmelidir.
 
@@ -124,3 +124,7 @@ Masa ve Açık Masalar kartlarının rengi, son onaylanan ürün girişinden iti
 ### Ekranlar arasında bağlantı
 
 Sekme veya uygulama değiştirmek canlı bağlantıyı kapatmaz; zaten açık ya da bağlanmakta olan bağlantı tekrar oluşturulmaz. Sunucu bağlantıyı sabit dört dakikalık süreyle kapatmaz; kalp atışları ve oturum kontrolü devam eder. Dönüşte veriler sessizce eşitlenir. Telefon bağlantıyı askıya almışsa eski hat sessizce yenilenir. Kısa geçişlerde ve sağlıklı yedek yenilemede bağlantı uyarısı çıkmaz; gerçek çevrimdışı durumda veya uzun süre sunucuya ulaşılamadığında uyarı görünür.
+
+## 1.1.0 değişiklikleri
+
+Cari hareketleri sayfalı yüklenir. Doğrudan cari tahsilatının ödeme türü açık günde düzeltilebilir; tahsilatı kısmen/tamamen geri almak cari borcu geri oluşturur ve kasadaki ilgili tahsilatı azaltır. Excel akış halinde hazırlanır; indirme sırasında satışlar devam edebilir. Bekleyen ödeme sonuçları kullanıcıya bağlı tutulur ve sayfa yenilense bile aynı işlem anahtarıyla kontrol edilir. Gün kapatma yalnız yöneticidedir.

@@ -54,14 +54,15 @@ Dokploy yönlendirme etiketlerini oluşturur. Sunucunun dışına ayrıca `3000`
 
 - Menü: `https://natura.beyoglumutfagi.com`
 - Yönetim: `https://natura.beyoglumutfagi.com/admin`
+- Yönetici kullanıcı adı: `beyoglumutfagi@gmail.com`. Sonraki kullanıcı adı değişiklikleri korunur.
 - İlk giriş şifresi: Environment alanına yazdığınız `ADMIN_PASSWORD`. Daha sonra Ayarlar bölümünden değiştirebilirsiniz.
 - İlk çalıştırmada kaynak menüdeki **9 kategori / 95 ürün**, fiyatlar ve görünürlük durumları SQLite’a bir defa aktarılır. Daha sonraki dağıtımlarda veriler yeniden yazılmaz.
-- **İşletme ayarları:** Masa sayısı `35` olarak hazırdır. Masa sayısını `30` yaparsanız 1–30 aktif kalır; bu masaların mevcut QR kodları değişmez. 31–35 bağlantıları kullanım dışı kalır.
+- **İşletme ayarları:** Masa sayısı `35` olarak hazırdır. Masa sayısını `30` yaparsanız 1–30 aktif kalır; 31–35 numaralı masalar seçim dışında kalır.
 - Adres ve çalışma saatlerini doldurun.
 - **İşletme ayarları → Kampanya banner’ı:** Banner’ı açın, menüden ürün seçin, varsa porsiyonunu belirleyin ve kampanya fiyatını girip kaydedin. Görsel ve normal fiyat menüden alınır. Menü fiyatı küçük ve üstü çizili, kampanya fiyatı büyük gösterilir. Banner kapalıysa üstte kutu veya boş alan kalmaz. Ürün gizlenir/tükenir veya kampanya fiyatı menü fiyatından düşük olmaktan çıkarsa banner otomatik gizlenir. Eski karşılama/duyuru alanları artık gösterilmez.
 - Alerjen, porsiyon ve etiket bilgilerini ürün ürün mutfakla doğrulayın. Kaynakta bulunmayan alerjenler tahmin edilerek eklenmedi.
 - **Masa QR kodları:** Kod oluşturma ve yazdırma ekranları kaldırıldı. Müşteriler garson çağrısı için masa numarasını menüden seçer.
-- **Garson çağrıları:** Paneli açık tutun ve **Ses aç** düğmesine bir kez basın. Panel çağrıları 5 saniyede bir kontrol eder. Ses için tarayıcının kullanıcı etkileşimi gerekir. Telefon ekranı kilitli / tarayıcı arka plandayken bildirim garantisi yoktur; servis sırasında paneli açık bir cihazda tutun.
+- **Garson çağrıları:** Paneli açık tutun ve **Ses aç** düğmesine bir kez basın. Paylaşılan canlı bağlantı yaklaşık 2 saniyelik kontrol kullanır. Ses için tarayıcının kullanıcı etkileşimi gerekir. Arka plan bildirimleri için zil simgesinden Web Push izni açılır; iPhone’da ana ekrana eklenmiş uygulama gerekir. Gerçek cihazın bildirim/pil ayarları teslimatı etkileyebilir.
 - **Garson çağırma:** Müşteri düğmeye basar, açılan ekranda masa numarasını seçer ve çağrıyı onaylar. Masaya özel QR kod gerekmez. Seçenekler paneldeki masa sayısına göre 1’den başlar. Kullanım dışı masalar sunucuda da reddedilir; aynı masanın bekleyen çağrısı çoğaltılmaz. Mevcut masaya özel QR bağlantıları varsa masa seçimini önceden doldurabilir.
 
 ## 6. Kalıcı depolama ve güncellemeler
@@ -86,7 +87,7 @@ Kaynak menü görselleri depodaki `public/menu/` içindedir. Yeni fotoğraflar o
 
 Bu işletmede zamanlanmış tam sistem yedeği kullanılmaz. Yönetici kendi satış/kasa arşivini aldıktan sonra Günlük kasa → Gün kapat işlemini yapar. Açık hesap veya bekleyen sipariş varsa kapatma engellenir. Cari hesaplar ve bağlı ürün/fiş detayları korunur; diğer tamamlanmış satışlar ve günlük kasa kayıtları temizlenir.
 
-Gün kapatmada tek dosya olan `/app/data/cari-koruma.json` yenilenir. Yönetici Cari verilerini indir ile bu verileri dışarı alabilir. Menü, görseller, ayarlar ve çalışan kayıtları korunur. Ayrıntılı kullanım ve silme kapsamı [Gün kapatma rehberinde](GUN-KAPAT.md) açıklanır.
+Gün kapatmada tek dosya olan `/app/data/cari-koruma.json` yenilenir. Yönetici Cari Excel indir ile altı sayfalı Excel dökümünü dışarı alabilir. Menü, görseller, ayarlar ve çalışan kayıtları korunur. Ayrıntılı kullanım ve silme kapsamı [Gün kapatma rehberinde](GUN-KAPAT.md) açıklanır.
 
 Depodaki eski `scripts/backup.mjs` aracı yalnız elle çağrıldığında çalışır; uygulama onu otomatik başlatmaz. Çalıştırılması bu işletmenin seçili günlük akışının bir parçası değildir. Kalıcı volume’u silmeyin.
 
@@ -104,3 +105,5 @@ Resmî kaynaklar: [Dokploy Docker Compose](https://docs.dokploy.com/docs/core/do
 ## Adisyon ve yazdırma
 
 Masalar ve adisyon sekmesi mevcut SQLite dosyasını kullanır. Yeni servis veya ek sunucu ayarı gerekmez. Güncellemede yeni tablolar otomatik eklenir; menü ve şifre korunur. Yazdırma tarayıcı üzerinden yapılır; kasa bilgisayarında ek program kurulmaz. Yazdırma ekranında A4 veya Possify yazıcısını ve uygun kağıt boyutunu seçin. [Adisyon kullanım rehberi](ADISYON.md).
+
+Sürüm, bellek, veritabanı boyutu ve boş disk bilgisi İşletme ayarları → Sistem durumu → Kontrol et alanından okunur. Bu alandaki kullanılmayan görsel temizliği elle ve onayla çalışır; zamanlanmış görev eklenmedi. `/api/health` uygulama sürümünü de döndürür.

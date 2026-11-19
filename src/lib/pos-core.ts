@@ -1,3 +1,5 @@
+import {campaignUnitPrice} from './campaign.ts';
+import type {Campaign} from './types.ts';
 import {initOrderActivity,recordOrderActivity} from './order-activity.ts';
 import {reopenTicket} from './reopen-ticket.ts';
 import { randomUUID } from 'node:crypto';
@@ -58,6 +60,15 @@ export function ticket(d:DatabaseSync,id:string):Ticket{
  const {merge_snapshot,...publicRow}=row;void merge_snapshot;
  return {...publicRow,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,adjustments,refunded,gross_total,business_day_id:businessDay(d).day_id,subtotal,total,paid,remaining:total-paid} as Ticket;
 }
+export function ticketsBatch(d:DatabaseSync,ids:string[]):Ticket[]{
+ if(!ids.length)return [];const placeholders=ids.map(()=>'?').join(','),rows=d.prepare(`SELECT * FROM pos_tickets WHERE id IN (${placeholders})`).all(...ids),day=businessDay(d).day_id;
+ const allLines=d.prepare(`SELECT l.*,(SELECT COALESCE(SUM(p.quantity),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_quantity,(SELECT COALESCE(SUM(p.amount-COALESCE((SELECT SUM(r.amount) FROM pos_refund_items r WHERE r.allocation_id=p.id),0)),0) FROM pos_payment_items p WHERE p.line_id=l.id) AS paid_amount FROM pos_lines l WHERE l.ticket_id IN (${placeholders}) ORDER BY l.created_at,l.rowid`).all(...ids) as unknown as TicketLine[];
+ const allPayments=d.prepare(`SELECT p.*,COALESCE(a.name,'') AS account_name,p.amount-COALESCE((SELECT SUM(r.amount) FROM pos_payment_adjustments r WHERE r.payment_id=p.id),0) AS net_amount FROM pos_payments p LEFT JOIN pos_accounts a ON a.id=p.account_id WHERE ticket_id IN (${placeholders}) ORDER BY p.created_at,p.rowid`).all(...ids) as unknown as TicketPayment[];
+ const allAdjustments=d.prepare(`SELECT a.* FROM pos_payment_adjustments a JOIN pos_payments p ON p.id=a.payment_id WHERE p.ticket_id IN (${placeholders}) ORDER BY a.created_at,a.rowid`).all(...ids) as unknown as (PaymentAdjustment&{ticket_id?:string})[];
+ const byId=new Map(rows.map(row=>{const lines=allLines.filter(l=>l.ticket_id===row.id),payments=allPayments.filter(p=>p.ticket_id===row.id),paymentIds=new Set(payments.map(p=>p.id)),adjustments=allAdjustments.filter(a=>paymentIds.has(a.payment_id)),refunded=adjustments.filter(a=>a.kind==='refund').reduce((sum,a)=>sum+a.amount,0),subtotal=lines.filter(l=>!l.voided_at).reduce((sum,l)=>sum+l.unit_price*l.quantity,0),gross_total=subtotal-Number(row.discount),total=gross_total-refunded,paid=payments.reduce((sum,p)=>sum+(p.net_amount??p.amount),0);const {merge_snapshot,...publicRow}=row;
+ return [String(row.id),row.merged_into&&merge_snapshot?{...JSON.parse(String(merge_snapshot)),status:'closed',version:Number(row.version),closed_at:String(row.closed_at),merged_into:String(row.merged_into)}:{...publicRow,table_number:row.service_type==='table'?Number(row.table_number):null,lines,payments,adjustments,refunded,gross_total,business_day_id:day,subtotal,total,paid,remaining:total-paid}] as [string,Ticket];}));return ids.map(id=>byId.get(id)!).filter(Boolean);
+}
+
 function editable(d:DatabaseSync,id:string,version:number){const t=ticket(d,id);if(t.status!=='open')throw new PosError('Bu adisyon kapatılmış.');if(t.version!==version)throw new PosError('Adisyon başka bir cihazda değişti. Güncel halini kontrol edip tekrar deneyin.',409);return t;}
 function bump(d:DatabaseSync,id:string){d.prepare('UPDATE pos_tickets SET version=version+1 WHERE id=?').run(id);}
 function tableRange(d:DatabaseSync,table:number){const settings=JSON.parse(d.prepare('SELECT value FROM settings WHERE id=1').get()!.value as string);if(!Number.isInteger(table)||table<1||table>settings.table_count)throw new PosError('Geçerli bir masa seçin.');}
@@ -77,7 +88,8 @@ function quoteLine(d:DatabaseSync,line:AddLine,qrMenu=false){
  if(qrMenu&&(!item.qr_visible||!item.category_qr_visible))throw new PosError('Ürün QR menüde satışa açık değil. Menüyü yenileyin.');
  const variants=JSON.parse(String(item.variants)) as {name:string;price:number}[],variant=variants.find(v=>v.name===line.variant);
  if(variants.length&&!variant||!variants.length&&line.variant)throw new PosError('Geçerli bir porsiyon seçin.');
- const price=variant?.price??Number(item.price);amount(price,true);
+ const campaign=(JSON.parse(String(d.prepare('SELECT value FROM settings WHERE id=1').get()!.value)).campaign||null) as Campaign|null;
+ const price=campaignUnitPrice({...item,id:String(item.id),price:Number(item.price),variants,is_active:item.is_active,qr_visible:item.qr_visible,sold_out:item.sold_out,image_url:item.image_url as string},item.category_qr_visible,campaign,variant?.name||'');amount(price,true);
  if(line.expected_unit_price!==undefined&&line.expected_unit_price!==price)throw new PosError('Ürünün fiyatı değişmiş. Menüyü yenileyip güncel fiyatla tekrar ekleyin.',409);
  return {...line,name:String(item.name),variant:variant?.name||'',unit_price:price};
 }
@@ -97,6 +109,7 @@ export type PosCommand=(
  |{action:'void';ticket_id:string;version:number;line_id:string;reason:string}
  |{action:'discount';ticket_id:string;version:number;amount:number;note:string}
  |{action:'note';ticket_id:string;version:number;note:string}
+ |{action:'line_note';ticket_id:string;version:number;line_id:string;note:string}
  |{action:'move';ticket_id:string;version:number;table:number;target_ticket_id?:string;target_version?:number}
  |{action:'pay';ticket_id:string;version:number;method:PaymentMethod;amount:number;account_id?:string;reference:string;close:boolean}
  |{action:'pay_items';ticket_id:string;version:number;method:PaymentMethod;items:{line_id:string;quantity:number}[];account_id?:string;reference:string}
@@ -150,6 +163,9 @@ export function executePos(d:DatabaseSync,requestId:string,command:PosCommand,ac
      if(!command.reason.trim())throw new PosError('İptal nedenini yazın.');if(qty===paidQty)throw new PosError('Ödenmiş ürün iptal edilemez.');if(t.subtotal-(qty-paidQty)*line.unit_price<t.discount+t.paid+(t.refunded||0))throw new PosError('Ödenen tutarın altına düşülemez.');
      for(const member of group){if(member.paid_quantity)d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(member.paid_quantity,member.id);else d.prepare('UPDATE pos_lines SET voided_at=?,void_reason=? WHERE id=?').run(new Date().toISOString(),command.reason,member.id);}
     }
+   }else if(command.action==='line_note'){
+    const line=t.lines.find(l=>l.id===command.line_id&&!l.voided_at);if(!line)throw new PosError('Ürün bulunamadı.');
+    const members=t.lines.filter(l=>!l.voided_at&&lineKey(l)===lineKey(line));for(const l of members){const unpaid=l.quantity-(l.paid_quantity||0);if(!unpaid)continue;if(!l.paid_quantity)d.prepare('UPDATE pos_lines SET note=? WHERE id=?').run(command.note,l.id);else{d.prepare('UPDATE pos_lines SET quantity=? WHERE id=?').run(l.paid_quantity,l.id);d.prepare('INSERT INTO pos_lines(id,ticket_id,item_id,name,variant,unit_price,quantity,note,source,actor,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(randomUUID(),id,l.item_id,l.name,l.variant,l.unit_price,unpaid,command.note,l.source,l.actor,l.created_at);}}
    }else if(command.action==='discount'){
     amount(command.amount,true);if(command.amount>t.subtotal-t.paid-(t.refunded||0))throw new PosError('İndirim kalan tutarı aşamaz.');d.prepare('UPDATE pos_tickets SET discount=? WHERE id=?').run(command.amount,id);
    }else if(command.action==='note')d.prepare('UPDATE pos_tickets SET note=? WHERE id=?').run(command.note,id);
@@ -203,11 +219,12 @@ export function outstandingAccountReceipts(d:DatabaseSync,id:string){
  let credit=debts.reduce((sum,r)=>sum+Math.max(0,-Number(r.amount)),0);
  return debts.flatMap(r=>{if(!r.ticket_id||Number(r.amount)<=0)return [];const amount=Number(r.amount),covered=Math.min(credit,amount);credit-=covered;return amount>covered?[{ticket:ticket(d,String(r.ticket_id)),remaining:amount-covered}]:[];});
 }
-export function accounts(d:DatabaseSync):Account[]{return d.prepare(`SELECT a.*,COALESCE((SELECT SUM(l.amount) FROM pos_ledger l WHERE l.account_id=a.id),0) AS ledger_balance,
- COALESCE((SELECT SUM((SELECT COALESCE(SUM(l.quantity*l.unit_price),0) FROM pos_lines l WHERE l.ticket_id=t.id AND l.voided_at IS NULL)-t.discount
- -(SELECT COALESCE(SUM(p.amount),0) FROM pos_payments p WHERE p.ticket_id=t.id)
- +(SELECT COALESCE(SUM(r.amount),0) FROM pos_payment_adjustments r JOIN pos_payments p ON p.id=r.payment_id WHERE p.ticket_id=t.id AND r.kind='correction')) FROM pos_tickets t WHERE t.linked_account_id=a.id AND t.status='open'),0) AS order_balance
- FROM pos_accounts a WHERE a.deleted_at IS NULL ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,name:String(row.name).toLocaleUpperCase('tr-TR'),balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
+export function accounts(d:DatabaseSync):Account[]{return d.prepare(`WITH ledger AS (SELECT account_id,SUM(amount) AS balance FROM pos_ledger GROUP BY account_id),
+ open_lines AS (SELECT l.ticket_id,SUM(l.quantity*l.unit_price) AS subtotal FROM pos_lines l JOIN pos_tickets t ON t.id=l.ticket_id WHERE t.status='open' AND t.linked_account_id IS NOT NULL AND l.voided_at IS NULL GROUP BY l.ticket_id),
+ open_paid AS (SELECT p.ticket_id,SUM(p.amount-COALESCE((SELECT SUM(a.amount) FROM pos_payment_adjustments a WHERE a.payment_id=p.id AND a.kind='correction'),0)) AS paid FROM pos_payments p JOIN pos_tickets t ON t.id=p.ticket_id WHERE t.status='open' AND t.linked_account_id IS NOT NULL GROUP BY p.ticket_id),
+ orders AS (SELECT t.linked_account_id,SUM(COALESCE(l.subtotal,0)-t.discount-COALESCE(p.paid,0)) AS balance FROM pos_tickets t LEFT JOIN open_lines l ON l.ticket_id=t.id LEFT JOIN open_paid p ON p.ticket_id=t.id WHERE t.status='open' AND t.linked_account_id IS NOT NULL GROUP BY t.linked_account_id)
+ SELECT a.*,COALESCE(l.balance,0) AS ledger_balance,COALESCE(o.balance,0) AS order_balance FROM pos_accounts a LEFT JOIN ledger l ON l.account_id=a.id LEFT JOIN orders o ON o.linked_account_id=a.id WHERE a.deleted_at IS NULL ORDER BY a.name COLLATE NOCASE`).all().map(row=>({...row,name:String(row.name).toLocaleUpperCase('tr-TR'),balance:Number(row.ledger_balance)+Number(row.order_balance),is_active:!!row.is_active})) as unknown as Account[];}
+
 export function accountHistory(d:DatabaseSync,id:string){
  if(!d.prepare('SELECT 1 FROM pos_accounts WHERE id=?').get(id))throw new PosError('Cari hesap bulunamadı.',404);
  const entries=d.prepare('SELECT * FROM pos_ledger WHERE account_id=? ORDER BY created_at DESC,rowid DESC').all(id) as unknown as AccountEntry[];
@@ -224,7 +241,8 @@ export function deleteAccount(d:DatabaseSync,id:string,actor:string){return atom
  if(d.prepare("SELECT 1 FROM pos_tickets WHERE linked_account_id=? AND status='open'").get(id))throw new PosError('Cari siparişi açık. Önce hesabı kapatın.');
  d.prepare('UPDATE pos_accounts SET deleted_at=?,is_active=0 WHERE id=?').run(new Date().toISOString(),id);event(d,null,'account_delete',actor,{id});return {ok:true};
 });}
-export function collectAccount(d:DatabaseSync,id:string,value:number,method:Exclude<PaymentMethod,'account'>,note:string,requestId:string,actor:string){return atomic(d,()=>{
+export function collectAccount(d:DatabaseSync,id:string,value:number,method:Exclude<PaymentMethod,'account'>,note:string,requestId:string,actor:string,expectedDayId?:string){return atomic(d,()=>{
+ if(expectedDayId&&expectedDayId!==businessDay(d).day_id)throw new PosError('Gün değişti. Ekranı yenileyin.',409);
  rejectExpiredRequest(d,requestId);const payload=JSON.stringify({id,value,method,note,actor}),old=d.prepare('SELECT payload FROM pos_requests WHERE id=?').get(requestId);
  if(old){if(old.payload!==payload)throw new PosError('İşlem anahtarı başka bir istek için kullanılmış.',409);return accounts(d).find(a=>a.id===id)!;}
  amount(value);const a=accounts(d).find(a=>a.id===id);if(!a)throw new PosError('Cari hesap bulunamadı.',404);if(value>a.balance)throw new PosError('Tahsilat cari bakiyesini aşamaz.');
@@ -234,9 +252,9 @@ export function collectAccount(d:DatabaseSync,id:string,value:number,method:Excl
  event(d,null,'account_collect',actor,{id,value,method,note});
  d.prepare('INSERT INTO pos_requests VALUES(?,?,?,?)').run(requestId,payload,id,new Date().toISOString());return accounts(d).find(a=>a.id===id)!;
 });}
-export function posSummary(d:DatabaseSync,includeFinance=true):PosSummary{
- const day=businessDay(d),today=includeFinance?dayTotals(d):{...day,opening_cash:0,opening_breakdown:null,expected_cash:0,cash_in:0,cash_out:0,refunds:0,date:day.opened_at.slice(0,10),closed_count:0,cash:0,card:0,meal_card:0,account:0,discount:0};
- return {open:d.prepare("SELECT id FROM pos_tickets WHERE status='open'"+(includeFinance?'':" AND service_type='table' AND linked_account_id IS NULL")+' ORDER BY table_number').all().map(r=>ticket(d,String(r.id))),recent:includeFinance?d.prepare("SELECT id FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=? ORDER BY closed_at DESC LIMIT 40").all(today.day_id).map(r=>ticket(d,String(r.id))):[],accounts:includeFinance?accounts(d):[],pending:pendingOrders(d),today};
+export function posSummary(d:DatabaseSync,includeFinance=true,view='full'):PosSummary{
+ const day=businessDay(d),today=includeFinance&&['full','summary'].includes(view)?dayTotals(d):{...day,opening_cash:0,opening_breakdown:null,expected_cash:0,cash_in:0,cash_out:0,refunds:0,date:day.opened_at.slice(0,10),closed_count:0,cash:0,card:0,meal_card:0,account:0,discount:0};
+ return {open:['full','pos','quick','pending'].includes(view)?ticketsBatch(d,d.prepare("SELECT id FROM pos_tickets WHERE status='open'"+(includeFinance?'':" AND service_type='table' AND linked_account_id IS NULL")+' ORDER BY table_number').all().map(r=>String(r.id))):[],recent:includeFinance&&['full','history'].includes(view)?ticketsBatch(d,d.prepare("SELECT id FROM pos_tickets WHERE status='closed' AND merged_into IS NULL AND closed_day_id=? ORDER BY closed_at DESC LIMIT 40").all(day.day_id).map(r=>String(r.id))):[],accounts:includeFinance&&['full','pos','quick','accounts','pending','history'].includes(view)?accounts(d):[],pending:['full','pending'].includes(view)?pendingOrders(d):[],today};
 }
 export function pendingOrders(d:DatabaseSync):PendingOrder[]{return d.prepare("SELECT * FROM pos_orders WHERE status='pending' ORDER BY created_at").all().map(row=>({...row,lines:JSON.parse(String(row.lines))})) as PendingOrder[];}
 export function submitCustomerOrder(d:DatabaseSync,id:string,table:number,lines:AddLine[],note:string){return atomic(d,()=>{
@@ -260,5 +278,5 @@ export function decideCustomerOrder(d:DatabaseSync,id:string,accept:boolean,acto
  }
  d.prepare('UPDATE pos_orders SET status=?,ticket_id=? WHERE id=?').run(accept?'accepted':'rejected',ticketId,id);event(d,ticketId,accept?'order_accept':'order_reject',actor,{id});return {ticket_id:ticketId};
 });}
-export function posRevision(d:DatabaseSync){return businessDay(d).day_id+'-'+String(d.prepare('SELECT COALESCE(MAX(rowid),0) AS v FROM pos_events').get()!.v);}
+export function posRevision(d:DatabaseSync){return String(d.prepare('SELECT revision FROM menu_revision WHERE id=1').get()!.revision)+'-'+businessDay(d).day_id+'-'+String(d.prepare('SELECT COALESCE(MAX(rowid),0) AS v FROM pos_events').get()!.v);}
 export function recordPosEvent(d:DatabaseSync,action:string,actor:string,data:unknown){event(d,null,action,actor,data);}

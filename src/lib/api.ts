@@ -11,6 +11,7 @@ export async function requireAdmin(req?:Request) {
  if(req&&!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');
 }
 export function requireOrigin(req:Request){if(!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');}
+export function isLimited(key:string,max:number){const row=db().prepare('SELECT count,reset_at FROM rate_limits WHERE key=?').get(key);return !!row&&Number(row.reset_at)>Date.now()&&Number(row.count)>=max;}
 export function limited(key:string,max:number,windowMs:number) {
  const d=db(),now=Date.now();
  return transaction(()=>{

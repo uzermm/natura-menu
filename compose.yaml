@@ -35,7 +35,7 @@ volumes:
     name: ${MENU_VOLUME_NAME:-natura-data}
   online_data:
     external: true
-    name: ${ONLINE_VOLUME_NAME:?Set the existing order application volume name}
+    name: ${ONLINE_VOLUME_NAME:-mutfak-data}
 networks:
   dokploy-network:
     external: true

@@ -68,3 +68,10 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;bottom:calc(64px + env(
 @media(max-width:700px){.kitchen-shell{--kitchen-dock:104px}.connection-dock{display:grid;grid-template-columns:32px minmax(0,1fr);grid-template-rows:36px 44px;align-content:center;gap:5px 8px}.connection-dock-metrics{grid-column:1/-1;justify-self:end;margin-left:auto;gap:5px}.dock-metric{min-height:39px;padding:4px 8px}.dock-metric small{font-size:8px}.dock-metric strong{font-size:12px}.unified-settings-title{font-size:16px;margin-bottom:12px}.unified-settings-layout{gap:22px}}
 
 .unified-settings-layout[data-online-only=true]{grid-template-columns:1fr}
+
+@media(max-width:700px){
+ .kitchen-shell[data-role=waiter]{--kitchen-rail:0px;--kitchen-dock:0px;padding-left:0}
+ .kitchen-shell[data-role=waiter]>.kitchen-sidebar,.kitchen-shell[data-role=waiter]>.connection-dock{display:none}
+ .kitchen-shell[data-role=waiter]>.kitchen-main{padding:12px 10px calc(12px + env(safe-area-inset-bottom))}
+ body:has(.kitchen-shell[data-role=waiter]) .pos-ticket-workspace{left:0;bottom:0}
+}

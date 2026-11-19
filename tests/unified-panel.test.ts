@@ -6,6 +6,7 @@ import path from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {unifiedDestination} from '../src/lib/app-hosts.ts';
 import {sameOrigin} from '../src/lib/security.ts';
+import {createOrderActions} from '../online/portal/order-actions.mjs';
 
 const data=mkdtempSync(path.join(tmpdir(),'unified-panel-test-'));
 process.env.DATA_DIR=data;process.env.ONLINE_DATA_DIR=path.join(data,'online');process.env.ONLINE_BACKGROUND='0';
@@ -70,4 +71,17 @@ test('notification recipients follow shared enabled users, not old portal creden
  assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='legacy'").get()?.enabled,1);
  cafe.prepare("UPDATE employees SET password_hash='hash-two'").run();syncIdentities();assert.equal(sqlite.prepare("SELECT version FROM auth_users WHERE id='unified:e1'").get()?.version,2);
  cafe.prepare('UPDATE employees SET is_active=0').run();syncIdentities();assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='unified:e1'").get()?.enabled,0);cafe.close();
+});
+
+test('cashier can accept and mark an online order ready without configuration access',async()=>{
+ const cashier={id:'cashier-action-test',username:'cashier',role:'cashier'};
+ const response=await onlineRequest(new Request('https://mutfak.example/online/api/state'),cashier);
+ const state=await response.json();assert.equal(state.canManageOrders,true);
+ const order={id:'test-action',accountId:'test-account',packageId:'test-package',status:'Created'};
+ const sent:string[]=[];
+ const actions=createOrderActions({getOrder:()=>order,getAccount:()=>({id:'test-account'}),refresh:async()=>({...order}),send:async(_account:unknown,_package:string,action:string)=>{sent.push(action);order.status=action==='accept'?'Picking':'Invoiced';},persist:async()=>{}});
+ await actions.run(order.id,'accept',state.user);assert.equal(order.status,'Picking');
+ await actions.run(order.id,'ready',state.user);assert.equal(order.status,'Invoiced');
+ assert.deepEqual(sent,['accept','ready']);
+ assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/users'),cashier)).status,403);
 });

@@ -11,3 +11,6 @@ document.addEventListener('online:accounts',event=>{branches=event.detail;report
 new MutationObserver(report).observe(document.querySelector('.sidebar-metrics'),{subtree:true,childList:true,characterData:true,attributes:true});
 const ready=()=>parent.postMessage({type:'online:ready'},location.origin);
 if(window.onlineAppReady)ready();else window.addEventListener('online:app-ready',ready,{once:true});
+new ResizeObserver(()=>{
+ if(document.body.dataset.view==='settings')parent.postMessage({type:'online:height',height:Math.ceil(document.querySelector('main').getBoundingClientRect().height)+16},location.origin);
+}).observe(document.querySelector('main'));

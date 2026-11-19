@@ -60,3 +60,5 @@ Geri dönüş: birleşik servisi durdurun; eski sipariş servisini aynı volume 
 ### Ortak sabit çerçeve
 
 Sipariş portalının dar koyu yeşil sol menüsü bütün bölümlerde sabittir (masaüstü 88 px, mobil 72 px). Uber Eats/Trendyol Go bağlantı barı da bütün bölümlerde alt kenarda sabit kalır; gerçek son başarılı kontrol zamanından geçen süreyi gösterir. Aynı bağlantı barı iç sipariş ekranından kaldırılmıştır. Sekme geçişi sipariş çalışma alanını kapatmaz.
+
+Kafe/QR menü ayarları ile online bağlantılar masaüstünde iki sütunda, mobilde alt alta görünür. Ortak durum bilgileri (15 dk hazırlama, bağlı hesap sayısı, otomatik baskı) sol menüden alt barın sağına taşınmıştır. Mobilde alt barın durum satırı sağa hizalanır; logo ve restoran güncellemeleri üst satırda solda kalır.

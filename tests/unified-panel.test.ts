@@ -33,14 +33,15 @@ test('both hosts require their own exact same origin',()=>{
  assert.equal(sameOrigin(new Request('https://mutfak.example/api/pos',{headers:{origin:'https://evil.example'}})),false);
 });
 test('online requests use shared identities, preserve role permissions and expose no second login',async()=>{
- const admin={id:'admin',username:'owner',role:'admin'},waiter={id:'employee-1',username:'staff',role:'waiter'};
+ const admin={id:'admin',username:'owner',role:'admin'},cashier={id:'employee-1',username:'staff',role:'cashier'};
  const request=(p:string,method='GET')=>new Request('https://mutfak.example/online'+p,{method,headers:{origin:'https://mutfak.example','X-Panel-Request':'1'},body:method==='POST'?'{}':undefined});
  assert.equal((await onlineRequest(request('/api/state'),null)).status,401);
- const state=await (await onlineRequest(request('/api/state'),waiter)).json();assert.equal(state.user.id,'unified:employee-1');assert.equal(state.user.role,'viewer');assert.equal(state.canManageOrders,true);
- assert.equal((await onlineRequest(request('/api/accounts','POST'),waiter)).status,403);
+ const state=await (await onlineRequest(request('/api/state'),cashier)).json();assert.equal(state.user.id,'unified:employee-1');assert.equal(state.user.role,'viewer');assert.equal(state.canManageOrders,true);
+ assert.equal((await onlineRequest(request('/api/accounts','POST'),cashier)).status,403);
  assert.equal((await onlineRequest(request('/api/auth/login','POST'),admin)).status,403);
- assert.equal((await onlineRequest(request('/api/users'),waiter)).status,403);
+ assert.equal((await onlineRequest(request('/api/users'),cashier)).status,403);
  assert.equal((await onlineRequest(request('/api/users'),admin)).status,200);
+ for(const path of ['/','/api/state','/api/reviews','/api/orders/action','/api/users'])assert.equal((await onlineRequest(request(path),{id:'waiter-only',username:'waiter',role:'waiter'})).status,403);
  assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/accounts',{method:'POST',body:'{}'}),admin)).status,403);
  const html=await onlineRequest(request('/'),admin);assert.equal(html.headers.get('X-Frame-Options'),'SAMEORIGIN');assert.match(await html.text(),/\/online\/app.js/);
  const save=new Request('http://127.0.0.1:3000/online/api/accounts',{method:'POST',headers:{host:'mutfak.example',origin:'https://mutfak.example','X-Panel-Request':'1'},body:JSON.stringify({label:'QA',supplierId:'1',environment:'stage',agentName:'QA',executorEmail:'qa@example.test',apiKey:'test-only',apiSecret:'test-only',stores:[]})});

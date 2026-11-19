@@ -11,6 +11,7 @@ import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle } from 
 import {OnlineUsers} from './online-users';
 import {OnlineWorkspace} from './online-workspace';
 import {AdminSidebar} from './admin-sidebar';
+import {panelSections} from '@/lib/panel-access';
 import {ConnectionDock} from './connection-dock';
 import type {OnlineStatus} from '@/lib/online-status';
 import {SystemStatus} from './system-status';
@@ -39,7 +40,7 @@ function blankItem(category_id:string,position:number):Item{return {id:'',catego
 export default function AdminPanel({initial,operator}:{initial:State;operator:Operator}){
  setDraftOwner(operator.id);
  const onlineOnly=operator.role==='online'||operator.role==='online_admin';
- const allowedLinks=onlineOnly?links.filter(l=>['onlineOrders','onlineReviews'].includes(l.id)||operator.role==='online_admin'&&l.id==='settings'):links.filter(l=>operator.role==='admin'||operator.onlineAdmin&&l.id==='settings'||operator.role==='cashier'&&!['settings','menu'].includes(l.id)||operator.role==='waiter'&&['pos','pending','onlineOrders','onlineReviews'].includes(l.id));
+ const allowedLinks=links.filter(link=>panelSections(operator.role).includes(link.id));
  const [currentUsername,setCurrentUsername]=useState(operator.username);
  const [refreshToken,setRefreshToken]=useState(0);
  const [onlineStatus,setOnlineStatus]=useState<OnlineStatus>({printing:'Kapalı',accounts:'0/0',branches:[]});
@@ -70,7 +71,7 @@ export default function AdminPanel({initial,operator}:{initial:State;operator:Op
   <main className="kitchen-main">{page==='menu'&&<div className="no-print mb-4 flex justify-end"><Button className="h-11 rounded-xl" onClick={()=>setEditingCategory({id:'',name:'',image_url:'',display_order:Math.max(-1,...state.categories.map(c=>c.display_order))+1,is_active:true,items:[]})}><Plus size={17}/>Kategori ekle</Button></div>}
    <div className={page==='settings'?'unified-settings-layout':undefined} data-online-only={operator.role!=='admin'||undefined}>
     {page==='settings'&&operator.role==='admin'&&<section className="unified-cafe-settings"><h2 className="unified-settings-title">Kafe ve Menü Ayarları</h2>{cafeSettings}</section>}
-    <div className={page==='settings'?'unified-settings-online':undefined}>{page==='settings'&&<h2 className="unified-settings-title">Online Sipariş Ayarları</h2>}<OnlineWorkspace view={page==='onlineReviews'?'reviews':page==='settings'?'settings':'orders'} active={page==='onlineOrders'||page==='onlineReviews'||page==='settings'} onStatus={setOnlineStatus}/>{page==='settings'&&(operator.role==='admin'||operator.role==='online_admin'||operator.onlineAdmin)&&<OnlineUsers canChangePassword={operator.role==='online_admin'||!!operator.onlineUserId&&!!operator.onlineAdmin}/>}</div>
+    <div className={page==='settings'?'unified-settings-online':undefined}>{page==='settings'&&<h2 className="unified-settings-title">Online Sipariş Ayarları</h2>}{operator.role!=='waiter'&&<OnlineWorkspace view={page==='onlineReviews'?'reviews':page==='settings'?'settings':'orders'} active={page==='onlineOrders'||page==='onlineReviews'||page==='settings'} onStatus={setOnlineStatus}/>}{page==='settings'&&(operator.role==='admin'||operator.role==='online_admin'||operator.onlineAdmin)&&<OnlineUsers canChangePassword={operator.role==='online_admin'||!!operator.onlineUserId&&!!operator.onlineAdmin}/>}</div>
    </div>
    {live.showReconnectWarning&&<div role="alert" className="mb-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Canlı bağlantı yeniden kuruluyor. Otomatik yenileme sürüyor.</div>}
    {error&&<div role="alert" className="mb-5 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}<button aria-label="Hatayı kapat" className="ml-auto h-8 w-8" onClick={()=>setError('')}><X size={16}/></button></div>}

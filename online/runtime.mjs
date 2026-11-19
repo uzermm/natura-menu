@@ -63,6 +63,7 @@ export async function onlineRequest(request,operator){
  original.protocol=external.protocol;original.hostname=external.hostname;original.port=external.port;
  const publicAsset=['/push-worker.js','/scooter-192.png','/scooter-512.png'].includes(path);
  if(!operator&&!publicAsset)return Response.json({error:'Lütfen giriş yapın.'},{status:401});
+ if(operator?.role==='waiter'&&(path==='/'||path.startsWith('/api/')))return Response.json({error:'Garson yalnız masa siparişlerini yönetebilir.'},{status:403});
  if(path.startsWith('/api/auth/')&&path!=='/api/auth/renew-print-session'&&!(path==='/api/auth/password'&&(operator?.role==='online_admin'||operator?.onlineAdmin&&operator?.onlineUserId)))return Response.json({error:'Hesap işlemleri ortak Ayarlar bölümündedir.'},{status:403});
  if(path.startsWith('/api/users/')&&decodeURIComponent(path.split('/').pop()).startsWith('unified:'))return Response.json({error:'Kafe kullanıcıları ortak Çalışanlar bölümündedir.'},{status:403});
  if(path==='/api/auth/renew-print-session')return Response.json({ok:true});

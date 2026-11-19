@@ -2,7 +2,7 @@ self.addEventListener('push', event => {
  const message = event.data?.json();
  if (!message) return;
  event.waitUntil(self.registration.showNotification(message.title, {
-  body:message.body, tag:message.tag, icon:'/scooter-192.png',
+  body:message.body, tag:message.tag, icon:new URL('../icons/naturapp-192.png',self.registration.scope).href,
   data:{orderId:message.tag},
   actions:message.accept ? [{action:'accept', title:'Kabul et'}] : []
  }));

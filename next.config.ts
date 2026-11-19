@@ -14,6 +14,9 @@ const config: NextConfig = {
     {key:'X-Frame-Options',value:'SAMEORIGIN'},
     {key:'Content-Security-Policy',value:"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"},
     {key:'Service-Worker-Allowed',value:'/online/'},
-  ]}]; },
+  ]},...['/admin/adisyon/:path*','/adisyon/:path*'].map(source=>({source,headers:[
+    {key:'X-Frame-Options',value:'SAMEORIGIN'},
+    {key:'Content-Security-Policy',value:"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"},
+  ]}))]; },
 };
 export default config;

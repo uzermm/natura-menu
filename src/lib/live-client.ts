@@ -24,7 +24,7 @@ export function useLiveActivity(enabled=true){
    source.onmessage=e=>{try{const value=JSON.parse(e.data);lastSignal=Date.now();apply(value);}catch{}};
    source.addEventListener('heartbeat',()=>{lastSignal=Date.now();touch();});
    source.onerror=()=>{status(false);warning();};
-   source.addEventListener('expired',()=>{source?.close();source=null;status(false);graceStart=Date.now();connect();});
+   source.addEventListener('expired',()=>{source?.close();source=null;status(false);void api('/api/auth/session').then(()=>connect()).catch(()=>{});});
   }
   const visible=()=>{
    if(document.hidden)return;

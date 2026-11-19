@@ -11,7 +11,7 @@ import {createOrderActions} from '../online/portal/order-actions.mjs';
 const data=mkdtempSync(path.join(tmpdir(),'unified-panel-test-'));
 process.env.DATA_DIR=data;process.env.ONLINE_DATA_DIR=path.join(data,'online');process.env.ONLINE_BACKGROUND='0';
 process.env.APP_URL='https://natura.example';process.env.MENU_URL='https://natura.example';process.env.PANEL_URL='https://mutfak.example';
-const {onlineRequest,syncIdentities,legacyLogin,legacyOperator}=await import('../online/runtime.mjs');
+const {onlineRequest,syncIdentities,legacyLogin,legacyOperator,subscribeOnline,tick}=await import('../online/runtime.mjs');
 const {credential}=await import('../online/portal/auth.mjs');
 const {sqlite}=await import('../online/dokploy/database.mjs');
 after(()=>{sqlite.close();rmSync(data,{recursive:true,force:true});});
@@ -24,7 +24,7 @@ test('QR stays public, old admin redirects, panel root rewrites and receipt link
  assert.equal(route('https://mutfak.example/login')?.url?.pathname,'/admin/login');
  assert.equal(route('https://mutfak.example/admin/adisyon/123?format=thermal')?.url?.href,'https://mutfak.example/adisyon/123?format=thermal');
  assert.equal(route('https://mutfak.example/adisyon/123')?.url?.pathname,'/admin/adisyon/123');
- for(const p of ['/online/api/state','/api/auth/login','/api/admin/state','/api/pos','/api/staff/login'])assert.equal(route('https://natura.example'+p)?.kind,'reject');
+ for(const p of ['/online/api/state','/api/auth/login','/api/admin/state','/api/pos','/api/staff/login','/api/online-events'])assert.equal(route('https://natura.example'+p)?.kind,'reject');
  assert.equal(route('https://natura.example/api/orders'),null);
 });
 test('both hosts require their own exact same origin',()=>{
@@ -87,3 +87,5 @@ test('cashier can accept and mark an online order ready without configuration ac
  assert.deepEqual(sent,['accept','ready']);
  assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/users'),cashier)).status,403);
 });
+
+test('background refresh notifies open panels immediately and unsubscribed panels stop receiving events',async()=>{let notified=0;const unsubscribe=subscribeOnline(()=>notified++);try{await tick();assert.equal(notified,1);}finally{unsubscribe();}await tick();assert.equal(notified,1);});

@@ -7,7 +7,7 @@ export function unifiedDestination(url:URL):{kind:'redirect'|'rewrite'|'reject';
  const admin=url.pathname==='/admin'||url.pathname.startsWith('/admin/')||url.pathname==='/garson'||url.pathname.startsWith('/garson/');
  const panelPath=url.pathname.startsWith('/admin/adisyon/')?url.pathname.replace('/admin',''):url.pathname.includes('login')?'/login':'/';
  if(onMenu&&admin){const dest=new URL(panelPath,panel);dest.search=url.search;return {kind:'redirect',url:dest};}
- if(onMenu&&(url.pathname.startsWith('/online')||/^\/api\/(admin|pos|auth|staff|printer|notifications)(\/|$)/.test(url.pathname)))return {kind:'reject'};
+ if(onMenu&&(url.pathname.startsWith('/online')||/^\/api\/(admin|pos|auth|staff|printer|notifications|online-events)(\/|$)/.test(url.pathname)))return {kind:'reject'};
  if(onPanel&&admin){const dest=new URL(panelPath,panel);dest.search=url.search;return {kind:'redirect',url:dest};}
  if(onPanel&&url.pathname.startsWith('/adisyon/')){const dest=new URL(url);dest.pathname='/admin'+url.pathname;return {kind:'rewrite',url:dest};}
  if(onPanel&&(url.pathname==='/'||url.pathname==='/login')){const dest=new URL(url);dest.pathname=url.pathname==='/login'?'/admin/login':'/admin';return {kind:'rewrite',url:dest};}

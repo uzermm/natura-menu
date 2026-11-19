@@ -1,4 +1,5 @@
 import { createHmac, randomBytes, timingSafeEqual, scryptSync } from 'node:crypto';
+export const SESSION_SECONDS=12*60*60;
 const DEV_SECRET=randomBytes(32).toString('hex');
 export function sessionSecret() {
  const value=process.env.SESSION_SECRET;
@@ -9,11 +10,11 @@ export function sessionSecret() {
 export function safeEqual(a:string,b:string) {const aa=Buffer.from(a),bb=Buffer.from(b);return aa.length===bb.length&&timingSafeEqual(aa,bb);}
 function sign(value:string){return createHmac('sha256',sessionSecret()).update(value).digest('base64url');}
 function signSession(payload:string,credential:string){return sign(`session:${credential}:${payload}`);}
-export function makeSession(now=Date.now(),credential=process.env.ADMIN_PASSWORD||'') {const payload=Buffer.from(JSON.stringify({exp:now+1000*60*60*12,nonce:randomBytes(16).toString('hex')})).toString('base64url');return `${payload}.${signSession(payload,credential)}`;}
+export function makeSession(now=Date.now(),credential=process.env.ADMIN_PASSWORD||'') {const payload=Buffer.from(JSON.stringify({exp:now+1000*SESSION_SECONDS,nonce:randomBytes(16).toString('hex')})).toString('base64url');return `${payload}.${signSession(payload,credential)}`;}
 export function validSession(token:string|undefined,now=Date.now(),credential=process.env.ADMIN_PASSWORD||'') {
  if(!token||token.length>1024)return false;
  const [payload,sig,...rest]=token.split('.');if(!payload||!sig||rest.length||!safeEqual(signSession(payload,credential),sig))return false;
- try {const data=JSON.parse(Buffer.from(payload,'base64url').toString());return typeof data.exp==='number'&&data.exp>now&&data.exp<=now+1000*60*60*12;}catch{return false;}
+ try {const data=JSON.parse(Buffer.from(payload,'base64url').toString());return typeof data.exp==='number'&&data.exp>now&&data.exp<=now+1000*SESSION_SECONDS;}catch{return false;}
 }
 export function hashPassword(password:string){const salt=randomBytes(16).toString('hex');return `scrypt:${salt}:${scryptSync(password,salt,32).toString('hex')}`;}
 export function verifyPasswordHash(password:string,encoded:string){

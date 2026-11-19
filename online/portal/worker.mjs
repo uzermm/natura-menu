@@ -37,6 +37,7 @@ export async function syncPushOrders(env, since) {
  try {
   const c=await context(env,store);
   await c.sync();
+  await c.backup().catch(async()=>{const info=await store.get('backup-info',{});await store.set('backup-info',{...info,error:'Yedek alınamadı. Tekrar denenecek.'});});
   const now=Date.now();
   const orders=await store.get('orders',[]);
   const groups=restaurantGroups(c.config.accounts,orders);
@@ -119,7 +120,7 @@ export async function handle(request,env,ctx){
   if(!token){if(path==='/api/state'){const c=await context(env,store);return json({...await c.state(user),busy:true});}return json({error:'Başka bir işlem sürüyor. Biraz sonra tekrar deneyin.'},409);}
   try{
    const c=await context(env,store);
-   if(path==='/api/state'&&request.method==='GET'){await c.sync();await c.backup().catch(async()=>{const info=await store.get('backup-info',{});await store.set('backup-info',{...info,error:'Bulut yedeği alınamadı. Tekrar deneyin.'});});return json(await c.state(user));}
+   if(path==='/api/state'&&request.method==='GET'){if(!env.STATE_FROM_BACKGROUND){await c.sync();await c.backup().catch(async()=>{const info=await store.get('backup-info',{});await store.set('backup-info',{...info,error:'Bulut yedeği alınamadı. Tekrar deneyin.'});});}return json(await c.state(user));}
    if(path==='/api/sync'&&request.method==='POST'){const last=await store.get('manual-sync',0);if(Date.now()-last<10000)return json({ok:true,cached:true});await store.set('manual-sync',Date.now());await c.sync(true);return json({ok:true});}
    if(path==='/api/reviews'&&request.method==='GET'||path==='/api/reviews/sync'&&request.method==='POST')return json(await c.reviews.sync(request.method==='POST'));
    let input={};if(['POST','PUT','PATCH'].includes(request.method)){const text=await request.text();if(new TextEncoder().encode(text).length>65536)throw fail('İstek çok büyük.');input=text?JSON.parse(text):{};}

@@ -105,3 +105,25 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;bottom:calc(64px + env(
 .kitchen-shell[data-role=kitchen]{--kitchen-rail:0px!important;--kitchen-dock:0px!important;padding-left:0!important}
 .kitchen-shell[data-role=kitchen]>.kitchen-main{padding-bottom:12px}
 .kitchen-shell[data-role=kitchen] .online-workspace-frame{height:calc(100dvh - 95px)}
+
+/* Shared operation typography; the public QR menu keeps its own style. */
+.kitchen-shell .serif{font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:-.02em}
+.kitchen-main h2.serif,.kitchen-main section>div>h2{font-size:20px;line-height:1.3}
+.kitchen-header p:last-child{font-size:16px;line-height:1.3}
+.notification-control{color:#926b20;background:#fff9e9;border-color:#e7d9af}
+.notification-options{display:grid;gap:12px}.notification-options>div{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #e0e6da;border-radius:12px;padding:12px;font-size:14px}.notification-options button{min-width:82px}
+.settings-sections{display:none}.receipt-preview-dialog{width:calc(100vw - 24px)!important;max-width:900px!important;height:90dvh;max-height:90dvh;display:flex;flex-direction:column;gap:12px;padding:20px}.receipt-preview-frame{flex:1;width:100%;min-height:0;border:1px solid #e0e6da;border-radius:12px;background:white}
+.connection-dock-branch{min-width:0;gap:6px}.dock-restaurant-logo{height:30px;width:30px;object-fit:contain;border-radius:5px;flex-shrink:0}.connection-dock-branch strong{display:none}.connection-dock-branch .dock-age-full{font-size:10px;white-space:nowrap}.connection-dock-branches{gap:18px}
+@media(max-width:700px){
+ .kitchen-header p:last-child{font-size:14px}
+ .kitchen-main input:not([type=checkbox]):not([type=radio]),.kitchen-main select,.kitchen-main textarea{font-size:16px}
+ .settings-sections{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:14px;position:sticky;top:0;z-index:12;background:#f5f7f2;padding:5px 0}
+ .settings-sections button{min-height:40px;border:1px solid #dbe3d5;background:#fff;border-radius:9px;font-size:11px;font-weight:650;white-space:nowrap}
+ .settings-sections button[aria-pressed=true]{background:#305c3e;color:white;border-color:#305c3e}
+ .kitchen-main[data-settings-active] [data-settings-group]{margin-top:0}
+ .kitchen-main[data-settings-active=business] [data-settings-group]:not([data-settings-group=business]),.kitchen-main[data-settings-active=users] [data-settings-group]:not([data-settings-group=users]),.kitchen-main[data-settings-active=system] [data-settings-group]:not([data-settings-group=system]),.kitchen-main[data-settings-active=connections] .unified-cafe-settings{display:none}
+ .kitchen-main[data-settings-active]:not([data-settings-active=connections]) .unified-settings-online{position:fixed;left:-200vw;width:calc(100vw - 24px);visibility:hidden;pointer-events:none}
+ .kitchen-main[data-settings-active=users] .unified-settings-title,.kitchen-main[data-settings-active=system] .unified-settings-title{display:none}
+ .connection-dock-branches{gap:8px;flex:1;justify-content:space-evenly}.connection-dock-branch{flex:0 1 auto;gap:3px}.connection-dock-branch>div{min-width:20px}.dock-restaurant-logo{width:25px;height:25px}.connection-dock-branch .dock-age-full{display:none!important}.connection-dock-branch .dock-age-short{font-size:9px}.connection-dock-branch .dock-branch-short{display:none}
+ .receipt-preview-dialog{padding:15px;width:calc(100vw - 12px)!important;height:92dvh;max-height:92dvh}
+}

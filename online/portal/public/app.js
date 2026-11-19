@@ -31,7 +31,8 @@ async function alertOrders(fresh){
  const emit=()=>{let claimed=false;try{const cache=JSON.parse(localStorage.getItem('bm-alerted')||'{}');for(const o of fresh)if(!cache[o.id]){cache[o.id]=Date.now();claimed=true;}const entries=Object.entries(cache).filter(([,at])=>Date.now()-at<86400000).slice(-1000);localStorage.setItem('bm-alerted',JSON.stringify(Object.fromEntries(entries)));}catch{claimed=true;}if(claimed)void playNotification();};
  if(navigator.locks)await navigator.locks.request('bulut-order-sound',emit);else emit();
 }
-async function api(url,method='GET',body,retry=0){const r=await fetch(url,{method,headers:{'Content-Type':'application/json','X-Panel-Request':'1'},body:body?JSON.stringify(body):undefined});const data=await r.json();if(r.status===409&&retry<5&&((method==='GET'&&url==='/api/reviews')||(method==='POST'&&url==='/api/reviews/sync'))){await new Promise(resolve=>setTimeout(resolve,1000));return api(url,method,body,retry+1);}if(r.status===401){parent.postMessage({type:'online:login'},location.origin);throw Error('Oturum sona erdi.');}if(!r.ok)throw Error(data.error||'İşlem tamamlanamadı.');return data;}
+let currentStateRequest;
+async function api(url,method='GET',body,retry=0){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),method==='GET'?15000:30000);if(url==='/api/state')currentStateRequest=controller;try{const r=await fetch(url,{method,headers:{'Content-Type':'application/json','X-Panel-Request':'1'},body:body?JSON.stringify(body):undefined,signal:controller.signal});const data=await r.json();if(r.status===409&&retry<5&&((method==='GET'&&url==='/api/reviews')||(method==='POST'&&url==='/api/reviews/sync'))){await new Promise(resolve=>setTimeout(resolve,1000));return api(url,method,body,retry+1);}if(r.status===401){parent.postMessage({type:'online:login'},location.origin);throw Error('Oturum sona erdi.');}if(!r.ok)throw Error(data.error||'İşlem tamamlanamadı.');return data;}catch(error){if(controller.signal.aborted)throw Error(method==='GET'?'Bağlantı yeniden kuruluyor.':'İşlemin sonucu doğrulanamadı. Güncel durumu kontrol edin.');throw error;}finally{clearTimeout(timer);if(currentStateRequest===controller)currentStateRequest=null;}}
 function toast(text){$('#toast').textContent=text;$('#toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').hidden=true,6000);}
 const statusIcons={
  Created:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4M12 2V1"/>',
@@ -381,15 +382,18 @@ $('#accounts').onclick=async e=>{const edit=e.target.closest('[data-edit]');if(e
  const del=e.target.closest('[data-delete]');if(del&&confirm('Bu hesabın bağlantısı ve bu kopyadaki sipariş kayıtları kaldırılsın mı?')){try{await api(`/api/accounts/${encodeURIComponent(del.dataset.delete)}`,'DELETE');toast('Bağlantı kaldırıldı.');}catch(e){toast(e.message);}}
 };
 function clock(){$('#clock').textContent=new Intl.DateTimeFormat('tr-TR',{timeZone:'Europe/Istanbul',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}).format(new Date());}clock();setInterval(clock,30000);
-const events={close(){clearTimeout(pollTimer);}};let pollTimer,polling=false,stopped=false;
+const events={close(){clearTimeout(pollTimer);}};let pollTimer,polling=false,stopped=false,pollAgain=false;
 let nextPrintSessionRenewal=0;
 function renewPrintSession(){
  if (!nativePrintStation || !autoPrintEnabled() || Date.now() < nextPrintSessionRenewal) return;
  nextPrintSessionRenewal=Date.now()+1800000;
  void api('/api/auth/renew-print-session','POST').catch(()=>{nextPrintSessionRenewal=Date.now()+60000;});
 }
-async function pollState(){if(polling||stopped)return;clearTimeout(pollTimer);polling=true;try{state=await api('/api/state');document.dispatchEvent(new Event('online:state'));connected=true;renewPrintSession();const fresh=newOrders(state);void alertOrders(fresh);if(autoPrintEnabled())for(const order of fresh)void queueReceipt(order,true);}catch{connected=false;}finally{polling=false;render();pollTimer=setTimeout(pollState,connected&&state.busy?2000:state.interval*1000);}}
-void pollState();render();
+async function pollState(){if(stopped)return;if(polling){pollAgain=true;return;}clearTimeout(pollTimer);polling=true;try{state=await api('/api/state');document.dispatchEvent(new Event('online:state'));connected=true;renewPrintSession();const fresh=newOrders(state);void alertOrders(fresh);if(autoPrintEnabled())for(const order of fresh)void queueReceipt(order,true);}catch{connected=false;}finally{polling=false;render();const delay=pollAgain?0:connected&&state.busy?2000:liveOnline?60000:state.interval*1000;pollAgain=false;pollTimer=setTimeout(pollState,delay);}}
+let liveOnline=false,onlineEvents;
+function connectOnline(){if(onlineEvents||!('EventSource' in window))return;onlineEvents=new EventSource('/api'+'/online-events');onlineEvents.onopen=()=>{liveOnline=true;};onlineEvents.onmessage=()=>{liveOnline=true;void pollState();};onlineEvents.onerror=()=>{liveOnline=false;};}
+function wakeOnline(){if(document.hidden)return;currentStateRequest?.abort();onlineEvents?.close();onlineEvents=null;liveOnline=false;connectOnline();void pollState();}
+document.addEventListener('visibilitychange',wakeOnline);window.addEventListener('pageshow',wakeOnline);window.addEventListener('online',wakeOnline);window.addEventListener('pagehide',()=>{onlineEvents?.close();onlineEvents=null;liveOnline=false;});connectOnline();void pollState();render();
 
 
 $('#soundButton').onclick=async()=>{try{if(sound.enabled){sound.disable();toast('Sipariş sesi kapatıldı.');}else if(await enableSound()){ring();toast('Yeni siparişler için ses açık.');}}catch{soundUI();toast('Ses başlatılamadı. Tarayıcının ses iznini kontrol edin.');}};
@@ -432,9 +436,10 @@ async function loadUsers(){if(state.user?.role!=='admin')return;try{const result
 $('#userForm').onsubmit=async e=>{e.preventDefault();const form=e.target,button=form.querySelector('button');button.disabled=true;$('#userMessage').textContent='';try{const input=Object.fromEntries(new FormData(form));await api('/api/users','POST',input);form.reset();$('#userMessage').textContent='Kullanıcı eklendi. Kullanıcı adı ve şifresiyle giriş yapabilir.';await loadUsers();}catch(e){$('#userMessage').textContent=e.message;}finally{button.disabled=false;}};
 $('#userList').onclick=async e=>{const remove=e.target.closest('[data-user-delete]');if(remove){if(!confirm('“'+remove.dataset.userName+'” kullanıcısı silinsin mi? Bu kullanıcı tekrar giriş yapamaz ve açık oturumları kapanır.'))return;remove.disabled=true;try{await api('/api/users/'+encodeURIComponent(remove.dataset.userDelete),'DELETE');await loadUsers();toast('Kullanıcı silindi.');}catch(error){toast(error.message);remove.disabled=false;}return;}const button=e.target.closest('[data-user-id]');if(!button)return;button.disabled=true;try{await api('/api/users/enabled','POST',{id:button.dataset.userId,enabled:button.dataset.userEnable==='true'});await loadUsers();toast('Kullanıcı erişimi güncellendi.');}catch(error){toast(error.message);button.disabled=false;}};
 
-setupPhoneNotifications($('#phoneNotifications'), api, toast);
+if(parent===window)setupPhoneNotifications($('#phoneNotifications'), api, toast);
 
 let embeddedView='orders';
 document.addEventListener('online:navigate',event=>{embeddedView=event.detail;if(state.user)showView(embeddedView);});
 document.addEventListener('online:state',()=>{if(view!==embeddedView)showView(embeddedView);});
+window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent||event.data?.type!=='online:sound')return;if(event.data.enabled)void sound.enable();else sound.disable();});
 window.onlineAppReady=true;window.dispatchEvent(new Event('online:app-ready'));

@@ -12,3 +12,8 @@
 }
 
 @media screen and (max-width:1100px){.unified-online .discount-summaries{display:grid!important;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:100%;align-items:stretch;transition:none}.unified-online .discount-summary{align-self:stretch}}
+
+@media screen{.unified-online #soundMenu,.unified-online #phoneNotifications{display:none!important}}
+
+@media screen{.unified-online{font-family:Arial,Helvetica,sans-serif;font-size:13px}.unified-online .reviews-heading h2,.unified-online .review-list-title h2{font-size:20px;font-weight:700;letter-spacing:-.02em}.unified-online .review-date,.unified-online .review-products,.unified-online .review-answer-state{font-size:11px}.unified-online .order-product,.unified-online .review-comment{font-size:13px;line-height:1.5}.unified-online .button{font-size:12px;min-height:36px}}
+@media screen and (max-width:700px){.unified-online input:not([type=checkbox]),.unified-online select,.unified-online textarea{font-size:16px;min-height:38px}.unified-online .reviews-heading h2,.unified-online .review-list-title h2{font-size:18px}}

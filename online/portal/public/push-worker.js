@@ -30,5 +30,7 @@ async function handleNotificationClick(action, orderId) {
    // Open the portal so the operator can check the latest order status.
   }
  }
- await clients.openWindow(new URL('/?section=onlineOrders',self.location.origin).href);
+ const target=new URL('/?section=onlineOrders',self.location.origin).href;
+ for(const client of await clients.matchAll({type:'window',includeUncontrolled:true})){const url=new URL(client.url);if(url.origin===self.location.origin&&(url.pathname==='/'||url.pathname.startsWith('/admin'))){await client.navigate(target);await client.focus();return;}}
+ await clients.openWindow(target);
 }

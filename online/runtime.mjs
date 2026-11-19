@@ -92,15 +92,20 @@ export async function onlineRequest(request,operator){
  const url=new URL(original);url.pathname=path;
  const headers=new Headers(request.headers);
  const incoming=new Request(url,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:await request.arrayBuffer()});
- const response=await handle(incoming,{...env,AUTH});
+ const response=await handle(incoming,{...env,AUTH,STATE_FROM_BACKGROUND:true});
+ if(response.ok&&request.method!=='GET')publishOnline();
  // The original UI is framed only by our shared panel, never an external site.
  response.headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'self'");
  response.headers.set('X-Frame-Options','SAMEORIGIN');
  response.headers.set('Cache-Control','private, no-store');
  return response;
 }
+const listeners=new Set();
+export function subscribeOnline(callback){listeners.add(callback);return()=>listeners.delete(callback);}
+function publishOnline(){for(const callback of listeners)try{callback();}catch{}}
+export async function renewLegacy(request){return auth(env).renew(request);}
 let cursor=Date.now(),timer,sendTimer;
-export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);cursor=result.now;for(const order of result.orders)await PUSH.send(order);}
+export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);cursor=result.now;publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;
  const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{timer=setTimeout(poll,15000);timer.unref();}};

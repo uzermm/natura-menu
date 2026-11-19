@@ -3,7 +3,7 @@ export const normalize=value=>String(value||'').normalize('NFKC').trim().toLocal
 const error=(message,status=400)=>Object.assign(new Error(message),{status});
 const hex=bytes=>Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 const digest=async value=>hex(await crypto.subtle.digest('SHA-256',encoder.encode(value)));
-const cookie=(token,age=43200)=>`${SESSION}=${token}; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=${age}`;
+const cookie=(token,age=TTL/1000)=>`${SESSION}=${token}; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age=${age}`;
 const tokenOf=request=>(request.headers.get('cookie')||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(SESSION+'='))?.slice(SESSION.length+1)||'';
 export function publicUser(user){return user?{id:user.id,username:user.username,role:user.role,enabled:!!user.enabled}:null;}
 export function validUsername(value){const v=normalize(value);if(!/^[\p{L}\p{N}][\p{L}\p{N}._@+-]{0,253}$/u.test(v))throw error('Kullanıcı adı harf, rakam, nokta, alt çizgi veya tire içermelidir.');return v;}

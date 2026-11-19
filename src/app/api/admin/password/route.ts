@@ -16,6 +16,6 @@ export async function POST(req:Request){try{
   if(!validPassword(input.currentPassword))throw new HttpError(400,'Mevcut şifre yanlış.');
   db().prepare('INSERT INTO admin_credentials(id,password_hash) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET password_hash=excluded.password_hash').run(hashPassword(input.newPassword));
  });
- (await cookies()).set('natura_session',makeSession(),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict',path:'/',maxAge:60*60*12});
+ (await cookies()).set('natura_session',makeSession(),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'strict',path:'/',maxAge:12*60*60});
  return Response.json({ok:true});
 }catch(error){return errorResponse(error);}}

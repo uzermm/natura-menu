@@ -73,3 +73,16 @@ Yerel ön izleme farklı test veritabanları kullanır. Canlı veriler yalnız g
 Müşteri QR menüsünden sipariş verme ve paneldeki Müşteri Siparişleri bölümü kaldırıldı. `/api/orders` ve `/api/pos/orders` rotaları yoktur. Garson çağrıları ile personelin masa/hızlı siparişleri ve Trendyol sipariş işlemleri devam eder. Eski QR istekleri bildirim üretmez veya gün kapatmayı engellemez; tarihsel veriler dağıtım sırasında silinmez.
 
 Kullanıcı yönetimi `/api/admin/users` üzerinden yapılır. Eski ayrı çalışan/online kullanıcı arayüzleri kaldırıldı. `user_access` tablosu mevcut kimliklere uygulama rollerini bağlar; eski parola özetleri yalnız şifre değiştirildiğinde yenilenir. Ana yönetici silinemez, kullanıcı kendisini devre dışı bırakamaz. Rol değişimi her istekte kontrol edilir; iptal edilen veya silinen hesaplar bildirim alamaz.
+
+
+## Sipariş, oturum ve bildirim güncellemesi — 19 Kasım 2026
+
+- Trendyol sorgusu sunucuda ortak 15 saniyelik döngüyle sürer. Panel /api/online-events üzerinden yalnız değişiklik sinyali alır ve kayıtlı durumu hemen okur. Durum okuma yeni bir Trendyol sorgusu/yedekleme başlatmaz; otomatik online yedekleme arka plan döngüsünde saatlik sınırıyla korunur. Olay bağlantısı yoksa 15 saniyelik yedek sorgulama, sağlıklı bağlantıda 60 saniyelik kontrol kullanılır.
+- Ekrana dönüş, pageshow ve internetin geri gelmesi online akışı yeniden bağlar. Takılı kalan durum okuması iptal edilir; mutasyonlar tekrar gönderilmez. Veri isteklerinin süre sınırı ve birleştirilmiş yenileme kuyruğu vardır.
+- Oturum ömrü 12 saat olarak korunur. Kullanım sırasında 5 dakikada bir ve ekrana dönüşte /api/auth/session ile geçerli oturum yenilenir. Süresi dolmuş, pasifleştirilmiş veya silinmiş hesap yenilenemez. Yeni kök panel adresinde de 401 girişe yönlendirir. Telefonun işletim sistemi ekran kilitliyken tarayıcı bağlantısını uyutabilir; push bildirimleri ayrı servis üzerinden yürür.
+- Kafe Yazdır/Önizle işlemleri mevcut panelde fiş penceresi açar. Fiş biçimi, kâğıt tercihi ve baskı çağrısı korunur. Fiş yalnız aynı kaynaktaki panelde çerçevelenebilir. Online otomatik baskı değişmez ve kafe ekranları açıkken de çalışır.
+- Üstte tek Bildirimler düğmesi vardır. Uygulama sesi ve telefon bildirimi bu pencereden yönetilir. Admin/kasiyer iki bildirim kanalına, garson çağrı kanalına, mutfak online sipariş kanalına abone olur. Abonelikte servis kapsamı ve anahtar kontrol edilir. Bildirime basıldığında mevcut panel penceresi kullanılır.
+- Mobil ayarlar İşletme / Kullanıcılar / Bağlantılar / Sistem bölümlerine ayrılır. Formlar bölüm geçişinde korunur. Masaüstünde mevcut iki sütun sürer.
+- Operasyon başlıkları aynı yazı ailesi/ölçülerine yaklaştırıldı. Mobil form yazıları odaklanırken gereksiz yakınlaştırmayı önlemek için 16 pikseldir. Alt durum bandı tek satırda restoran logoları, güncellik süresi ve kısa göstergeleri korur. Bant saati 5 saniyede bir güncellenir. Müşteri menüsü operasyon akışına abone olmaz; görselleri boyutlandırılmış, tembel ve asenkron yüklenir.
+
+Doğrulama: üretim derlemesi, 85 birim/entegrasyon testi, 15 tarayıcı senaryosu; beş genişlikte panel ve online ekran taşma kontrolü. Baskı çağrıları ve Trendyol aksiyonları yalıtılmış testlerde taklit edildi. Gerçek termal çıktı veya kilitli telefona fiziksel bildirim teslimi bu testlerde ölçülmedi.

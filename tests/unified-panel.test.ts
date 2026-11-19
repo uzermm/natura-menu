@@ -41,10 +41,11 @@ test('online requests use shared identities, preserve role permissions and expos
  assert.equal((await onlineRequest(request('/api/accounts','POST'),cashier)).status,403);
  assert.equal((await onlineRequest(request('/api/auth/login','POST'),admin)).status,403);
  assert.equal((await onlineRequest(request('/api/users'),cashier)).status,403);
- assert.equal((await onlineRequest(request('/api/users'),admin)).status,200);
+ assert.equal((await onlineRequest(request('/api/users'),admin)).status,403);
  for(const path of ['/','/api/state','/api/reviews','/api/orders/action','/api/users'])assert.equal((await onlineRequest(request(path),{id:'waiter-only',username:'waiter',role:'waiter'})).status,403);
  assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/accounts',{method:'POST',body:'{}'}),admin)).status,403);
  const html=await onlineRequest(request('/'),admin);assert.equal(html.headers.get('X-Frame-Options'),'SAMEORIGIN');assert.match(await html.text(),/\/online\/app.js/);
+ const kitchen={id:'kitchen',username:'kitchen',role:'kitchen'};const kitchenState=await(await onlineRequest(request('/api/state'),kitchen)).json();assert.equal(kitchenState.canManageOrders,true);assert.equal(kitchenState.user.role,'viewer');for(const path of ['/api/reviews','/api/accounts','/api/users'])assert.equal((await onlineRequest(request(path),kitchen)).status,403);
  const save=new Request('http://127.0.0.1:3000/online/api/accounts',{method:'POST',headers:{host:'mutfak.example',origin:'https://mutfak.example','X-Panel-Request':'1'},body:JSON.stringify({label:'QA',supplierId:'1',environment:'stage',agentName:'QA',executorEmail:'qa@example.test',apiKey:'test-only',apiSecret:'test-only',stores:[]})});
  assert.equal((await onlineRequest(save,admin)).status,200,'HTTPS origin behind the tunnel must remain valid for writes');
 });
@@ -60,16 +61,17 @@ test('original portal hashes, short passwords, roles and disabled flags remain a
  const adminLogin=await legacyLogin(req,{username:'legacy.owner',password:'original-admin-8'});assert.equal((await legacyOperator(adminLogin.cookie!.split(';')[0].split('=')[1]))?.role,'online_admin');
  assert.equal((await legacyLogin(req,{username:'legacy.disabled',password:'1234'})).cookie,null);
  assert.equal(sqlite.prepare("SELECT credential FROM auth_users WHERE id='source-staff'").get()?.credential,hash);
- const users=await(await onlineRequest(new Request('https://mutfak.example/online/api/users'),{id:'portal:source-owner',username:'legacy.owner',role:'online_admin'})).json();assert.ok(users.users.some((u:{username:string})=>u.username==='legacy.staff'));assert.ok(users.users.every((u:{id:string})=>!u.id.startsWith('unified:')));
+ assert.ok((await import('../online/runtime.mjs')).listLegacyUsers().some((user:{username:string})=>user.username==='legacy.staff'));
  sqlite.prepare("UPDATE auth_users SET enabled=0,version=version+1 WHERE id='source-staff'").run();assert.equal(await legacyOperator(token),null);
 });
 test('notification recipients follow shared enabled users, not old portal credentials',()=>{
  const cafe=new DatabaseSync(path.join(data,'natura.sqlite'));
- cafe.exec("CREATE TABLE employees(id TEXT,username TEXT,name TEXT,role TEXT,password_hash TEXT,is_active INTEGER);CREATE TABLE admin_identity(id INTEGER,username TEXT);CREATE TABLE admin_credentials(id INTEGER,password_hash TEXT);INSERT INTO admin_identity VALUES(1,'owner');INSERT INTO employees VALUES('e1','employee','Employee','waiter','hash-one',1)");
+ cafe.exec("CREATE TABLE employees(id TEXT,username TEXT,name TEXT,role TEXT,password_hash TEXT,is_active INTEGER);CREATE TABLE admin_identity(id INTEGER,username TEXT);CREATE TABLE admin_credentials(id INTEGER,password_hash TEXT);INSERT INTO admin_identity VALUES(1,'owner');INSERT INTO employees VALUES('e1','employee','Employee','cashier','hash-one',1)");
  sqlite.prepare("INSERT INTO auth_users VALUES('legacy','legacy','admin','{}',1,1)").run();
  syncIdentities();assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='unified:e1'").get()?.enabled,1);
  assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='legacy'").get()?.enabled,1);
  cafe.prepare("UPDATE employees SET password_hash='hash-two'").run();syncIdentities();assert.equal(sqlite.prepare("SELECT version FROM auth_users WHERE id='unified:e1'").get()?.version,2);
+ cafe.prepare("UPDATE employees SET role='waiter'").run();syncIdentities();assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='unified:e1'").get()?.enabled,0);cafe.prepare("UPDATE employees SET role='kitchen'").run();syncIdentities();assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='unified:e1'").get()?.enabled,1);
  cafe.prepare('UPDATE employees SET is_active=0').run();syncIdentities();assert.equal(sqlite.prepare("SELECT enabled FROM auth_users WHERE id='unified:e1'").get()?.enabled,0);cafe.close();
 });
 

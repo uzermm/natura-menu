@@ -6,7 +6,7 @@
 - `https://mutfak.beyoglumutfagi.com/`: tek yönetim paneli, giriş `/login`.
 - Eski `natura.../admin` adresi yeni panele yönlenir. Kasa fişleri yeni panelde `/adisyon/<id>` olarak açılır; eski fiş bağlantıları aynı fişe yönlenir.
 - `PANEL_URL` alan adı geçişini açar. Yerel kullanımda veya geçiş öncesinde boş bırakıldığında `/admin` çalışır.
-- Ortak giriş hem Natura'daki mevcut yönetici/çalışan hesaplarını hem de eski sipariş hesaplarını mevcut parolalarıyla doğrular. Yönetici bütün bölümlere erişir. Kasiyer Ayarlar ve Menü Yönetimi dışındaki operasyon ekranlarını kullanır. Garson yalnız Masalar ekranında masa siparişi alır, ürün adedini artırıp azaltır ve sipariş notlarını düzenler; online sipariş, yorum, cari ve kasa erişimi yoktur. API bağlantıları ve kullanıcı yönetimi yalnız yöneticidedir. Eski sipariş kullanıcılarının parola özetleri dönüştürülmez veya sıfırlanmaz. Normal sipariş kullanıcıları yalnız Siparişler/Yorumlar; eski sipariş yöneticisi ek olarak online Ayarlar bölümüne erişir. Bu hesaplara otomatik kafe/kasa/cari yetkisi verilmez. Online Sipariş Kullanıcıları bölümünde mevcut kayıtlar yönetilir.
+- Ortak giriş, mevcut kafe ve online hesaplarının parolalarını korur. Ayarlar içinde tek Kullanıcılar bölümü bulunur: Admin tüm bölümlere, Kasiyer Ayarlar ve Menü Yönetimi dışındaki operasyonlara, Garson yalnız Masalar ve sipariş/adet işlemlerine, Mutfak yalnız online Siparişler ekranı ile Kabul Et/Hazırlandı işlemlerine erişir. Mutfak oturumu her ekran boyutunda sol menü ve alt durum bandı olmadan açılır. Eski online yöneticiler Admin, standart online kullanıcılar Mutfak olarak görünür; yönetici buradan rol değiştirebilir.
 
 ## Uygulama yapısı
 
@@ -71,3 +71,5 @@ Kafe/QR menü ayarları ile online bağlantılar masaüstünde iki sütunda, mob
 Yerel ön izleme farklı test veritabanları kullanır. Canlı veriler yalnız gerçek volume'lar bağlanarak veya sunucudan bu yedekler güvenli biçimde alınarak gösterilebilir; `http://menu:3000` sunucunun iç Docker adresidir, yerel bilgisayardan dosya erişimi sağlamaz.
 
 Müşteri QR menüsünden sipariş verme ve paneldeki Müşteri Siparişleri bölümü kaldırıldı. `/api/orders` ve `/api/pos/orders` rotaları yoktur. Garson çağrıları ile personelin masa/hızlı siparişleri ve Trendyol sipariş işlemleri devam eder. Eski QR istekleri bildirim üretmez veya gün kapatmayı engellemez; tarihsel veriler dağıtım sırasında silinmez.
+
+Kullanıcı yönetimi `/api/admin/users` üzerinden yapılır. Eski ayrı çalışan/online kullanıcı arayüzleri kaldırıldı. `user_access` tablosu mevcut kimliklere uygulama rollerini bağlar; eski parola özetleri yalnız şifre değiştirildiğinde yenilenir. Ana yönetici silinemez, kullanıcı kendisini devre dışı bırakamaz. Rol değişimi her istekte kontrol edilir; iptal edilen veya silinen hesaplar bildirim alamaz.

@@ -9,7 +9,7 @@ import type {Ticket} from '../src/lib/pos-types.ts';
 import {panelOperator,panelSections} from '../src/lib/panel-access.ts';
 test('employee tokens are credential-bound and immediately revoked by role, password or active status changes',()=>{
  const d=new DatabaseSync(':memory:');try{d.exec('CREATE TABLE employees(id TEXT,username TEXT,name TEXT,role TEXT,password_hash TEXT,is_active INTEGER)');const employee={id:'employee',username:'test.employee',name:'Çalışan',role:'waiter',password_hash:hashPassword('test12345'),is_active:1};d.prepare('INSERT INTO employees VALUES(?,?,?,?,?,?)').run(employee.id,employee.username,employee.name,employee.role,employee.password_hash,1);const now=Date.now(),token=makeEmployeeSession(employee,now);
- assert.equal(employeeSession(d,token,now)?.role,'waiter');assert.equal(employeeSession(d,token+'x',now),null);assert.equal(employeeSession(d,token,now+12*3600000),null);d.prepare("UPDATE employees SET username='renamed'").run();assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET username='test.employee',role='cashier'").run();assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET role='waiter',is_active=0").run();assert.equal(employeeSession(d,token,now),null);d.prepare('UPDATE employees SET is_active=1,password_hash=?').run(hashPassword('new12345'));assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET role='kitchen'").run();assert.equal(employeeSession(d,makeEmployeeSession({...employee,role:'kitchen'},now),now),null);
+ assert.equal(employeeSession(d,token,now)?.role,'waiter');assert.equal(employeeSession(d,token+'x',now),null);assert.equal(employeeSession(d,token,now+12*3600000),null);d.prepare("UPDATE employees SET username='renamed'").run();assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET username='test.employee',role='cashier'").run();assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET role='waiter',is_active=0").run();assert.equal(employeeSession(d,token,now),null);d.prepare('UPDATE employees SET is_active=1,password_hash=?').run(hashPassword('new12345'));assert.equal(employeeSession(d,token,now),null);d.prepare("UPDATE employees SET role='retired'").run();assert.equal(employeeSession(d,makeEmployeeSession({...employee,role:'retired'},now),now),null);
  }finally{d.close();}
 });
 test('waiters can add table orders, change quantities or notes; financial, cancellation, merge, quick and cari commands are denied',()=>{
@@ -21,9 +21,9 @@ test('waiters can add table orders, change quantities or notes; financial, cance
 });
 
 test('cashier gets operational pages, waiter gets tables only and source online roles are not expanded',()=>{
- assert.deepEqual(panelSections('waiter'),['pos']);
+ assert.deepEqual(panelSections('waiter'),['pos']);assert.deepEqual(panelSections('kitchen'),['onlineOrders']);
  assert.deepEqual(panelSections('cashier'),['onlineOrders','onlineReviews','pos','quick','accounts','history','summary']);
  assert.deepEqual(panelSections('online'),['onlineOrders','onlineReviews']);
- for(const role of ['cashier','waiter'] as const){const op={id:'employee',username:'staff',name:'Staff',actor:'Staff',role,onlineAdmin:true,onlineUserId:'source-owner'};const effective=panelOperator(op)!;assert.equal(effective.role,role);assert.equal(effective.onlineAdmin,false);assert.equal(op.onlineAdmin,true);assert.equal(effective.onlineUserId,'source-owner');assert.ok(!panelSections(role).includes('settings'));assert.ok(!panelSections(role).includes('menu'));}
+ for(const role of ['cashier','waiter','kitchen'] as const){const op={id:'employee',username:'staff',name:'Staff',actor:'Staff',role,onlineAdmin:true,onlineUserId:'source-owner'};const effective=panelOperator(op)!;assert.equal(effective.role,role);assert.equal(effective.onlineAdmin,false);assert.equal(op.onlineAdmin,true);assert.equal(effective.onlineUserId,'source-owner');assert.ok(!panelSections(role).includes('settings'));assert.ok(!panelSections(role).includes('menu'));}
  assert.equal(panelOperator(null),null);
 });

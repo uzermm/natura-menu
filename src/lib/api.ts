@@ -1,14 +1,12 @@
-import { cookies } from 'next/headers';
 import { createHmac } from 'node:crypto';
 import { ZodError } from 'zod';
 import { db, transaction } from './db';
 import { sameOrigin, sessionSecret } from './security';
-import { validSession } from './auth';
-import {employeeSession} from './employee-session';
 export class HttpError extends Error {constructor(public status:number,message:string){super(message);}}
 export async function requireAdmin(req?:Request) {
- const c=await cookies();if(!validSession(c.get('natura_session')?.value)){if(employeeSession(db(),c.get('natura_staff')?.value))throw new HttpError(403,'Bu işlem yalnız yöneticiye açık.');throw new HttpError(401,'Lütfen yönetici girişi yapın.');}
+ const {currentOperator}=await import('./operator');const operator=await currentOperator();if(!operator)throw new HttpError(401,'Lütfen yönetici girişi yapın.');if(operator.role!=='admin')throw new HttpError(403,'Bu işlem yalnız yöneticiye açık.');
  if(req&&!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');
+ return operator;
 }
 export function requireOrigin(req:Request){if(!sameOrigin(req))throw new HttpError(403,'Geçersiz istek kaynağı.');}
 export function isLimited(key:string,max:number){const row=db().prepare('SELECT count,reset_at FROM rate_limits WHERE key=?').get(key);return !!row&&Number(row.reset_at)>Date.now()&&Number(row.count)>=max;}

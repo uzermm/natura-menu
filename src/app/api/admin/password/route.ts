@@ -7,7 +7,7 @@ import { db, transaction } from '@/lib/db';
 
 export const runtime='nodejs';
 export async function POST(req:Request){try{
- await requireAdmin(req);
+ if((await requireAdmin(req)).id!=='admin')throw new HttpError(403,'Ana yönetici hesabına ait bu alanı değiştiremezsiniz. Kullanıcılar bölümünü kullanın.');
  if(limited(`password:${clientKey(req)}`,5,15*60*1000))throw new HttpError(429,'Çok fazla deneme. 15 dakika sonra tekrar deneyin.');
  const input=z.object({currentPassword:z.string().min(1).max(256),newPassword:z.string().min(8,'Yeni şifre en az 8 karakter olmalı.').max(256),confirmPassword:z.string().max(256)}).parse(await jsonBody(req));
  if(input.newPassword!==input.confirmPassword)throw new HttpError(400,'Yeni şifreler eşleşmiyor.');

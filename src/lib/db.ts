@@ -9,6 +9,7 @@ import { applyGeneratedImageUpdates } from './image-updates';
 import {initPush} from './push-store';
 import {initAdminIdentity} from './usernames';
 import { initPos } from './pos-core';
+import {initUserAccess} from './user-access';
 
 export const dataDir=path.resolve(/* turbopackIgnore: true */ process.env.DATA_DIR||'data');
 let singleton:DatabaseSync|undefined;
@@ -26,7 +27,7 @@ export function db() {
  CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY,count INTEGER NOT NULL,reset_at INTEGER NOT NULL);
  CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY,applied_at TEXT NOT NULL);
  `);
- initPos(d);initAdminIdentity(d);initPush(d);
+ initPos(d);initAdminIdentity(d);initPush(d);initUserAccess(d);
  d.exec('BEGIN IMMEDIATE');
  try {
   if(!d.prepare('SELECT 1 FROM migrations WHERE version=1').get()) {

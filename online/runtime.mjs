@@ -7,7 +7,7 @@ import {DB,sqlite,dataDir,dataKey} from './dokploy/database.mjs';
 import {handle,syncPushOrders} from './portal/worker.mjs';
 import {createPush} from './dokploy/push.mjs';
 import {createTelegram} from './dokploy/telegram.mjs';
-import {auth,normalize} from './portal/auth.mjs';
+import {auth,normalize,credential} from './portal/auth.mjs';
 
 const keyPath=join(dataDir,'sites-data.key');
 try{readFileSync(keyPath);}catch(error){
@@ -39,6 +39,22 @@ export async function legacyOperator(token){
  return {id:'portal:'+row.id,username:row.username,name:row.username,actor:row.username,role:row.role==='admin'?'online_admin':'online'};
 }
 export async function legacyLogout(token){if(token)await legacySecurity.logout(new Request(origin,{headers:{cookie:'__Host-om_session='+token}}));}
+export function legacySessionValid(token,id){
+ if(!/^[a-f0-9]{64}$/.test(token||'')||!id.startsWith('portal:'))return false;
+ return !!sqlite.prepare("SELECT 1 FROM auth_sessions s JOIN auth_users u ON u.id=s.user_id WHERE s.id=? AND u.id=? AND s.expires_at>? AND s.version=u.version AND u.enabled=1").get(createHash('sha256').update(token).digest('hex'),id.slice(7),Date.now());
+}
+export function listLegacyUsers(){return sqlite.prepare("SELECT id,username,role,enabled FROM auth_users WHERE id NOT LIKE 'unified:%' ORDER BY username").all().map(row=>({id:String(row.id),username:String(row.username),role:String(row.role),enabled:!!row.enabled}));}
+export async function saveLegacyUser(input){
+ const old=sqlite.prepare("SELECT * FROM auth_users WHERE id=? AND id NOT LIKE 'unified:%'").get(input.id);
+ if(!old)throw Object.assign(Error('Kullanıcı bulunamadı.'),{status:404});
+ const password=input.password?JSON.stringify(await credential(input.password,input.role==='admin')):old.credential;
+ sqlite.prepare('UPDATE auth_users SET username=?,role=?,credential=?,enabled=?,version=version+1 WHERE id=?').run(normalize(input.username),input.role==='admin'?'admin':'viewer',password,Number(input.enabled),input.id);
+ sqlite.prepare('DELETE FROM auth_sessions WHERE user_id=?').run(input.id);
+}
+export function removeLegacyUser(id){
+ if(String(id).startsWith('unified:'))throw Error('Geçersiz kullanıcı.');
+ sqlite.exec('BEGIN IMMEDIATE');try{sqlite.prepare('DELETE FROM auth_sessions WHERE user_id=?').run(id);sqlite.prepare('DELETE FROM push_subscriptions WHERE user_id=?').run(id);sqlite.prepare('DELETE FROM auth_users WHERE id=?').run(id);sqlite.exec('COMMIT');}catch(error){sqlite.exec('ROLLBACK');throw error;}
+}
 
 // Legacy credentials stay intact for rollback; shared identities have a namespace.
 export function syncIdentities(){
@@ -46,10 +62,11 @@ export function syncIdentities(){
  try{
   cafe=new DatabaseSync(path,{readOnly:true});
   const employees=cafe.prepare('SELECT id,username,name,role,password_hash,is_active FROM employees').all();
+  const access=cafe.prepare("SELECT 1 FROM sqlite_master WHERE name='user_access' AND type='table'").get()?new Map(cafe.prepare('SELECT id,role FROM user_access').all().map(row=>[row.id,row.role])):new Map();
   const admin=cafe.prepare('SELECT username FROM admin_identity WHERE id=1').get();
   const adminHash=cafe.prepare('SELECT password_hash FROM admin_credentials WHERE id=1').get()?.password_hash||process.env.ADMIN_PASSWORD||'';
   const revision=(value)=>JSON.stringify({shared:true,revision:createHash('sha256').update(String(value)).digest('hex')});
-  const rows=[{id:'unified:admin',username:'@unified-admin',enabled:1,credential:revision(String(admin?.username)+':'+adminHash)},...employees.map(e=>({id:'unified:'+e.id,username:'@unified-'+e.id,enabled:Number(e.is_active),credential:revision(e.username+':'+e.role+':'+e.password_hash)}))];
+  const rows=[{id:'unified:admin',username:'@unified-admin',enabled:1,credential:revision(String(admin?.username)+':'+adminHash)},...employees.map(e=>({id:'unified:'+e.id,username:'@unified-'+e.id,enabled:Number(e.is_active&&['admin','cashier','kitchen'].includes(access.get('employee:'+e.id)||e.role)),credential:revision(e.username+':'+e.role+':'+e.password_hash+':'+(access.get('employee:'+e.id)||e.role))}))];
   sqlite.exec('BEGIN IMMEDIATE');
   try{sqlite.prepare("UPDATE auth_users SET enabled=0 WHERE id LIKE 'unified:%'").run();for(const row of rows)sqlite.prepare(`INSERT INTO auth_users(id,username,role,credential,enabled,version) VALUES(?,?,'viewer',?,?,1) ON CONFLICT(id) DO UPDATE SET enabled=excluded.enabled,username=excluded.username,version=CASE WHEN auth_users.credential<>excluded.credential THEN auth_users.version+1 ELSE auth_users.version END,credential=excluded.credential`).run(row.id,row.username,row.credential,row.enabled);sqlite.exec('COMMIT');}catch(error){sqlite.exec('ROLLBACK');throw error;}
  }catch(error){if(process.env.ONLINE_BACKGROUND!=='0')console.warn('Online bildirim kullanıcıları henüz eşitlenemedi.');}
@@ -63,6 +80,8 @@ export async function onlineRequest(request,operator){
  original.protocol=external.protocol;original.hostname=external.hostname;original.port=external.port;
  const publicAsset=['/push-worker.js','/scooter-192.png','/scooter-512.png'].includes(path);
  if(!operator&&!publicAsset)return Response.json({error:'Lütfen giriş yapın.'},{status:401});
+ if(operator?.role==='kitchen'&&(path.startsWith('/api/')&&!['/api/state','/api/sync','/api/push','/api/auth/renew-print-session'].includes(path)&&!/^\/api\/orders\/[^/]+\/(actions|receipt-code)$/.test(path)))return Response.json({error:'Mutfak kullanıcısı yalnız siparişleri yönetebilir.'},{status:403});
+ if(path==='/api/users'||path.startsWith('/api/users/'))return Response.json({error:'Kullanıcılar ortak Ayarlar bölümünden yönetilir.'},{status:403});
  if(operator?.role==='waiter'&&(path==='/'||path.startsWith('/api/')))return Response.json({error:'Garson yalnız masa siparişlerini yönetebilir.'},{status:403});
  if(path.startsWith('/api/auth/')&&path!=='/api/auth/renew-print-session'&&!(path==='/api/auth/password'&&(operator?.role==='online_admin'||operator?.onlineAdmin&&operator?.onlineUserId)))return Response.json({error:'Hesap işlemleri ortak Ayarlar bölümündedir.'},{status:403});
  if(path.startsWith('/api/users/')&&decodeURIComponent(path.split('/').pop()).startsWith('unified:'))return Response.json({error:'Kafe kullanıcıları ortak Çalışanlar bölümündedir.'},{status:403});

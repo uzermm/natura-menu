@@ -100,3 +100,8 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;bottom:calc(64px + env(
  .kitchen-shell[data-role=waiter]>.connection-dock{display:none}
 }
 @media(prefers-reduced-motion:reduce){.kitchen-shell>.kitchen-sidebar{transition:none!important}}
+
+/* Kitchen accounts open only the online order workspace, on every screen size. */
+.kitchen-shell[data-role=kitchen]{--kitchen-rail:0px!important;--kitchen-dock:0px!important;padding-left:0!important}
+.kitchen-shell[data-role=kitchen]>.kitchen-main{padding-bottom:12px}
+.kitchen-shell[data-role=kitchen] .online-workspace-frame{height:calc(100dvh - 95px)}

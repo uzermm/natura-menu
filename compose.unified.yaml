@@ -3,4 +3,4 @@
 volumes:
   online_data:
     external: true
-    name: ${ONLINE_VOLUME_NAME:?Set the existing order application's Docker volume name}
+    name: ${ONLINE_VOLUME_NAME:-natura-data}

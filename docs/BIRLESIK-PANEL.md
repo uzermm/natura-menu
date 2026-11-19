@@ -23,14 +23,14 @@ Sipariş ve yorum arayüzleri, ortak sol menünün içinde aynı kökenden yükl
 | Alan | İçerik |
 | --- | --- |
 | `/app/data` | Mevcut `natura.sqlite`, ürün fotoğrafları, kafe kullanıcıları, kasa/adisyon/cari kayıtları |
-| `/app/online-data` | Mevcut `sites.sqlite`, `sites-data.key`, `web-push.key`, online yedekler |
+| `/app/online-data` (`natura-data` volume) | Mevcut `sites.sqlite`, `sites-data.key`, `web-push.key`, online yedekler |
 
 `sites.sqlite` ile **aynı** `sites-data.key` birlikte bağlanmalıdır. Mevcut şifreli bağlantı verisi varken anahtar eksikse servis yeni anahtar üretip verileri kullanılamaz hale getirmek yerine hata verir. Boş yeni kurulumda anahtar otomatik üretilir. Eski portal kullanıcılarının parolaları ve etkinlikleri geri dönüş için korunur; ortak oturumdan erişim verilir.
 
 ## Dokploy geçişi
 
 1. Mevcut iki uygulamanın kalıcı alanlarının geri döndürülebilir bir kopyasını alın. Kafe uygulamasının Compose proje/servis ve `natura_data` volume adını değiştirmeyin; boş bir kafe veritabanı oluşmamalı.
-2. Natura servisini bu depodaki birleşik sürümden derleyin. Compose'a `compose.yaml` ve ardından `compose.unified.yaml` ekleyin. İkinci dosya eski sipariş volume'unu **kopyalamadan** `/app/online-data` altına bağlar. `ONLINE_VOLUME_NAME`, Dokploy'un eski sipariş uygulamasında `/app/data` için gösterdiği gerçek Docker volume adıdır; `/app/data` adıyla karıştırmayın. Bu ad kaynak depoda sabit değildir.
+2. Natura servisini bu depodaki birleşik sürümden derleyin. Compose'a `compose.yaml` ve ardından `compose.unified.yaml` ekleyin. İkinci dosya eski sipariş volume'unu **kopyalamadan** `/app/online-data` altına bağlar. `ONLINE_VOLUME_NAME`, Dokploy'un eski sipariş uygulamasında `/app/data` için gösterdiği gerçek Docker volume adıdır; `/app/data` adıyla karıştırmayın. Mevcut sipariş volume adı kullanıcı tarafından `natura-data` olarak doğrulandı; override dosyası bunu varsayılan olarak kullanır. `external: true` mevcut volume yoksa boş bir volume oluşturmak yerine dağıtımı durdurur.
 3. Mevcut `ADMIN_PASSWORD` ve **aynı `SESSION_SECRET`** korunur. Ortak kullanıcılar mevcut Natura hesaplarıdır. Yeni değerler:
 
    ```dotenv
@@ -38,7 +38,7 @@ Sipariş ve yorum arayüzleri, ortak sol menünün içinde aynı kökenden yükl
    MENU_URL=https://natura.beyoglumutfagi.com
    PANEL_URL=https://mutfak.beyoglumutfagi.com
    ONLINE_DATA_DIR=/app/online-data
-   ONLINE_VOLUME_NAME=ESKI_SIPARIS_VOLUME_ADI
+   ONLINE_VOLUME_NAME=natura-data
    TELEGRAM_BOT_TOKEN=MEVCUT_BOT_ANAHTARI
    TELEGRAM_CHAT_ID=-1003875674660
    ```

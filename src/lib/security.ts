@@ -31,5 +31,5 @@ export function validTable(table:number,key:string,count:number){return Number.i
 export function sameOrigin(req:Request) {
  const origin=req.headers.get('origin');if(!origin)return false;
  const expected=process.env.APP_URL||new URL(req.url).origin;
- try{return new URL(origin).origin===new URL(expected).origin;}catch{return false;}
+ try{const source=new URL(origin);const allowed=[expected,process.env.PANEL_URL,process.env.MENU_URL].filter(Boolean).map(value=>new URL(value!).origin);return allowed.includes(source.origin)&&(!process.env.PANEL_URL||source.host===(req.headers.get('host')||new URL(req.url).host));}catch{return false;}
 }

@@ -1,5 +1,7 @@
 # Natura Menü 🌿
 
+Birleşik kafe ve online sipariş paneli: [adres ayrımı ve Dokploy geçiş rehberi](docs/BIRLESIK-PANEL.md).
+
 Natura Bistro için mobil öncelikli dijital menü ve tek yöneticili işletme paneli. **Next.js 16 · React 19 · TypeScript · SQLite · Tailwind CSS 4 · shadcn/ui**.
 
 - Natura adı ve mevcut tipografik logosu korunur.

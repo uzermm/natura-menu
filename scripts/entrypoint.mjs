@@ -4,4 +4,5 @@ if(password.length<8||password.startsWith('REPLACE_'))throw new Error('Set ADMIN
 if(secret.length<32||secret.startsWith('REPLACE_'))throw new Error('Set SESSION_SECRET to a unique random value with at least 32 characters.');
 if(!process.env.APP_URL?.startsWith('https://'))throw new Error('Set APP_URL to your public HTTPS domain.');
 mkdirSync(`${process.env.DATA_DIR||'/app/data'}/uploads`,{recursive:true});
+await import('../online/runtime.mjs');
 await import('../server.js');

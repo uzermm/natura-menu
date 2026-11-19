@@ -1,0 +1,6 @@
+# Add this override when reusing the existing online-order application's volume.
+# Compose files: compose.yaml, then compose.unified.yaml.
+volumes:
+  online_data:
+    external: true
+    name: ${ONLINE_VOLUME_NAME:?Set the existing order application's Docker volume name}

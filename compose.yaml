@@ -6,11 +6,17 @@ services:
     restart: unless-stopped
     environment:
       APP_URL: https://natura.beyoglumutfagi.com
+      MENU_URL: https://natura.beyoglumutfagi.com
+      PANEL_URL: ${PANEL_URL:-}
+      ONLINE_DATA_DIR: /app/online-data
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in Dokploy Environment}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in Dokploy Environment}
       DATA_DIR: /app/data
     volumes:
       - natura_data:/app/data
+      - online_data:/app/online-data
     expose:
       - "3000"
     networks:
@@ -24,6 +30,7 @@ services:
         max-file: "3"
 volumes:
   natura_data:
+  online_data:
 networks:
   dokploy-network:
     external: true

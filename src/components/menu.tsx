@@ -5,7 +5,6 @@ import { Brand } from '@/components/brand';
 import { CampaignBanner } from '@/components/campaign-banner';
 import { saleCategories,resolveCampaign } from '@/lib/campaign';
 import { WaiterSheet } from '@/components/waiter-sheet';
-import { CustomerOrder } from '@/components/customer-order';
 import { MenuProductGrid } from '@/components/menu-product-grid';
 import { thumbnail,type Category,type Settings } from '@/lib/types';
 
@@ -41,7 +40,7 @@ export default function Menu({categories,settings,table,invalidTable}:Props) {
    </div>
    <footer className="px-6 pb-2 pt-12 text-center"><Leaf size={19} className="mx-auto mb-3 text-[#9ca78d]"/><p className="serif text-lg text-[#66745d]">Afiyetle, Natura.</p>{settings.address&&<p className="mt-3 text-xs text-muted-foreground">{settings.address}</p>}{settings.hours&&<p className="mt-1 text-xs text-muted-foreground">{settings.hours}</p>}<p className="mx-auto mt-4 max-w-sm text-[10px] leading-4 text-[#8d9286]">Fiyatlar Türk lirasıdır. Gıda alerjiniz varsa sipariş öncesi ekibimize bilgi verin. Temsili görseller sunumdan farklılık gösterebilir.</p></footer>
   </main>
-  <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-[#e6e7dd] bg-[#f9f8f3]/95 px-4 pt-3 backdrop-blur-xl"><div className="mx-auto flex max-w-[1088px] gap-3"><CustomerOrder categories={sale} tableCount={settings.table_count} initialTable={selectedTable}/><button onClick={waiter} className="flex h-14 flex-1 items-center justify-center gap-3 rounded-2xl bg-[#305c3e] px-4 text-sm font-semibold text-white shadow-[0_6px_20px_#305c3e22] disabled:cursor-not-allowed disabled:bg-[#e1e4dc] disabled:text-[#8a9181] disabled:shadow-none"><Bell size={18}/><span>Garson çağır</span>{selectedTable>0&&<span className="rounded-lg bg-white/15 px-2 py-1 text-xs">Masa {selectedTable}</span>}</button></div></div>
+  <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-[#e6e7dd] bg-[#f9f8f3]/95 px-4 pt-3 backdrop-blur-xl"><div className="mx-auto flex max-w-[1088px] gap-3"><button onClick={waiter} className="flex h-14 flex-1 items-center justify-center gap-3 rounded-2xl bg-[#305c3e] px-4 text-sm font-semibold text-white shadow-[0_6px_20px_#305c3e22] disabled:cursor-not-allowed disabled:bg-[#e1e4dc] disabled:text-[#8a9181] disabled:shadow-none"><Bell size={18}/><span>Garson çağır</span>{selectedTable>0&&<span className="rounded-lg bg-white/15 px-2 py-1 text-xs">Masa {selectedTable}</span>}</button></div></div>
   {notice&&<div role="status" className="fixed inset-x-4 bottom-28 z-[70] mx-auto flex max-w-md items-center gap-3 rounded-2xl border bg-white p-4 text-sm shadow-xl"><Check size={18} className="shrink-0 text-[#3a7d44]"/>{notice}<button onClick={()=>setNotice('')} className="ml-auto h-8 w-8 shrink-0" aria-label="Bildirimi kapat"><X size={16}/></button></div>}
   <WaiterSheet open={waiterOpen} onOpenChange={setWaiterOpen} tableCount={settings.table_count} initialTable={selectedTable} onCalled={(number,message)=>{setSelectedTable(number);toast(message);}}/>
  </div>;

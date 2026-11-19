@@ -16,6 +16,6 @@ export function OnlineWorkspace({view,active,onStatus}:{view:'orders'|'reviews'|
  },[]);
  useEffect(()=>{if(ready)frame.current?.contentWindow?.postMessage({type:'online:navigate',view},location.origin);},[view,ready]);
  return <section aria-label={view==='settings'?'Online sipariş bağlantıları':view==='reviews'?'Restoran yorumları':'Online siparişler'} aria-hidden={!active} style={active?undefined:{position:'fixed',left:'-200vw',top:0,width:'calc(100vw - 32px)',pointerEvents:'none'}}>
-  <iframe ref={frame} src="/online/" title="Online sipariş yönetimi" tabIndex={active?0:-1} className="block w-full border-0 online-workspace-frame" style={{height:view==='settings'?settingsHeight:undefined,minHeight:480}} allow="autoplay"/>
+  <iframe ref={frame} src="/online/" title="Online sipariş yönetimi" onLoad={()=>{setReady(true);frame.current?.contentWindow?.postMessage({type:'online:navigate',view:current.current.view},location.origin);}} tabIndex={active?0:-1} className="block w-full border-0 online-workspace-frame" style={{height:view==='settings'?settingsHeight:undefined,minHeight:480}} allow="autoplay"/>
  </section>;
 }

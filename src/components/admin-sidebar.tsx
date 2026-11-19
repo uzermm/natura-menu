@@ -2,7 +2,7 @@
 import {ExternalLink,LogOut,X,type LucideIcon} from 'lucide-react';
 import type {Operator} from '@/lib/employee-session';
 export type SidebarLink={id:string;label:string;icon:LucideIcon};
-export function AdminSidebar({links,active,operator,onNavigate,onLogout,pendingOrders,openCalls,busy,onClose}:{links:readonly SidebarLink[];active:string;operator:Operator;onNavigate:(id:string)=>void;onLogout:()=>void;pendingOrders:number;openCalls:number;busy:boolean;onClose?:()=>void}){
+export function AdminSidebar({links,active,operator,onNavigate,onLogout,openCalls,busy,onClose}:{links:readonly SidebarLink[];active:string;operator:Operator;onNavigate:(id:string)=>void;onLogout:()=>void;openCalls:number;busy:boolean;onClose?:()=>void}){
  return <div className="kitchen-sidebar-inner">
   {onClose&&<button type="button" className="kitchen-menu-close" aria-label="Menüyü kapat" onClick={onClose}><X size={18}/></button>}
   <a href="/admin" className="kitchen-brand" aria-label="NaturApp">
@@ -10,7 +10,7 @@ export function AdminSidebar({links,active,operator,onNavigate,onLogout,pendingO
    <span>NaturApp</span>
   </a>
   <nav aria-label="Ana menü" className="kitchen-nav">{links.map(link=>{
-   const count=link.id==='pending'?pendingOrders:link.id==='pos'?openCalls:0;
+   const count=link.id==='pos'?openCalls:0;
    return <button key={link.id} type="button" title={link.label} aria-current={active===link.id?'page':undefined} onClick={()=>onNavigate(link.id)}><link.icon size={21} aria-hidden="true"/><span>{link.label}</span>{count>0&&<b className="kitchen-nav-count">{count}</b>}</button>;
   })}</nav>
   <div className="kitchen-sidebar-bottom">

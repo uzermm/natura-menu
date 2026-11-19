@@ -11,7 +11,7 @@ export async function GET(req:Request){try{
  const operator=await requireOperator(req);const d=db(),query=new URL(req.url).searchParams,id=query.get('ticket'),request=query.get('request');
  if(request){const saved=d.prepare('SELECT result FROM pos_requests WHERE id=?').get(request),exists=saved&&d.prepare('SELECT 1 FROM pos_tickets WHERE id=?').get(saved.result);const found=exists?ticket(d,String(saved!.result)):null;if(found&&operator.role==='waiter')assertWaiterTicket(found);return Response.json(found?{found:true,ticket:found}:{found:false,expired:!!d.prepare('SELECT 1 FROM pos_request_tombstones WHERE id=?').get(request)},{headers:noStore});}
  if(id){const t=ticket(d,id);if(operator.role==='waiter')assertWaiterTicket(t);return Response.json(t,{headers:noStore});}
- const requested=query.get('view')||'full',view=['full','pos','quick','pending','accounts','history','summary'].includes(requested)?requested:'pos';
+ const requested=query.get('view')||'full',view=['full','pos','quick','accounts','history','summary'].includes(requested)?requested:'pos';
  if(operator.role==='waiter'&&!['pos','full'].includes(view))throw new HttpError(403,'Garson yalnız masa siparişlerini yönetebilir.');
  const etag=`"pos-${view}-${operator.role}-${posRevision(d)}-${new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul'}).format(new Date())}"`;
  if(req.headers.get('if-none-match')===etag)return new Response(null,{status:304,headers:{...noStore,ETag:etag}});

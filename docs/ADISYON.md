@@ -8,7 +8,7 @@ Masalar içinde sırasıyla **Açık Masalar**, **Masalar** ve **Hızlı Sipari�
 
 Ürünler önce taslağa eklenir; **Siparişi onayla** ile hesap kaydedilir. Masa seçmek veya onaylanmamış ürün seçmek masayı aktif hale getirmez. Taslaktan çıkarken onaylama veya silme seçenekleri sunulur. Hesap adı sonraki ürün, ödeme ve cari işleminde birlikte kaydedilir; kaydet düğmesi veya geri dönmek de adı saklar. Ödenmeyen veya kısmen ödenen hesaplar **Açık masalar** içinde kendi adlarıyla görünür. Son ödeme/cari aktarımıyla kapatılan hesaplar listeden çıkar ve Kapanan adisyonlar içinde saklanır. Hesap adı bir açıklamadır; cari hesap oluşturmaz.
 
-**Cari hesaplar**, **Kapanan adisyonlar** ve **Günlük kasa** sol menüdedir. Müşteri siparişleri de sol menüden onaylanır. Hızlı siparişler kasa yetkisindedir.
+**Cari hesaplar**, **Kapanan adisyonlar** ve **Günlük kasa** sol menüdedir. Hızlı siparişler kasa yetkisindedir.
 
 ## Masa işlemleri
 
@@ -36,9 +36,8 @@ Günlük kasa Türkiye saatiyle bugünkü nakit, kredi kartı, yemek kartı tahs
 
 ## Ortak yönetim ekranı ve müşteri
 
-Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; İşletme ayarları içinden kasiyer ve garson rolleriyle çalışan eklenir. Kasiyer menü/işletme ayarlarını, açılış kasası düzenlemeyi, gün kapatmayı ve yeniden adisyon açmayı kullanamaz. Garson yalnız masa siparişi, ürün adedi/notu, çağrı karşılama ve müşteri siparişi onayını kullanır. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. Sipariş listesine iki satır daha yer açmak için sağ alt bölüm mobilde 80 piksel yukarı genişletilmiştir; aynı anda görünen ürün sayısı ekranın yüksekliğine bağlıdır. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
+Masa siparişleri için tek giriş `/admin` adresidir. Ayrı garson sayfası ve giriş ekranı kaldırıldı; İşletme ayarları içinden kasiyer ve garson rolleriyle çalışan eklenir. Kasiyer menü/işletme ayarlarını, açılış kasası düzenlemeyi, gün kapatmayı ve yeniden adisyon açmayı kullanamaz. Garson yalnız masa siparişi, ürün adedi/notu, çağrı karşılama kullanır. Mobilde solda tek sütun kategoriler, sağ üstte üç sütunlu resimli ürünler, sağ altta tek satırlık siparişler bulunur. Ürün adı, artı/eksi adet ve tutar aynı satırdadır. Sipariş listesine iki satır daha yer açmak için sağ alt bölüm mobilde 80 piksel yukarı genişletilmiştir; aynı anda görünen ürün sayısı ekranın yüksekliğine bağlıdır. Her bölüm bağımsız kayar; toplam, masa notu ve onay işlemleri yerinde kalır. Masaüstünde üç sütunlu çalışma alanı devam eder.
 
-Müşteri, menüde **Sipariş ver** düğmesiyle masa numarasını seçer. İstekler **Müşteri siparişleri** listesinde onay bekler. Masa seçimi müşteriye ait olduğu için yönetici masa ve ürünleri doğrular. Onaylanan istek, seçilen masanın açık adisyonuna eklenir veya masa boşsa yeni adisyon açar. Tekrar onaylamak ürünü iki kez eklemez. Müşteri başka masaların hesaplarını veya cari bilgilerini göremez. “Garson çağır” düğmesi önceki tercihe uygun olarak pasiftir.
 
 ## Yazdırma ve yük
 

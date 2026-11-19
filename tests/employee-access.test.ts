@@ -22,7 +22,7 @@ test('waiters can add table orders, change quantities or notes; financial, cance
 
 test('cashier gets operational pages, waiter gets tables only and source online roles are not expanded',()=>{
  assert.deepEqual(panelSections('waiter'),['pos']);
- assert.deepEqual(panelSections('cashier'),['onlineOrders','onlineReviews','pos','quick','pending','accounts','history','summary']);
+ assert.deepEqual(panelSections('cashier'),['onlineOrders','onlineReviews','pos','quick','accounts','history','summary']);
  assert.deepEqual(panelSections('online'),['onlineOrders','onlineReviews']);
  for(const role of ['cashier','waiter'] as const){const op={id:'employee',username:'staff',name:'Staff',actor:'Staff',role,onlineAdmin:true,onlineUserId:'source-owner'};const effective=panelOperator(op)!;assert.equal(effective.role,role);assert.equal(effective.onlineAdmin,false);assert.equal(op.onlineAdmin,true);assert.equal(effective.onlineUserId,'source-owner');assert.ok(!panelSections(role).includes('settings'));assert.ok(!panelSections(role).includes('menu'));}
  assert.equal(panelOperator(null),null);

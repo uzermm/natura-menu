@@ -85,7 +85,7 @@ Kaynak menü görselleri depodaki `public/menu/` içindedir. Yeni fotoğraflar o
 
 ## 7. Gün kapatma ve cari koruması
 
-Bu işletmede zamanlanmış tam sistem yedeği kullanılmaz. Yönetici kendi satış/kasa arşivini aldıktan sonra Günlük kasa → Gün kapat işlemini yapar. Açık hesap veya bekleyen sipariş varsa kapatma engellenir. Cari hesaplar ve bağlı ürün/fiş detayları korunur; diğer tamamlanmış satışlar ve günlük kasa kayıtları temizlenir.
+Bu işletmede zamanlanmış tam sistem yedeği kullanılmaz. Yönetici kendi satış/kasa arşivini aldıktan sonra Günlük kasa → Gün kapat işlemini yapar. Açık hesap varsa kapatma engellenir. Cari hesaplar ve bağlı ürün/fiş detayları korunur; diğer tamamlanmış satışlar ve günlük kasa kayıtları temizlenir.
 
 Gün kapatmada tek dosya olan `/app/data/cari-koruma.json` yenilenir. Yönetici Cari Excel indir ile altı sayfalı Excel dökümünü dışarı alabilir. Menü, görseller, ayarlar ve çalışan kayıtları korunur. Ayrıntılı kullanım ve silme kapsamı [Gün kapatma rehberinde](GUN-KAPAT.md) açıklanır.
 

@@ -1,6 +1,6 @@
 import type {Operator,OperatorRole} from './employee-session.ts';
 
-const operations=['onlineOrders','onlineReviews','pos','quick','pending','accounts','history','summary'];
+const operations=['onlineOrders','onlineReviews','pos','quick','accounts','history','summary'];
 export function panelSections(role:OperatorRole):string[]{
  if(role==='admin')return [...operations,'menu','settings'];
  if(role==='cashier')return operations;

@@ -25,12 +25,13 @@ export function removePushSubscription(d:DatabaseSync,owner:string,endpoint:stri
 export function pushDeviceKey(endpoint:string){return createHash('sha256').update(endpoint).digest('base64url');}
 export function removePushDevice(d:DatabaseSync,owner:string,key:string|undefined){if(!key)return;for(const s of d.prepare('SELECT endpoint FROM push_subscriptions WHERE owner_id=?').all(owner))if(pushDeviceKey(String(s.endpoint))===key)removePushSubscription(d,owner,String(s.endpoint));}
 export function queuePush(d:DatabaseSync,kind:'call'|'order',reference:string,table:number,now=Date.now()){
- const id=kind+':'+reference,payload={title:kind==='call'?'Garson çağrısı':'Yeni müşteri siparişi',body:kind==='call'?`Masa ${table} sizi çağırıyor.`:`Masa ${table} sipariş verdi. Onayınızı bekliyor.`,url:kind==='call'?'/admin?notification=calls':'/admin?notification=orders',tag:'natura-'+id};
+ if(kind!=='call')return false;
+ const id='call:'+reference,payload={title:'Garson çağrısı',body:`Masa ${table} sizi çağırıyor.`,url:'/admin?notification=calls',tag:'natura-'+id};
  if(!d.prepare('INSERT OR IGNORE INTO push_events VALUES(?,?,?,?,?)').run(id,kind,reference,JSON.stringify(payload),now).changes)return false;
  d.prepare('INSERT INTO push_deliveries(event_id,endpoint) SELECT ?,endpoint FROM push_subscriptions').run(id);return true;
 }
-export function pushStillNeeded(d:DatabaseSync,kind:string,id:string){return !!(kind==='call'?d.prepare('SELECT 1 FROM waiter_calls WHERE id=? AND resolved_at IS NULL').get(id):d.prepare("SELECT 1 FROM pos_orders WHERE id=? AND status='pending'").get(id));}
+export function pushStillNeeded(d:DatabaseSync,kind:string,id:string){return kind==='call'&&!!d.prepare('SELECT 1 FROM waiter_calls WHERE id=? AND resolved_at IS NULL').get(id);}
 export function recoverPushEvents(d:DatabaseSync,now=Date.now()){
- const since=new Date(now-5*60*1000).toISOString();for(const c of d.prepare('SELECT id,table_number FROM waiter_calls WHERE resolved_at IS NULL AND created_at>=?').all(since))queuePush(d,'call',String(c.id),Number(c.table_number),now);for(const o of d.prepare("SELECT id,table_number FROM pos_orders WHERE status='pending' AND created_at>=?").all(since))queuePush(d,'order',String(o.id),Number(o.table_number),now);
+ const since=new Date(now-5*60*1000).toISOString();for(const c of d.prepare('SELECT id,table_number FROM waiter_calls WHERE resolved_at IS NULL AND created_at>=?').all(since))queuePush(d,'call',String(c.id),Number(c.table_number),now);
  d.prepare('DELETE FROM push_events WHERE created_at<?').run(now-7*24*60*60*1000);
 }

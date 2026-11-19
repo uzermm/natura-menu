@@ -8,6 +8,7 @@
  .unified-online .right-rail{padding-bottom:0}
  .unified-online[data-view=settings] .portal-topbar,.unified-online[data-view=settings] #soundWarning{display:none!important}
  .unified-online .settings-page-title{display:none}
+ .unified-online .right-rail{display:none!important}
 }
 
 @media screen and (max-width:1100px){.unified-online .discount-summaries{display:grid!important;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:100%;align-items:stretch;transition:none}.unified-online .discount-summary{align-self:stretch}}

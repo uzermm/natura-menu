@@ -5,7 +5,9 @@ window.addEventListener('message',event=>{
   document.dispatchEvent(new CustomEvent('online:navigate',{detail:event.data.view}));
  }
 });
-const report=()=>parent.postMessage({type:'online:status',printing:document.querySelector('#sidebarPrintState')?.textContent,accounts:document.querySelector('#sidebarConnectionCount')?.textContent},location.origin);
+let branches=[];
+const report=()=>parent.postMessage({type:'online:status',printing:document.querySelector('#sidebarPrintState')?.textContent,accounts:document.querySelector('#sidebarConnectionCount')?.textContent,branches},location.origin);
+document.addEventListener('online:accounts',event=>{branches=event.detail;report();});
 new MutationObserver(report).observe(document.querySelector('.sidebar-metrics'),{subtree:true,childList:true,characterData:true,attributes:true});
 const ready=()=>parent.postMessage({type:'online:ready'},location.origin);
 if(window.onlineAppReady)ready();else window.addEventListener('online:app-ready',ready,{once:true});

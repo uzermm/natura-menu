@@ -311,6 +311,7 @@ function updateRefreshButton(){
 const reviewsView=createReviewsView({api,escape,branchHeader,identity,date,toast,getState:()=>state,onLoadingChange:value=>{reviewsLoading=value;updateRefreshButton();}});
 function showView(v){if(v==='settings'&&state.user?.role!=='admin')v='orders';view=v;for(const name of ['orders','reviews','settings']){$('#'+name+'View').hidden=v!==name;$('#'+name+'Nav')?.classList.toggle('active',v===name);}$('.portal-title').textContent=v==='reviews'?'Değerlendirmeler':'Sipariş Merkezi';updateRefreshButton();if(v==='settings'){loadSettings();}if(v==='reviews')void reviewsView.load();}
 function render(){
+ document.dispatchEvent(new CustomEvent('online:accounts',{detail:state.accounts.map(account=>({id:account.id,name:account.label,state:account.status?.state||'waiting',lastSuccess:account.status?.lastSuccess||null}))}));
 
 
  const isAdmin=state.user?.role==='admin';document.querySelectorAll('.admin-only').forEach(el=>el.hidden=!isAdmin);if(!isAdmin&&view==='settings')showView('orders');

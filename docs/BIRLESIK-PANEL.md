@@ -56,3 +56,7 @@ Geri dönüş: birleşik servisi durdurun; eski sipariş servisini aynı volume 
 `node scripts/build-online.mjs`, `pnpm typecheck`, `pnpm test`, `pnpm build` çalıştırılır. Windows'ta Turbopack alt işlem sorunu yaşanırsa yerel yayın kontrolü `pnpm exec next build --webpack` ile yapılabilir. Linux Docker varsayılan derleme komutunu kullanır.
 
 `tests/unified-panel.test.ts`, alan adı ayrımını, eski bağlantıları, CSRF kaynağını, ortak rol sınırlarını ve bildirim kullanıcılarının devre dışı kalmasını kontrol eder. Canlı veritabanı/Trendyol API'si testlerde kullanılmaz.
+
+### Ortak sabit çerçeve
+
+Sipariş portalının dar koyu yeşil sol menüsü bütün bölümlerde sabittir (masaüstü 88 px, mobil 72 px). Uber Eats/Trendyol Go bağlantı barı da bütün bölümlerde alt kenarda sabit kalır; gerçek son başarılı kontrol zamanından geçen süreyi gösterir. Aynı bağlantı barı iç sipariş ekranından kaldırılmıştır. Sekme geçişi sipariş çalışma alanını kapatmaz.

@@ -1,5 +1,5 @@
-# Add this override when reusing the existing online-order application's volume.
-# Compose files: compose.yaml, then compose.unified.yaml.
+# Compatibility override for existing deployments that already include this file.
+# compose.yaml now includes the same existing-volume configuration by default.
 services:
   menu:
     environment:

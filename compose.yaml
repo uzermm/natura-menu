@@ -9,6 +9,7 @@ services:
       MENU_URL: https://natura.beyoglumutfagi.com
       PANEL_URL: ${PANEL_URL:-}
       ONLINE_DATA_DIR: /app/online-data
+      REQUIRE_EXISTING_DATA: "1"
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in Dokploy Environment}
@@ -31,6 +32,8 @@ services:
 volumes:
   natura_data:
   online_data:
+    external: true
+    name: ${ONLINE_VOLUME_NAME:-natura-data}
 networks:
   dokploy-network:
     external: true

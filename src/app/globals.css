@@ -30,6 +30,8 @@ input, select, textarea { font-size:16px; }
 /* Shared fixed navigation follows the online-order portal. */
 .kitchen-shell{--kitchen-rail:88px;--kitchen-dock:64px;min-height:100dvh;padding-left:var(--kitchen-rail);background:#f5f6f3}
 .kitchen-sidebar{position:fixed;inset:0 auto 0 0;width:var(--kitchen-rail);height:100dvh;z-index:45;background:#183f30;color:#e8efe3}
+body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:39}
+@media(max-width:700px){body:has(.kitchen-shell) .pos-ticket-workspace{left:72px;bottom:calc(104px + env(safe-area-inset-bottom))}}
 .kitchen-sidebar-inner{height:100%;display:flex;flex-direction:column;padding:17px 8px 10px;min-height:0}
 .kitchen-brand{display:flex;flex-direction:column;align-items:center;gap:0;color:#f5f6e9;text-decoration:none;flex-shrink:0;margin-bottom:17px}
 .kitchen-brand span{font-size:9px;font-weight:750;line-height:1.12;letter-spacing:1px;text-align:center}

@@ -19,7 +19,7 @@ COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/online ./online
-COPY --chown=node:node scripts/backup.mjs scripts/entrypoint.mjs ./scripts/
+COPY --chown=node:node scripts/backup.mjs scripts/backup-unified.mjs scripts/check-unified-data.mjs scripts/entrypoint.mjs ./scripts/
 RUN mkdir -p /app/data/uploads /app/online-data && chown -R node:node /app/data /app/online-data
 USER node
 EXPOSE 3000

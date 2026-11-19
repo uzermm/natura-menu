@@ -1,8 +1,8 @@
 import {createHmac,randomBytes} from 'node:crypto';
 import type {DatabaseSync} from 'node:sqlite';
 import {sessionSecret,safeEqual} from './security.ts';
-export type OperatorRole='admin'|'cashier'|'waiter';
-export type Operator={id:string;username:string;role:OperatorRole;actor:string;name:string};
+export type OperatorRole='admin'|'cashier'|'waiter'|'online'|'online_admin';
+export type Operator={id:string;username:string;role:OperatorRole;actor:string;name:string;onlineAdmin?:boolean;onlineUserId?:string};
 type Employee={id:string;username?:string;name:string;role:string;password_hash:string;is_active:number};
 const duration=12*60*60*1000;
 function signature(payload:string,e:Employee){return createHmac('sha256',sessionSecret()).update(`employee-v1:${e.id}:${e.role}:${e.username||''}:${e.password_hash}:${payload}`).digest('base64url');}

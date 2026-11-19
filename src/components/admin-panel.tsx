@@ -8,6 +8,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle } from './ui/dialog';
+import {OnlineUsers} from './online-users';
 import {OnlineWorkspace} from './online-workspace';
 import {AdminSidebar} from './admin-sidebar';
 import {ConnectionDock} from './connection-dock';
@@ -37,17 +38,18 @@ function blankItem(category_id:string,position:number):Item{return {id:'',catego
 
 export default function AdminPanel({initial,operator}:{initial:State;operator:Operator}){
  setDraftOwner(operator.id);
- const allowedLinks=links.filter(l=>operator.role==='admin'||operator.role==='cashier'&&!['settings','menu'].includes(l.id)||operator.role==='waiter'&&['pos','pending','onlineOrders','onlineReviews'].includes(l.id));
+ const onlineOnly=operator.role==='online'||operator.role==='online_admin';
+ const allowedLinks=onlineOnly?links.filter(l=>['onlineOrders','onlineReviews'].includes(l.id)||operator.role==='online_admin'&&l.id==='settings'):links.filter(l=>operator.role==='admin'||operator.onlineAdmin&&l.id==='settings'||operator.role==='cashier'&&!['settings','menu'].includes(l.id)||operator.role==='waiter'&&['pos','pending','onlineOrders','onlineReviews'].includes(l.id));
  const [currentUsername,setCurrentUsername]=useState(operator.username);
  const [refreshToken,setRefreshToken]=useState(0);
  const [onlineStatus,setOnlineStatus]=useState<OnlineStatus>({printing:'Kapalı',accounts:'0/0',branches:[]});
  useEffect(()=>{const section=new URLSearchParams(location.search).get('section');if(section==='onlineOrders'||section==='onlineReviews')setPage(section);},[]);
  const [pendingOrders,setPendingOrders]=useState(0),seenOrders=useRef(new Set<string>());
- const [state,setState]=useState(initial),[page,setPage]=useState<Page>('pos'),[categoryFilter,setCategoryFilter]=useState('');
+ const [state,setState]=useState(initial),[page,setPage]=useState<Page>(onlineOnly?'onlineOrders':'pos'),[categoryFilter,setCategoryFilter]=useState('');
  const [editingItem,setEditingItem]=useState<Item|null>(null),[editingCategory,setEditingCategory]=useState<Category|null>(null),[confirm,setConfirm]=useState<{message:string;action:()=>Promise<void>}|null>(null);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[sound,setSound]=useState(false),[bulkOpen,setBulkOpen]=useState(false);
  const audio=useRef<AudioContext|null>(null),seen=useRef(new Set(initial.calls.filter(c=>!c.resolved_at).map(c=>c.id))),toastTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
- const live=useLiveActivity(),menuRevision=useRef<number|undefined>(undefined);
+ const live=useLiveActivity(!onlineOnly),menuRevision=useRef<number|undefined>(undefined);
  useEffect(()=>{const revision=live.activity?.menu_revision;if(revision===undefined)return;if(menuRevision.current!==undefined&&menuRevision.current!==revision)void reload().catch(e=>setError(e.message));menuRevision.current=revision;},[live.activity?.menu_revision]);
  useEffect(()=>{const type=new URLSearchParams(location.search).get('notification');if(type==='orders')setPage('pending');else if(type==='calls')setPage('pos');},[]);
  const openCalls=state.calls.filter(c=>!c.resolved_at);
@@ -64,17 +66,17 @@ export default function AdminPanel({initial,operator}:{initial:State;operator:Op
  const sidebar=<AdminSidebar links={allowedLinks} active={page} operator={{...operator,username:currentUsername}} onNavigate={id=>setPage(id as Page)} onLogout={()=>run(async()=>{await disableDevicePush().catch(()=>{});await api('/api/auth/logout');endDraftSession();location.href='/admin/login';})} pendingOrders={pendingOrders} openCalls={openCalls.length} busy={busy}/>;
  return <div className="kitchen-shell">
   <aside id="admin-sidebar" aria-label="Sol menü" className="kitchen-sidebar no-print">{sidebar}</aside>
-  <header className="no-print kitchen-header"><div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><div className="min-w-0"><p className="truncate text-[10px] font-medium text-[#87917d] sm:text-xs">Online Mutfak</p><p className="truncate text-xs font-bold sm:text-sm">{links.find(l=>l.id===page)?.label}</p></div></div><div className="flex shrink-0 gap-2"><PushNotifications identity={operator.id+':'+currentUsername}/><AppInstall/><Button variant="outline" size="icon" className={page==='onlineOrders'||page==='onlineReviews'?'hidden':'hidden h-10 w-10 lg:inline-flex'} aria-label="Sayfayı yenile" disabled={busy} onClick={()=>run(async()=>{await reload();setRefreshToken(v=>v+1);})}><RefreshCw size={17}/></Button><Button variant="outline" className={page==='onlineOrders'||page==='onlineReviews'?'hidden':'h-10'} onClick={toggleSound} aria-label={sound?'Bildirim sesini kapat':'Bildirim sesini aç'}>{sound?<Volume2 size={17}/>:<VolumeX size={17}/>}<span className="hidden sm:inline">Ses {sound?'açık':'kapalı'}</span></Button></div></div></header>
+  <header className="no-print kitchen-header"><div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><div className="min-w-0"><p className="truncate text-[10px] font-medium text-[#87917d] sm:text-xs">Online Mutfak</p><p className="truncate text-xs font-bold sm:text-sm">{links.find(l=>l.id===page)?.label}</p></div></div><div className="flex shrink-0 gap-2">{!onlineOnly&&<PushNotifications identity={operator.id+':'+currentUsername}/>}<AppInstall/><Button variant="outline" size="icon" className={onlineOnly||page==='onlineOrders'||page==='onlineReviews'?'hidden':'hidden h-10 w-10 lg:inline-flex'} aria-label="Sayfayı yenile" disabled={busy} onClick={()=>run(async()=>{await reload();setRefreshToken(v=>v+1);})}><RefreshCw size={17}/></Button><Button variant="outline" className={page==='onlineOrders'||page==='onlineReviews'?'hidden':'h-10'} onClick={toggleSound} aria-label={sound?'Bildirim sesini kapat':'Bildirim sesini aç'}>{sound?<Volume2 size={17}/>:<VolumeX size={17}/>}<span className="hidden sm:inline">Ses {sound?'açık':'kapalı'}</span></Button></div></div></header>
   <main className="kitchen-main">{page==='menu'&&<div className="no-print mb-4 flex justify-end"><Button className="h-11 rounded-xl" onClick={()=>setEditingCategory({id:'',name:'',image_url:'',display_order:Math.max(-1,...state.categories.map(c=>c.display_order))+1,is_active:true,items:[]})}><Plus size={17}/>Kategori ekle</Button></div>}
-   <div className={page==='settings'?'unified-settings-layout':undefined}>
+   <div className={page==='settings'?'unified-settings-layout':undefined} data-online-only={operator.role!=='admin'||undefined}>
     {page==='settings'&&operator.role==='admin'&&<section className="unified-cafe-settings"><h2 className="unified-settings-title">Kafe ve Menü Ayarları</h2>{cafeSettings}</section>}
-    <div className={page==='settings'?'unified-settings-online':undefined}>{page==='settings'&&<h2 className="unified-settings-title">Online Sipariş Ayarları</h2>}<OnlineWorkspace view={page==='onlineReviews'?'reviews':page==='settings'?'settings':'orders'} active={page==='onlineOrders'||page==='onlineReviews'||page==='settings'} onStatus={setOnlineStatus}/></div>
+    <div className={page==='settings'?'unified-settings-online':undefined}>{page==='settings'&&<h2 className="unified-settings-title">Online Sipariş Ayarları</h2>}<OnlineWorkspace view={page==='onlineReviews'?'reviews':page==='settings'?'settings':'orders'} active={page==='onlineOrders'||page==='onlineReviews'||page==='settings'} onStatus={setOnlineStatus}/>{page==='settings'&&(operator.role==='admin'||operator.role==='online_admin'||operator.onlineAdmin)&&<OnlineUsers canChangePassword={operator.role==='online_admin'||!!operator.onlineUserId&&!!operator.onlineAdmin}/>}</div>
    </div>
    {live.showReconnectWarning&&<div role="alert" className="mb-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Canlı bağlantı yeniden kuruluyor. Otomatik yenileme sürüyor.</div>}
    {error&&<div role="alert" className="mb-5 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}<button aria-label="Hatayı kapat" className="ml-auto h-8 w-8" onClick={()=>setError('')}><X size={16}/></button></div>}
    {page==='menu'&&<AdminMenuManager categories={state.categories} busy={busy} onEditCategory={setEditingCategory} onDeleteCategory={c=>requestDelete('categories',c.id,c.name)} onAddItem={c=>setEditingItem(blankItem(c.id,Math.max(-1,...c.items.map(i=>i.display_order))+1))} onEditItem={setEditingItem} onDeleteItem={i=>requestDelete('items',i.id,i.name)} onToggleCategory={c=>run(async()=>{await api('/api/admin/categories',{...c,qr_visible:c.qr_visible===false});await reload();})} onToggleItem={i=>run(async()=>{await api('/api/admin/items',{...i,qr_visible:i.qr_visible===false});await reload();})} onMoveCategory={(id,direction)=>reorder('categories',id,direction)} onMoveItem={(i,direction)=>reorder('items',i.id,direction,i.category_id)} onBulkPrices={id=>{setCategoryFilter(id);setBulkOpen(true);}}/>}
 
-   {(page==='pos'||page==='quick'||page==='accounts'||page==='history'||page==='summary'||page==='pending')&&<PosPanel key={page} role={operator.role} view={page} categories={state.categories} tableCount={state.settings.table_count} calls={state.calls} refreshToken={refreshToken} onResolveCall={async id=>{await api('/api/admin/calls',{id});await reload();}}/>}
+   {(operator.role==='admin'||operator.role==='cashier'||operator.role==='waiter')&&(page==='pos'||page==='quick'||page==='accounts'||page==='history'||page==='summary'||page==='pending')&&<PosPanel key={page} role={operator.role} view={page} categories={state.categories} tableCount={state.settings.table_count} calls={state.calls} refreshToken={refreshToken} onResolveCall={async id=>{await api('/api/admin/calls',{id});await reload();}}/>}
 
   </main>
   <ConnectionDock status={onlineStatus}/>

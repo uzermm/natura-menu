@@ -4,4 +4,4 @@ import { getCategories,getSettings,getCalls } from '@/lib/db';
 import AdminPanel from '@/components/admin-panel';
 export const dynamic='force-dynamic';
 export const metadata={title:'Yönetim | Online Mutfak',robots:{index:false,follow:false}};
-export default async function AdminPage(){const operator=await currentOperator();if(!operator)redirect('/admin/login');return <AdminPanel operator={operator} initial={{categories:getCategories(true),settings:getSettings(),calls:getCalls()}}/>;}
+export default async function AdminPage(){const operator=await currentOperator();if(!operator)redirect('/admin/login');return <AdminPanel operator={operator} initial={{categories:operator.role.startsWith('online')?[]:getCategories(true),settings:getSettings(),calls:operator.role.startsWith('online')?[]:getCalls()}}/>;}

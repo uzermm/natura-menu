@@ -5,9 +5,10 @@ import type {WaiterCall} from './types';
 let liveConnected=false;
 export const isLiveConnected=()=>liveConnected;
 export type LiveActivity={menu_revision?:number;calls:WaiterCall[];pending_order_ids:string[];revision?:string};
-export function useLiveActivity(){
+export function useLiveActivity(enabled=true){
  const [activity,setActivity]=useState<LiveActivity|null>(null),[connected,setConnected]=useState(false),[showReconnectWarning,setShowReconnectWarning]=useState(false);
  useEffect(()=>{
+  if(!enabled)return;
   let source:EventSource|null=null,stopped=false,online=false,inFlight=false,lastRevision='',lastContact=Date.now(),lastSignal=Date.now(),graceStart=Date.now();
   const status=(value:boolean)=>{online=value;liveConnected=value;setConnected(value);window.dispatchEvent(new CustomEvent('natura:live-status',{detail:value}));};
   const touch=()=>{lastContact=Date.now();setShowReconnectWarning(false);};
@@ -36,6 +37,6 @@ export function useLiveActivity(){
   document.addEventListener('visibilitychange',visible);window.addEventListener('focus',visible);window.addEventListener('pageshow',visible);window.addEventListener('online',visible);window.addEventListener('offline',offline);navigator.serviceWorker?.addEventListener('message',message);
   const timer=setInterval(()=>{warning();void fallback();},10000);connect();
   return()=>{stopped=true;liveConnected=false;source?.close();clearInterval(timer);document.removeEventListener('visibilitychange',visible);window.removeEventListener('focus',visible);window.removeEventListener('pageshow',visible);window.removeEventListener('online',visible);window.removeEventListener('offline',offline);navigator.serviceWorker?.removeEventListener('message',message);};
- },[]);
+ },[enabled]);
  return {activity,connected,showReconnectWarning};
 }

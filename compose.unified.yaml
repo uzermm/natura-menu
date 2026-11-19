@@ -1,5 +1,9 @@
 # Add this override when reusing the existing online-order application's volume.
 # Compose files: compose.yaml, then compose.unified.yaml.
+services:
+  menu:
+    environment:
+      REQUIRE_EXISTING_DATA: "1"
 volumes:
   online_data:
     external: true

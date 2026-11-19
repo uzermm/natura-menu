@@ -6,7 +6,7 @@
 - `https://mutfak.beyoglumutfagi.com/`: tek yönetim paneli, giriş `/login`.
 - Eski `natura.../admin` adresi yeni panele yönlenir. Kasa fişleri yeni panelde `/adisyon/<id>` olarak açılır; eski fiş bağlantıları aynı fişe yönlenir.
 - `PANEL_URL` alan adı geçişini açar. Yerel kullanımda veya geçiş öncesinde boş bırakıldığında `/admin` çalışır.
-- Ortak giriş Natura'daki mevcut yönetici/çalışan hesaplarını kullanır. Yönetici bütün bölümlere erişir. Kasiyer ve garson Siparişler/Yorumlar ekranlarını ve sipariş aksiyonlarını kullanır; API bağlantıları ve kullanıcı yönetimi yalnız yöneticidedir. Eski portal hesapları ayrı giriş yapmaz; gerekirse yönetici bunları ortak Çalışanlar bölümünde oluşturur.
+- Ortak giriş hem Natura'daki mevcut yönetici/çalışan hesaplarını hem de eski sipariş hesaplarını mevcut parolalarıyla doğrular. Yönetici bütün bölümlere erişir. Kasiyer ve garson Siparişler/Yorumlar ekranlarını ve sipariş aksiyonlarını kullanır; API bağlantıları ve kullanıcı yönetimi yalnız yöneticidedir. Eski sipariş kullanıcılarının parola özetleri dönüştürülmez veya sıfırlanmaz. Normal sipariş kullanıcıları yalnız Siparişler/Yorumlar; eski sipariş yöneticisi ek olarak online Ayarlar bölümüne erişir. Bu hesaplara otomatik kafe/kasa/cari yetkisi verilmez. Online Sipariş Kullanıcıları bölümünde mevcut kayıtlar yönetilir.
 
 ## Uygulama yapısı
 
@@ -31,7 +31,7 @@ Sipariş ve yorum arayüzleri, ortak sol menünün içinde aynı kökenden yükl
 
 1. Mevcut iki uygulamanın kalıcı alanlarının geri döndürülebilir bir kopyasını alın. Kafe uygulamasının Compose proje/servis ve `natura_data` volume adını değiştirmeyin; boş bir kafe veritabanı oluşmamalı.
 2. Natura servisini bu depodaki birleşik sürümden derleyin. Compose'a `compose.yaml` ve ardından `compose.unified.yaml` ekleyin. İkinci dosya eski sipariş volume'unu **kopyalamadan** `/app/online-data` altına bağlar. `ONLINE_VOLUME_NAME`, Dokploy'un eski sipariş uygulamasında `/app/data` için gösterdiği gerçek Docker volume adıdır; `/app/data` adıyla karıştırmayın. Mevcut sipariş volume adı kullanıcı tarafından `natura-data` olarak doğrulandı; override dosyası bunu varsayılan olarak kullanır. `external: true` mevcut volume yoksa boş bir volume oluşturmak yerine dağıtımı durdurur.
-3. Mevcut `ADMIN_PASSWORD` ve **aynı `SESSION_SECRET`** korunur. Ortak kullanıcılar mevcut Natura hesaplarıdır. Yeni değerler:
+3. Mevcut `ADMIN_PASSWORD` ve **aynı `SESSION_SECRET`** korunur. İki kaynakta mevcut hesaplar ve parolalar korunur. Aynı kullanıcı adında kafe parolası kafe hesabını, farklı sipariş parolası online hesabı açar. Aynı parola iki kayıtta da doğrulanırsa her alanın mevcut yetkisi kendi geçerli oturumundan korunur; online yönetici olmak kafe yöneticiliği vermez. Aktarım kontrolü ortak kullanıcı adlarını ayrıca raporlar. Yeni değerler:
 
    ```dotenv
    APP_URL=https://natura.beyoglumutfagi.com
@@ -62,3 +62,9 @@ Geri dönüş: birleşik servisi durdurun; eski sipariş servisini aynı volume 
 Sipariş portalının dar koyu yeşil sol menüsü bütün bölümlerde sabittir (masaüstü 88 px, mobil 72 px). Uber Eats/Trendyol Go bağlantı barı da bütün bölümlerde alt kenarda sabit kalır; gerçek son başarılı kontrol zamanından geçen süreyi gösterir. Aynı bağlantı barı iç sipariş ekranından kaldırılmıştır. Sekme geçişi sipariş çalışma alanını kapatmaz.
 
 Kafe/QR menü ayarları ile online bağlantılar masaüstünde iki sütunda, mobilde alt alta görünür. Ortak durum bilgileri (15 dk hazırlama, bağlı hesap sayısı, otomatik baskı) sol menüden alt barın sağına taşınmıştır. Mobilde alt barın durum satırı sağa hizalanır; logo ve restoran güncellemeleri üst satırda solda kalır.
+
+### Gerçek veri ve hesap koruması
+
+`compose.unified.yaml`, `REQUIRE_EXISTING_DATA=1` ile başlar. Kafe/cari veya sipariş dosyaları yoksa servis boş veritabanı oluşturarak başlamaz. `node scripts/check-unified-data.mjs` dosyaları salt okunur açar; bütünlük, ilişkiler, tablo kayıt adetleri ve ortak kullanıcı adlarını raporlar. `node scripts/backup-unified.mjs` iki SQLite dosyasını WAL destekli çevrimiçi yedekler; kafe fotoğraflarını ve sipariş anahtarlarını birlikte saklar. Bütün cari hesaplar, borç/alacak hareketleri, açık/kapalı adisyonlar, ödemeler, çalışanlar ve parola özetleri tam veritabanı kopyasında bulunur. Bu dosyalar gizli tutulmalı ve GitHub'a konmamalıdır. Ortamda tutulan mevcut `SESSION_SECRET` ve `ADMIN_PASSWORD` da Dokploy'da korunur.
+
+Yerel ön izleme farklı test veritabanları kullanır. Canlı veriler yalnız gerçek volume'lar bağlanarak veya sunucudan bu yedekler güvenli biçimde alınarak gösterilebilir; `http://menu:3000` sunucunun iç Docker adresidir, yerel bilgisayardan dosya erişimi sağlamaz.

@@ -10,7 +10,8 @@ import {sameOrigin} from '../src/lib/security.ts';
 const data=mkdtempSync(path.join(tmpdir(),'unified-panel-test-'));
 process.env.DATA_DIR=data;process.env.ONLINE_DATA_DIR=path.join(data,'online');process.env.ONLINE_BACKGROUND='0';
 process.env.APP_URL='https://natura.example';process.env.MENU_URL='https://natura.example';process.env.PANEL_URL='https://mutfak.example';
-const {onlineRequest,syncIdentities}=await import('../online/runtime.mjs');
+const {onlineRequest,syncIdentities,legacyLogin,legacyOperator}=await import('../online/runtime.mjs');
+const {credential}=await import('../online/portal/auth.mjs');
 const {sqlite}=await import('../online/dokploy/database.mjs');
 after(()=>{sqlite.close();rmSync(data,{recursive:true,force:true});});
 test('QR stays public, old admin redirects, panel root rewrites and receipt links survive',()=>{
@@ -38,11 +39,27 @@ test('online requests use shared identities, preserve role permissions and expos
  const state=await (await onlineRequest(request('/api/state'),waiter)).json();assert.equal(state.user.id,'unified:employee-1');assert.equal(state.user.role,'viewer');assert.equal(state.canManageOrders,true);
  assert.equal((await onlineRequest(request('/api/accounts','POST'),waiter)).status,403);
  assert.equal((await onlineRequest(request('/api/auth/login','POST'),admin)).status,403);
- assert.equal((await onlineRequest(request('/api/users'),admin)).status,403);
+ assert.equal((await onlineRequest(request('/api/users'),waiter)).status,403);
+ assert.equal((await onlineRequest(request('/api/users'),admin)).status,200);
  assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/accounts',{method:'POST',body:'{}'}),admin)).status,403);
  const html=await onlineRequest(request('/'),admin);assert.equal(html.headers.get('X-Frame-Options'),'SAMEORIGIN');assert.match(await html.text(),/\/online\/app.js/);
  const save=new Request('http://127.0.0.1:3000/online/api/accounts',{method:'POST',headers:{host:'mutfak.example',origin:'https://mutfak.example','X-Panel-Request':'1'},body:JSON.stringify({label:'QA',supplierId:'1',environment:'stage',agentName:'QA',executorEmail:'qa@example.test',apiKey:'test-only',apiSecret:'test-only',stores:[]})});
  assert.equal((await onlineRequest(save,admin)).status,200,'HTTPS origin behind the tunnel must remain valid for writes');
+});
+test('original portal hashes, short passwords, roles and disabled flags remain authoritative',async()=>{
+ const hash=JSON.stringify(await credential('1234'));
+ const ownerHash=JSON.stringify(await credential('original-admin-8',true));
+ sqlite.prepare('INSERT INTO auth_users VALUES(?,?,?,?,?,1)').run('source-owner','legacy.owner','admin',ownerHash,1);
+ sqlite.prepare('INSERT INTO auth_users VALUES(?,?,?,?,?,1)').run('source-staff','legacy.staff','viewer',hash,1);
+ sqlite.prepare('INSERT INTO auth_users VALUES(?,?,?,?,?,1)').run('source-disabled','legacy.disabled','viewer',hash,0);
+ const req=new Request('https://mutfak.example/api/auth/login',{headers:{'cf-connecting-ip':'local-unit-test'}});
+ const login=await legacyLogin(req,{username:'legacy.staff',password:'1234'});assert.ok(login.cookie);
+ const token=login.cookie.split(';')[0].split('=')[1];const operator=await legacyOperator(token);assert.equal(operator?.role,'online');assert.equal(operator?.id,'portal:source-staff');
+ const adminLogin=await legacyLogin(req,{username:'legacy.owner',password:'original-admin-8'});assert.equal((await legacyOperator(adminLogin.cookie!.split(';')[0].split('=')[1]))?.role,'online_admin');
+ assert.equal((await legacyLogin(req,{username:'legacy.disabled',password:'1234'})).cookie,null);
+ assert.equal(sqlite.prepare("SELECT credential FROM auth_users WHERE id='source-staff'").get()?.credential,hash);
+ const users=await(await onlineRequest(new Request('https://mutfak.example/online/api/users'),{id:'portal:source-owner',username:'legacy.owner',role:'online_admin'})).json();assert.ok(users.users.some((u:{username:string})=>u.username==='legacy.staff'));assert.ok(users.users.every((u:{id:string})=>!u.id.startsWith('unified:')));
+ sqlite.prepare("UPDATE auth_users SET enabled=0,version=version+1 WHERE id='source-staff'").run();assert.equal(await legacyOperator(token),null);
 });
 test('notification recipients follow shared enabled users, not old portal credentials',()=>{
  const cafe=new DatabaseSync(path.join(data,'natura.sqlite'));

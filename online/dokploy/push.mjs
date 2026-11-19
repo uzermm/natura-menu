@@ -13,7 +13,7 @@ export function createPush(origin) {
   }
   const keys = JSON.parse(readFileSync(keyPath, 'utf8'));
   const remove = sqlite.prepare('DELETE FROM push_subscriptions WHERE endpoint=?');
-  const subscriptions = sqlite.prepare("SELECT s.* FROM push_subscriptions s JOIN auth_users u ON u.id=s.user_id WHERE u.enabled=1 AND u.id LIKE 'unified:%' AND json_extract(s.subscription,'$.identityVersion')=u.version");
+  const subscriptions = sqlite.prepare("SELECT s.* FROM push_subscriptions s JOIN auth_users u ON u.id=s.user_id WHERE u.enabled=1 AND json_extract(s.subscription,'$.identityVersion')=u.version");
   return {
     publicKey: keys.publicKey,
     active: () => Boolean(subscriptions.get()),

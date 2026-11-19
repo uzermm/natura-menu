@@ -7,6 +7,7 @@ import {DB,sqlite,dataDir,dataKey} from './dokploy/database.mjs';
 import {handle,syncPushOrders} from './portal/worker.mjs';
 import {createPush} from './dokploy/push.mjs';
 import {createTelegram} from './dokploy/telegram.mjs';
+import {auth,normalize} from './portal/auth.mjs';
 
 const keyPath=join(dataDir,'sites-data.key');
 try{readFileSync(keyPath);}catch(error){
@@ -25,6 +26,19 @@ const BUCKET={
  async delete(key){if(!/^backups\/[\w.:-]+\.json$/.test(key))throw Error('Geçersiz yedek yolu');await rm(join(dataDir,key),{force:true});}
 };
 const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM};
+const legacySecurity=auth(env);
+export async function legacyLogin(request,input){
+ const row=sqlite.prepare('SELECT id FROM auth_users WHERE username=?').get(normalize(input.username));
+ if(!row||String(row.id).startsWith('unified:'))return {cookie:null};
+ try{return {cookie:await legacySecurity.login(request,input)};}catch(error){return {cookie:null,limited:error.status===429};}
+}
+export async function legacyOperator(token){
+ if(!token)return null;
+ const row=await legacySecurity.current(new Request(origin,{headers:{cookie:'__Host-om_session='+token}}));
+ if(!row||row.id.startsWith('unified:'))return null;
+ return {id:'portal:'+row.id,username:row.username,name:row.username,actor:row.username,role:row.role==='admin'?'online_admin':'online'};
+}
+export async function legacyLogout(token){if(token)await legacySecurity.logout(new Request(origin,{headers:{cookie:'__Host-om_session='+token}}));}
 
 // Legacy credentials stay intact for rollback; shared identities have a namespace.
 export function syncIdentities(){
@@ -49,12 +63,12 @@ export async function onlineRequest(request,operator){
  original.protocol=external.protocol;original.hostname=external.hostname;original.port=external.port;
  const publicAsset=['/push-worker.js','/scooter-192.png','/scooter-512.png'].includes(path);
  if(!operator&&!publicAsset)return Response.json({error:'Lütfen giriş yapın.'},{status:401});
- if(path.startsWith('/api/auth/')&&path!=='/api/auth/renew-print-session')return Response.json({error:'Hesap işlemleri ortak Ayarlar bölümündedir.'},{status:403});
- if(path.startsWith('/api/users'))return Response.json({error:'Kullanıcıları ortak Ayarlar bölümünden yönetin.'},{status:403});
+ if(path.startsWith('/api/auth/')&&path!=='/api/auth/renew-print-session'&&!(path==='/api/auth/password'&&(operator?.role==='online_admin'||operator?.onlineAdmin&&operator?.onlineUserId)))return Response.json({error:'Hesap işlemleri ortak Ayarlar bölümündedir.'},{status:403});
+ if(path.startsWith('/api/users/')&&decodeURIComponent(path.split('/').pop()).startsWith('unified:'))return Response.json({error:'Kafe kullanıcıları ortak Çalışanlar bölümündedir.'},{status:403});
  if(path==='/api/auth/renew-print-session')return Response.json({ok:true});
  if(path==='/api/push')syncIdentities();
- const user=operator?{id:'unified:'+operator.id,username:operator.username,role:operator.role==='admin'?'admin':'viewer',enabled:true}:null;
- const AUTH={current:async()=>user,configured:async()=>true};
+ const user=operator?{id:operator.onlineUserId||(operator.id.startsWith('portal:')?operator.id.slice(7):'unified:'+operator.id),username:operator.username,role:operator.onlineAdmin||['admin','online_admin'].includes(operator.role)?'admin':'viewer',enabled:true}:null;
+ const AUTH={...legacySecurity,current:async()=>user,configured:async()=>true,list:async()=>(await legacySecurity.list()).filter(row=>!row.id.startsWith('unified:')),enabled:async(id,value)=>{if(String(id).startsWith('unified:'))throw Object.assign(Error('Kafe kullanıcılarını Çalışanlar bölümünden yönetin.'),{status:403});return legacySecurity.enabled(id,value);}};
  const url=new URL(original);url.pathname=path;
  const headers=new Headers(request.headers);
  const incoming=new Request(url,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:await request.arrayBuffer()});

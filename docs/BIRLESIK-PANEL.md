@@ -86,3 +86,17 @@ Kullanıcı yönetimi `/api/admin/users` üzerinden yapılır. Eski ayrı çalı
 - Operasyon başlıkları aynı yazı ailesi/ölçülerine yaklaştırıldı. Mobil form yazıları odaklanırken gereksiz yakınlaştırmayı önlemek için 16 pikseldir. Alt durum bandı tek satırda restoran logoları, güncellik süresi ve kısa göstergeleri korur. Bant saati 5 saniyede bir güncellenir. Müşteri menüsü operasyon akışına abone olmaz; görselleri boyutlandırılmış, tembel ve asenkron yüklenir.
 
 Doğrulama: üretim derlemesi, 85 birim/entegrasyon testi, 15 tarayıcı senaryosu; beş genişlikte panel ve online ekran taşma kontrolü. Baskı çağrıları ve Trendyol aksiyonları yalıtılmış testlerde taklit edildi. Gerçek termal çıktı veya kilitli telefona fiziksel bildirim teslimi bu testlerde ölçülmedi.
+
+
+## Mobil kaydırma düzeltmesi — 19 Kasım 2026
+
+Bağlantılar sayfasında iç çerçevenin belge yüksekliği 2039 px, görünür çerçeve 1953 px idi. İçeride kalan 86 px kaydırma, ana sayfaya geçmeden hareketi yakalıyordu. İç gövdenin eski 68 px alt boşluğu kaldırıldı; tüm online görünümler kendi içerik yüksekliğini, görünüm adıyla ve yalnız değiştiğinde panele bildirir. Ana belge tek dikey kaydırma sahibidir. Ölçümde aynı 600 px hareket önceden yalnız iç alanı 86 px, düzeltmeden sonra ana sayfayı 600 px kaydırdı; iç kaydırma sıfır kaldı.
+
+- Siparişler, Yorumlar ve Bağlantılar içerik yüksekliğiyle genişler; ekran boyu sabit iç kaydırma kullanılmaz.
+- Ayar bölümleri mobilde üst başlığın altında sabitlenir. Bölüm/menü değişimi sayfa başına döner; menünün kapanış odağı sayfayı oynatmaz.
+- Gizli sipariş görünümünün hesaplama ve kart çizimi durur; sipariş sorgusu, zil ve otomatik baskı sürer. Tekrarlanan durum mesajları ve değişmeyen kart HTML'si yeniden işlenmez.
+- Yorum kartları sabit anahtarlarla güncellenir. Açık yanıt alanı ve yazılmış taslak filtreleme sırasında korunur.
+- İlk açılışta istenen online görünüm, uygulama hazır olana kadar saklanır.
+- Uzun online sayfalardaki sipariş detay penceresi telefonun görünür alanında açılır; kendi sınırlı detay kaydırmasını korur.
+
+Doğrulama: üretim derlemesi, 85 birim/entegrasyon testi, dokunmatik kaydırma ve uzun sipariş detayı dahil 18 tarayıcı senaryosu; beş ekran genişliğinde tüm panel bölümlerinin taşma kontrolü. Gerçek sipariş, ödeme veya yorum gönderilmedi.

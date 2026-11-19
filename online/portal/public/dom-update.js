@@ -1,8 +1,10 @@
 // Keep existing controls and unchanged cards alive during background updates.
+const lastHTML=new WeakMap();
 export function patchHTML(container, html) {
+ if(lastHTML.get(container)===html)return false;
  const template=document.createElement('template');template.innerHTML=html;
  const focused=document.activeElement;
- const key=node=>node.nodeType===1?(node.id||['order','drawer','store','edit','delete'].map(k=>node.hasAttribute('data-'+k)?k+':'+node.getAttribute('data-'+k):'').find(Boolean)||null):null;
+ const key=node=>node.nodeType===1?(node.id||['order','drawer','store','edit','delete','review','review-store','review-answer'].map(k=>node.hasAttribute('data-'+k)?k+':'+node.getAttribute('data-'+k):'').find(Boolean)||null):null;
  function patch(parent, desired) {
   const keyed=new Map([...parent.childNodes].map(node=>[key(node),node]).filter(([k])=>k));
   let cursor=parent.firstChild;
@@ -23,5 +25,6 @@ export function patchHTML(container, html) {
   while(cursor){const next=cursor.nextSibling;cursor.remove();cursor=next;}
  }
  patch(container,template.content);
+ lastHTML.set(container,html);
  if(focused?.isConnected&&document.activeElement!==focused)focused.focus({preventScroll:true});
 }

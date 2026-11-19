@@ -17,3 +17,8 @@
 
 @media screen{.unified-online{font-family:Arial,Helvetica,sans-serif;font-size:13px}.unified-online .reviews-heading h2,.unified-online .review-list-title h2{font-size:20px;font-weight:700;letter-spacing:-.02em}.unified-online .review-date,.unified-online .review-products,.unified-online .review-answer-state{font-size:11px}.unified-online .order-product,.unified-online .review-comment{font-size:13px;line-height:1.5}.unified-online .button{font-size:12px;min-height:36px}}
 @media screen and (max-width:700px){.unified-online input:not([type=checkbox]),.unified-online select,.unified-online textarea{font-size:16px;min-height:38px}.unified-online .reviews-heading h2,.unified-online .review-list-title h2{font-size:18px}}
+
+/* A single vertical scroll owner prevents mobile gestures getting trapped in the iframe. */
+@media screen{html:has(body.unified-online),body.unified-online{height:auto!important;min-height:0!important;overflow:hidden!important;scroll-padding:0!important}body.unified-online{padding:0!important}.unified-online>main{display:flow-root}}
+
+@media screen{.unified-online #detail{position:fixed;bottom:auto;margin:0 auto;overscroll-behavior:contain}}

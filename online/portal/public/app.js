@@ -13,6 +13,7 @@ const day=n=>n?new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Istanbul'}).for
 const labels={Created:'Yeni sipariş',Picking:'Hazırlanıyor',Invoiced:'Hazır',Shipped:'Yolda',Delivered:'Teslim edildi',Cancelled:'İptal edildi',UnSupplied:'Tedarik edilemedi',Unknown:'Bilinmeyen durum'};
 const active=o=>['Created','Picking','Invoiced','Shipped'].includes(o.status);
 let state={accounts:[],orders:[],interval:15},tab='active',view='orders',connected=false;
+let workspaceVisible=true;
 const newOrders=createOrderNotifier();
 const localOrderActions=new Set();
 const highlights=new Map();
@@ -310,13 +311,14 @@ function updateRefreshButton(){
   : (busy?'↻ Kontrol ediliyor…':'↻ Şimdi yenile');
 }
 const reviewsView=createReviewsView({api,escape,branchHeader,identity,date,toast,getState:()=>state,onLoadingChange:value=>{reviewsLoading=value;updateRefreshButton();}});
-function showView(v){if(v==='settings'&&state.user?.role!=='admin')v='orders';view=v;for(const name of ['orders','reviews','settings']){$('#'+name+'View').hidden=v!==name;$('#'+name+'Nav')?.classList.toggle('active',v===name);}$('.portal-title').textContent=v==='reviews'?'Değerlendirmeler':'Sipariş Merkezi';updateRefreshButton();if(v==='settings'){loadSettings();}if(v==='reviews')void reviewsView.load();}
+function showView(v){if(v==='settings'&&state.user?.role!=='admin')v='orders';const changed=view!==v;view=v;for(const name of ['orders','reviews','settings']){$('#'+name+'View').hidden=v!==name;$('#'+name+'Nav')?.classList.toggle('active',v===name);}$('.portal-title').textContent=v==='reviews'?'Değerlendirmeler':'Sipariş Merkezi';updateRefreshButton();if(v==='settings'){loadSettings();}if(v==='reviews')void reviewsView.load();if(changed)render();}
 function render(){
  document.dispatchEvent(new CustomEvent('online:accounts',{detail:state.accounts.map(account=>({id:account.id,name:account.label,state:account.status?.state||'waiting',lastSuccess:account.status?.lastSuccess||null}))}));
 
 
  const isAdmin=state.user?.role==='admin';document.querySelectorAll('.admin-only').forEach(el=>el.hidden=!isAdmin);if(!isAdmin&&view==='settings')showView('orders');
  $('#currentRole').textContent=state.user?(isAdmin?'Hesabım':'Kullanıcı'):'';
+ if(workspaceVisible&&!document.hidden&&view==='orders'){
  const source=state.orders;
  const groups=restaurantGroups(state.accounts,source);
  const names=new Map(groups.map(g=>[g.id,g.name]));
@@ -352,6 +354,7 @@ function render(){
  updateTabRail();
  $('#resultCount').textContent=shown.length;
  patchHTML($('#orders'),shown.length?shown.map(orderCard).join(''):`<div class="empty"><div class="empty-icon">▤</div><h3>${state.accounts.length?'Bu görünümde sipariş yok':'İlk restoranınızı bağlayın'}</h3><p>${state.accounts.length?'Filtreleri değiştirebilir veya yeni siparişleri burada bekleyebilirsiniz.':'API bilgilerinizi Bağlantılar ekranına girin.'}</p></div>`);
+ }
  const ok=state.accounts.filter(a=>accountHealth(a,state.interval).ok).length;const errors=state.accounts.filter(a=>!accountHealth(a,state.interval).ok);
  const last=Math.max(0,...state.accounts.map(a=>a.status.lastSuccess||0));
  $('#updateLabel').textContent=state.busy?'Siparişler kontrol ediliyor…':last?`Son başarılı kontrol: ${date(last)} · ${state.interval} sn aralıkla`:'Henüz başarılı senkronizasyon yok';
@@ -372,7 +375,7 @@ $('#search').oninput=render;$('#storeFilter').onchange=render;$('#dateFilter').o
 $('#restaurantSummaries').onclick=e=>{const b=e.target.closest('[data-store]');if(!b)return;$('#storeFilter').value=$('#storeFilter').value===b.dataset.store?'':b.dataset.store;render();};
 $('#tabs').onclick=e=>{const b=e.target.closest('[data-status]');if(!b)return;tab=b.dataset.status;document.querySelectorAll('#tabs button').forEach(el=>el.classList.toggle('selected',el===b));render();};
 async function handleOrderAction(button){const card=button.closest('[data-order]'),id=card?.dataset.order,order=state.orders.find(o=>o.id===id),action=button.dataset.orderAction;if(!order||localOrderActions.has(id))return;if(action!=='check'&&!confirm(order.restaurant+' · #'+order.number+'\n'+(action==='accept'?'Sipariş kabul edilsin mi? Hazırlama süresi '+PREPARATION_WARNING_MINUTES+' dakika olarak gönderilecek.':'Siparişin hazırlandığı Trendyol Go’ya bildirilsin mi?')))return;localOrderActions.add(id);render();try{const result=await api('/api/orders/'+encodeURIComponent(id)+'/actions','POST',{action});toast(result.message);state=await api('/api/state');}catch(error){toast(error.message);}finally{localOrderActions.delete(id);render();}}
-$('#orders').onclick=e=>{const actionButton=e.target.closest('[data-order-action]');if(actionButton){void handleOrderAction(actionButton);return;}const b=e.target.closest('[data-order]');if(!b)return;const raw=(state.orders).find(o=>o.id===b.dataset.order);if(!raw)return;if(e.target.closest("[data-order-print]")){void queueReceipt(raw);return;}const group=restaurantGroups(state.accounts,state.orders).find(g=>g.id===`${raw.accountId}:${raw.storeId}`);const o={...raw,restaurant:group?.name||raw.restaurant};$('#detailBody').innerHTML=`${branchHeader(o.restaurant)}<h2>#${escape(o.number)}</h2>${badge(o.status)}<p>${escape(o.restaurant)} · ${date(o.createdAt)}<br>${escape(o.delivery)}<br>${paymentVisual(o.payment)}${o.pin?`<br>Teslimat kodu: <strong>${escape(o.pin)}</strong>`:''}</p>${o.items.map(i=>`<div class="detail-item"><div class="detail-product-head"><strong>${i.quantity??'?'} × ${escape(i.name)}</strong>${mainItemPrice(i)}</div>${modifierPrices(i)}<small>${i.extras.length?`<br>Ekstra: ${escape(i.extras.join(', '))}`:''}${i.removed.length?`<br>Çıkarılan: ${escape(i.removed.join(', '))}`:''}${i.cancelled?`<br>İptal edilen adet: ${i.cancelled}`:''}</small></div>`).join('')}<div class="total-line"><span>Sipariş tutarı</span>${orderTotalPrice(o)}</div>${orderDiscounts(o)}${o.note?`<p class="note">${escape(o.note)}</p>`:''}<p><strong>${escape(o.customer)}</strong><br>${escape(o.address)}<br>${escape(o.district)}</p>`;$('#detail').showModal();};
+$('#orders').onclick=e=>{const actionButton=e.target.closest('[data-order-action]');if(actionButton){void handleOrderAction(actionButton);return;}const b=e.target.closest('[data-order]');if(!b)return;const raw=(state.orders).find(o=>o.id===b.dataset.order);if(!raw)return;if(e.target.closest("[data-order-print]")){void queueReceipt(raw);return;}const group=restaurantGroups(state.accounts,state.orders).find(g=>g.id===`${raw.accountId}:${raw.storeId}`);const o={...raw,restaurant:group?.name||raw.restaurant};$('#detailBody').innerHTML=`${branchHeader(o.restaurant)}<h2>#${escape(o.number)}</h2>${badge(o.status)}<p>${escape(o.restaurant)} · ${date(o.createdAt)}<br>${escape(o.delivery)}<br>${paymentVisual(o.payment)}${o.pin?`<br>Teslimat kodu: <strong>${escape(o.pin)}</strong>`:''}</p>${o.items.map(i=>`<div class="detail-item"><div class="detail-product-head"><strong>${i.quantity??'?'} × ${escape(i.name)}</strong>${mainItemPrice(i)}</div>${modifierPrices(i)}<small>${i.extras.length?`<br>Ekstra: ${escape(i.extras.join(', '))}`:''}${i.removed.length?`<br>Çıkarılan: ${escape(i.removed.join(', '))}`:''}${i.cancelled?`<br>İptal edilen adet: ${i.cancelled}`:''}</small></div>`).join('')}<div class="total-line"><span>Sipariş tutarı</span>${orderTotalPrice(o)}</div>${orderDiscounts(o)}${o.note?`<p class="note">${escape(o.note)}</p>`:''}<p><strong>${escape(o.customer)}</strong><br>${escape(o.address)}<br>${escape(o.district)}</p>`;document.dispatchEvent(new Event('online:dialog-opening'));$('#detail').showModal();};
 $('#closeDetail').onclick=()=>$('#detail').close();
 const form=$('#accountForm');
 function resetForm(){form.reset();$('#accountId').value='';form.elements.apiKey.required=true;form.elements.apiSecret.required=true;$('#cancelEdit').hidden=true;$('#formMessage').textContent='';}
@@ -408,7 +411,7 @@ async function loadSettings(){
 }
 $('#passwordForm').onsubmit=async e=>{e.preventDefault();const f=e.target,p=Object.fromEntries(new FormData(f));if(p.password!==p.confirm){$('#passwordMessage').textContent='Yeni şifreler eşleşmiyor.';return;}const b=f.querySelector('button');b.disabled=true;try{await api('/api/auth/password','POST',{currentPassword:p.currentPassword,password:p.password});f.reset();$('#passwordMessage').textContent='Şifre değiştirildi. Diğer oturumlar kapatıldı.';stopped=true;events.close();location.reload();}catch(e){$('#passwordMessage').textContent=e.message;}finally{b.disabled=false;}};
 $('#backupButton').onclick=async e=>{e.target.disabled=true;try{const info=await api('/api/backup','POST');state.storage=info;await loadSettings();toast('Veritabanı yedeği alındı.');}catch(e){toast(e.message);}finally{e.target.disabled=false;}};
-setInterval(()=>{if(state.accounts.length)render();},15000);
+setInterval(()=>{if(workspaceVisible&&!document.hidden&&state.accounts.length)render();},15000);
 
 mobileQuery.addEventListener('change',()=>render());
 
@@ -439,6 +442,7 @@ $('#userList').onclick=async e=>{const remove=e.target.closest('[data-user-delet
 if(parent===window)setupPhoneNotifications($('#phoneNotifications'), api, toast);
 
 let embeddedView='orders';
+document.addEventListener('online:visibility',event=>{workspaceVisible=!!event.detail;if(workspaceVisible)render();});
 document.addEventListener('online:navigate',event=>{embeddedView=event.detail;if(state.user)showView(embeddedView);});
 document.addEventListener('online:state',()=>{if(view!==embeddedView)showView(embeddedView);});
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent||event.data?.type!=='online:sound')return;if(event.data.enabled)void sound.enable();else sound.disable();});

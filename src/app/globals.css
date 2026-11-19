@@ -127,3 +127,8 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;bottom:calc(64px + env(
  .connection-dock-branches{gap:8px;flex:1;justify-content:space-evenly}.connection-dock-branch{flex:0 1 auto;gap:3px}.connection-dock-branch>div{min-width:20px}.dock-restaurant-logo{width:25px;height:25px}.connection-dock-branch .dock-age-full{display:none!important}.connection-dock-branch .dock-age-short{font-size:9px}.connection-dock-branch .dock-branch-short{display:none}
  .receipt-preview-dialog{padding:15px;width:calc(100vw - 12px)!important;height:92dvh;max-height:92dvh}
 }
+
+/* The document scrolls online pages; dialogs keep their own bounded scrolling. */
+.online-workspace-frame{height:auto;min-height:1px}
+.kitchen-shell[data-role=kitchen] .online-workspace-frame{height:auto}
+@media(max-width:700px){.settings-sections{top:59px}.kitchen-menu-backdrop{backdrop-filter:none}.kitchen-main{overflow-anchor:none}}

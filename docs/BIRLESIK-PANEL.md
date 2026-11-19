@@ -22,15 +22,15 @@ Sipariş ve yorum arayüzleri, ortak sol menünün içinde aynı kökenden yükl
 
 | Alan | İçerik |
 | --- | --- |
-| `/app/data` | Mevcut `natura.sqlite`, ürün fotoğrafları, kafe kullanıcıları, kasa/adisyon/cari kayıtları |
-| `/app/online-data` (`natura-data` volume) | Mevcut `sites.sqlite`, `sites-data.key`, `web-push.key`, online yedekler |
+| `/app/data` (`natura-data` volume) | Mevcut `natura.sqlite`, ürün fotoğrafları, kafe kullanıcıları, kasa/adisyon/cari kayıtları |
+| `/app/online-data` (sipariş uygulamasının ayrıca doğrulanacak volume’u) | Mevcut `sites.sqlite`, `sites-data.key`, `web-push.key`, online yedekler |
 
 `sites.sqlite` ile **aynı** `sites-data.key` birlikte bağlanmalıdır. Mevcut şifreli bağlantı verisi varken anahtar eksikse servis yeni anahtar üretip verileri kullanılamaz hale getirmek yerine hata verir. Boş yeni kurulumda anahtar otomatik üretilir. Eski portal kullanıcılarının parolaları ve etkinlikleri geri dönüş için korunur; ortak oturumdan erişim verilir.
 
 ## Dokploy geçişi
 
 1. Mevcut iki uygulamanın kalıcı alanlarının geri döndürülebilir bir kopyasını alın. Kafe uygulamasının Compose proje/servis ve `natura_data` volume adını değiştirmeyin; boş bir kafe veritabanı oluşmamalı.
-2. Mevcut `natura-menu` deposunu ve Dokploy’daki mevcut `menu` servisini kullanın; yeni depo, proje veya servis oluşturulmaz. Tek `compose.yaml` yeterlidir. Mevcut kafe `natura_data` alanı korunur; doğrulanmış `natura-data` sipariş volume’u `/app/online-data` altına doğrudan bağlanır. `external: true` bu alan yoksa boş bir volume oluşturmak yerine dağıtımı durdurur. Önceden `compose.unified.yaml` eklenmişse uyumluluk için kalabilir; artık zorunlu değildir.
+2. Mevcut `natura-menu` deposunu ve Dokploy’daki mevcut `menu` servisini kullanın; yeni depo, proje veya servis oluşturulmaz. Tek `compose.yaml` yeterlidir. Mevcut kafe alanının gerçek Docker adı `natura-data` olarak son ekran görüntüsüyle doğrulandı. Compose içindeki `natura_data` takma adı bu mevcut alana bağlanır. Sipariş uygulamasının ayrı volume adı kendi Mounts ekranından doğrulanıp `ONLINE_VOLUME_NAME` olarak yazılmalıdır; varsayılan değer yoktur. Bu ayrı alan `/app/online-data` altına bağlanır. `external: true` bu alan yoksa boş bir volume oluşturmak yerine dağıtımı durdurur. Önceden `compose.unified.yaml` eklenmişse uyumluluk için kalabilir; artık zorunlu değildir.
 3. Mevcut `ADMIN_PASSWORD` ve **aynı `SESSION_SECRET`** korunur. İki kaynakta mevcut hesaplar ve parolalar korunur. Aynı kullanıcı adında kafe parolası kafe hesabını, farklı sipariş parolası online hesabı açar. Aynı parola iki kayıtta da doğrulanırsa her alanın mevcut yetkisi kendi geçerli oturumundan korunur; online yönetici olmak kafe yöneticiliği vermez. Aktarım kontrolü ortak kullanıcı adlarını ayrıca raporlar. Yeni değerler:
 
    ```dotenv
@@ -38,7 +38,8 @@ Sipariş ve yorum arayüzleri, ortak sol menünün içinde aynı kökenden yükl
    MENU_URL=https://natura.beyoglumutfagi.com
    PANEL_URL=https://mutfak.beyoglumutfagi.com
    ONLINE_DATA_DIR=/app/online-data
-   ONLINE_VOLUME_NAME=natura-data
+   MENU_VOLUME_NAME=natura-data
+   ONLINE_VOLUME_NAME=SIPARIS_UYGULAMASININ_MEVCUT_VOLUME_ADI
    TELEGRAM_BOT_TOKEN=MEVCUT_BOT_ANAHTARI
    TELEGRAM_CHAT_ID=-1003875674660
    ```

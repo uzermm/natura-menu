@@ -7,4 +7,4 @@ services:
 volumes:
   online_data:
     external: true
-    name: ${ONLINE_VOLUME_NAME:-natura-data}
+    name: ${ONLINE_VOLUME_NAME:?Set the existing order application volume name}

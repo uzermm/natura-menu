@@ -31,9 +31,11 @@ services:
         max-file: "3"
 volumes:
   natura_data:
+    external: true
+    name: ${MENU_VOLUME_NAME:-natura-data}
   online_data:
     external: true
-    name: ${ONLINE_VOLUME_NAME:-natura-data}
+    name: ${ONLINE_VOLUME_NAME:?Set the existing order application volume name}
 networks:
   dokploy-network:
     external: true

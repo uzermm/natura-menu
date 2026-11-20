@@ -292,11 +292,11 @@ new ResizeObserver(()=>{
  if(card)rail.scrollTo({left:card.offsetLeft-rail.firstElementChild.offsetLeft,behavior:'instant'});
  updateRestaurantPager();
 }).observe($('#restaurantSummaries'));
-let reviewsLoading=false;
+let reviewsLoading=false,manualRefreshing=false;
 function updateRefreshButton(){
- const busy=view==='reviews'?reviewsLoading:state.busy;
+ const busy=manualRefreshing||(view==='reviews'&&reviewsLoading);
  $('#refreshButton').dataset.busy=String(busy);
- $('#refreshButton').disabled=busy||!state.accounts.length||!connected;
+ $('#refreshButton').disabled=busy;
  $('#refreshButton').textContent=view==='reviews'
   ? (busy?'↻ Yorumlar yenileniyor…':'↻ Yorumları yenile')
   : (busy?'↻ Kontrol ediliyor…':'↻ Şimdi yenile');
@@ -361,7 +361,19 @@ function render(){
 }
 $('#reviewsNav').onclick=()=>showView('reviews');
 $('#ordersNav').onclick=()=>showView('orders');
-$('#refreshButton').onclick=async()=>{if(view==='reviews'){await reviewsView.load(true);return;}try{await api('/api/sync','POST');await pollState();toast('Sipariş kontrolü başlatıldı.');}catch(e){toast(e.message);}};
+function refreshFeedback(message,error=false,pending=false){toast(message);parent.postMessage({type:'online:feedback',message,error,pending},location.origin);}
+$('#refreshButton').onclick=async()=>{
+ if(manualRefreshing||reviewsLoading)return;
+ manualRefreshing=true;updateRefreshButton();refreshFeedback(view==='reviews'?'Yorumlar yenileniyor…':'Siparişler yenileniyor…',false,true);
+ try{
+  if(!state.accounts.length){applyState(await api('/api/state'));render();if(!state.accounts.length){refreshFeedback('Bağlı restoran hesabı bulunamadı.',true);return;}}
+  if(view==='reviews'){const ok=await reviewsView.load(true);refreshFeedback(ok?'Yorumlar güncellendi.':$('#reviewsStatus').textContent||'Yorumlar yenilenemedi.',!ok);return;}
+  const result=await api('/api/sync','POST');applyState(await api('/api/state'));render();
+  const failed=state.accounts.filter(account=>account.status?.state==='error').length;
+  refreshFeedback(failed?failed+' restoran bağlantısında hata var. Son kayıtlar korunuyor.':result.cached?'Son güncel veriler gösteriliyor.':'Siparişler güncellendi.',failed>0);
+ }catch(error){refreshFeedback(error.message||'Siparişler yenilenemedi. Tekrar deneyin.',true);}
+ finally{manualRefreshing=false;updateRefreshButton();}
+};
 $('#search').oninput=render;$('#storeFilter').onchange=render;$('#dateFilter').onchange=()=>{tab=$('#dateFilter').value==='today'?'active':'all';document.querySelectorAll('#tabs button').forEach(button=>button.classList.toggle('selected',button.dataset.status===tab));render();};
 $('#restaurantSummaries').onclick=e=>{const b=e.target.closest('[data-store]');if(!b)return;$('#storeFilter').value=$('#storeFilter').value===b.dataset.store?'':b.dataset.store;render();};
 $('#tabs').onclick=e=>{const b=e.target.closest('[data-status]');if(!b)return;tab=b.dataset.status;document.querySelectorAll('#tabs button').forEach(el=>el.classList.toggle('selected',el===b));render();};
@@ -383,7 +395,8 @@ function renewPrintSession(){
  nextPrintSessionRenewal=Date.now()+1800000;
  void api('/api/auth/renew-print-session','POST').catch(()=>{nextPrintSessionRenewal=Date.now()+60000;});
 }
-async function pollState(){if(stopped)return;if(polling){pollAgain=true;return;}clearTimeout(pollTimer);polling=true;try{state=await api('/api/state');document.dispatchEvent(new Event('online:state'));connected=true;renewPrintSession();const fresh=newOrders(state);void alertOrders(fresh);if(autoPrintEnabled())for(const order of fresh)void queueReceipt(order,true);}catch{connected=false;}finally{polling=false;render();const delay=pollAgain?0:connected&&state.busy?2000:liveOnline?60000:state.interval*1000;pollAgain=false;pollTimer=setTimeout(pollState,delay);}}
+function applyState(next){state=next;document.dispatchEvent(new Event('online:state'));connected=true;renewPrintSession();const fresh=newOrders(state);void alertOrders(fresh);if(autoPrintEnabled())for(const order of fresh)void queueReceipt(order,true);}
+async function pollState(){if(stopped)return;if(polling){pollAgain=true;return;}clearTimeout(pollTimer);polling=true;try{applyState(await api('/api/state'));}catch{connected=false;}finally{polling=false;render();const delay=pollAgain?0:connected&&state.busy?2000:liveOnline?60000:state.interval*1000;pollAgain=false;pollTimer=setTimeout(pollState,delay);}}
 let liveOnline=false,onlineEvents;
 function connectOnline(){if(onlineEvents||!('EventSource' in window))return;onlineEvents=new EventSource('/api'+'/online-events');onlineEvents.onopen=()=>{liveOnline=true;};onlineEvents.onmessage=()=>{liveOnline=true;void pollState();};onlineEvents.onerror=()=>{liveOnline=false;};}
 function wakeOnline(){if(document.hidden)return;currentStateRequest?.abort();onlineEvents?.close();onlineEvents=null;liveOnline=false;connectOnline();void pollState();}

@@ -1,4 +1,5 @@
 'use client';
+import {usePanelRefresh} from '@/lib/panel-refresh';
 import {useEffect,useState} from 'react';
 import {Plus,UsersRound} from 'lucide-react';
 import {api} from '@/lib/client';
@@ -12,6 +13,7 @@ const permissions={admin:'Tüm ekranlar ve kullanıcı yönetimi.',cashier:'Ayar
 export function Users(){
  const [rows,setRows]=useState<ManagedUser[]>([]),[editing,setEditing]=useState<Partial<ManagedUser>|null>(null),[role,setRole]=useState<ManagedUser['role']>('waiter'),[busy,setBusy]=useState(false),[error,setError]=useState('');
  async function load(){setRows(await api<ManagedUser[]>('/api/admin/users',undefined,'GET'));}
+ usePanelRefresh('users',load);
  useEffect(()=>{void load().catch(e=>setError(e.message));},[]);
  function edit(user:Partial<ManagedUser>){setError('');setRole(user.role||'waiter');setEditing(user);}
  return <section aria-label="Kullanıcılar" className="space-y-4 rounded-2xl border bg-white p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-xl font-bold text-[#305c3e]"><UsersRound size={20}/>Kullanıcılar</h2><Button onClick={()=>edit({name:'',username:'',role:'waiter',is_active:true})}><Plus size={16}/>Kullanıcı ekle</Button></div>

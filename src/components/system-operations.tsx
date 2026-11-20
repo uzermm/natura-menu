@@ -1,4 +1,5 @@
 'use client';
+import {usePanelRefresh} from '@/lib/panel-refresh';
 import {useEffect,useState} from 'react';
 import {api} from '@/lib/client';
 import {Button} from './ui/button';
@@ -9,6 +10,7 @@ const stamp=(n:number|string|null)=>n?new Date(n).toLocaleString('tr-TR',{timeZo
 const kinds:Record<string,string>={'user.create':'Kullanıcı eklendi','user.update':'Kullanıcı güncellendi','user.delete':'Kullanıcı silindi','backup.manual':'Birleşik yedek alındı','telegram.retry':'Telegram yeniden gönderim','online.orders.actions':'Online sipariş işlemi','online.orders.accept':'Sipariş kabul edildi','online.orders.ready':'Sipariş hazırlandı','online.orders.check':'Sipariş durumu kontrol edildi','pos.pay':'Ödeme alındı','pos.pay_items':'Ürün bazında ödeme alındı','pos.add':'Ürün eklendi','pos.open_order':'Masa siparişi açıldı','pos.open_quick':'Hızlı sipariş açıldı','pos.note':'Sipariş notu güncellendi','pos.label':'Hesap bilgisi güncellendi','pos.refund':'Ödeme iade edildi','pos.correct_payment':'Ödeme düzeltildi','pos.close':'Hesap kapatıldı','pos.discount':'İndirim uygulandı','pos.move':'Sipariş taşındı','pos.merge':'Adisyonlar birleştirildi','online.reviews.answer':'Yorum yanıtı','menu.update':'Menü güncellendi','settings.update':'Ayarlar güncellendi'};
 export function SystemOperations(){const [health,setHealth]=useState<Health|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[query,setQuery]=useState(''),[confirm,setConfirm]=useState<{action:string;id?:string}|null>(null);
  async function load(q=query){setError('');try{setHealth(await api<Health>('/api/admin/operations?q='+encodeURIComponent(q),undefined,'GET'));}catch(e){setError((e as Error).message);}}
+ usePanelRefresh('system',()=>load());
  useEffect(()=>{void load('');},[]);
  async function execute(){if(!confirm)return;setBusy(true);setError('');try{await api('/api/admin/operations',{...confirm,confirm:true});setNotice(confirm.action==='backup'?'Birleşik yedek alındı.':'Mesaj yeniden gönderim sırasına alındı.');setConfirm(null);await load();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  const queued=health?.telegram.counts.find(row=>row.status==='queued')?.count||0;

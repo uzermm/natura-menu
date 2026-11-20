@@ -1,7 +1,13 @@
+import {createHash} from 'node:crypto';
+import {createTelegramOrderButtons} from './telegram-actions.mjs';
 import { sqlite, transaction } from './database.mjs';
 import { telegramOrderText, telegramCourierText, telegramMessageChunks } from './telegram-format.mjs';
 
-export function createTelegram(origin, {fetchImpl=fetch} = {}) {
+/**
+ * @param {string} origin
+ * @param {{fetchImpl?:typeof fetch,performOrderAction?:(id:string,action:string,actor:any)=>Promise<any>,getSnapshot?:()=>Promise<any>}} options
+ */
+export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSnapshot} = {}) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chat = process.env.TELEGRAM_CHAT_ID?.trim();
   const enabled = Boolean(token && chat);
@@ -14,9 +20,9 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
   let running = false;
   let lastTestAt = 0;
 
-  async function telegramRequest(method, body) {
+  async function telegramRequest(method, body, options={}) {
     const response = await fetchImpl('https://api.telegram.org/bot' + token + '/' + method, {
-      method:'POST', body, signal:AbortSignal.timeout(20000), redirect:'error'
+      method:'POST', body, signal:options.signal?AbortSignal.any([options.signal,AbortSignal.timeout(method==='getUpdates'?35000:20000)]):AbortSignal.timeout(method==='getUpdates'?35000:20000), redirect:'error'
     });
     let result;
     try {
@@ -32,14 +38,15 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
       error.operation = method;
       error.status = result.error_code || response.status;
       error.retryAfter = result.parameters?.retry_after;
+      error.description = result.description;
       throw error;
     }
     return result.result;
   }
 
-  async function request(method, body) {
+  async function request(method, body, options) {
     try {
-      return await telegramRequest(method, body);
+      return await telegramRequest(method, body, options);
     } catch (error) {
       error.operation = method;
       const cause = error.cause?.code || error.code || error.name;
@@ -49,6 +56,7 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
     }
   }
 
+  const buttons=createTelegramOrderButtons({db:sqlite,chat,botKey:createHash('sha256').update(token||'disabled').digest('hex'),request,performOrderAction,getSnapshot});
   async function deliver(job) {
     const order = JSON.parse(job.payload);
     update.run('sending', Date.now(), job.order_id, chat);
@@ -59,10 +67,10 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
         form.set('chat_id', chat);
         form.set('text', chunks[index].text);
         form.set('entities', JSON.stringify(chunks[index].entities));
-        if (index === chunks.length - 1) {
-          form.set('reply_markup', JSON.stringify({inline_keyboard:[[{text:'Sipariş ekranını aç', url:origin}]]}));
-        }
-        await request('sendMessage', form);
+        const controls=index===chunks.length-1&&job.kind==='order'?await buttons.reserve(order,chunks[index].text,chunks[index].entities):null;
+        if(controls)form.set('reply_markup',JSON.stringify(controls.markup));
+        const sent=await request('sendMessage', form);
+        if(controls)buttons.bind(controls.token,sent.message_id);
         sqlite.prepare('UPDATE telegram_orders SET text_index=? WHERE order_id=? AND chat_id=?').run(index + 1, job.order_id, chat);
       }
       update.run('sent', Date.now(), job.order_id, chat);
@@ -76,7 +84,10 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
 
   return {
     enabled,
-    localStatus(){return {enabled,counts:sqlite.prepare('SELECT status,COUNT(*) AS count FROM telegram_orders WHERE chat_id=? GROUP BY status').all(chat||''),recent:sqlite.prepare("SELECT order_id AS id,kind,status,attempts,created_at AS createdAt,payload FROM telegram_orders WHERE chat_id=? AND status IN ('failed','uncertain') ORDER BY created_at DESC LIMIT 12").all(chat||'').map(({payload,...row})=>{let order;try{order=JSON.parse(payload);}catch{}return {...row,code:String(order?.orderCode||order?.number||'—'),restaurant:String(order?.restaurant||'Restoran')};})};},
+    pollCallbacks:buttons.poll,
+    stopCallbacks:buttons.stop,
+    startCallbacks:buttons.resume,
+    localStatus(){return {enabled,actions:buttons.health(),counts:sqlite.prepare('SELECT status,COUNT(*) AS count FROM telegram_orders WHERE chat_id=? GROUP BY status').all(chat||''),recent:sqlite.prepare("SELECT order_id AS id,kind,status,attempts,created_at AS createdAt,payload FROM telegram_orders WHERE chat_id=? AND status IN ('failed','uncertain') ORDER BY created_at DESC LIMIT 12").all(chat||'').map(({payload,...row})=>{let order;try{order=JSON.parse(payload);}catch{}return {...row,code:String(order?.orderCode||order?.number||'—'),restaurant:String(order?.restaurant||'Restoran')};})};},
     retry(id){if(!enabled)throw Error('Telegram bağlantısı ayarlı değil.');const row=sqlite.prepare('SELECT status FROM telegram_orders WHERE order_id=? AND chat_id=?').get(id,chat);if(!row||!['failed','uncertain'].includes(row.status))throw Error('Bu mesaj yeniden gönderilmeye uygun değil.');sqlite.prepare("UPDATE telegram_orders SET status='queued',next_at=?,attempts=0 WHERE order_id=? AND chat_id=?").run(Date.now(),id,chat);return {ok:true};},
     async check() {
       if (!enabled) return {enabled:false, tokenConfigured:!!token, groupConfigured:!!chat};
@@ -133,6 +144,7 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
           }
         }
         sqlite.prepare("DELETE FROM telegram_orders WHERE status IN ('sent','failed','uncertain') AND created_at<?").run(Date.now() - 30 * 86400000);
+        await buttons.synchronize();
       } finally {
         running = false;
       }

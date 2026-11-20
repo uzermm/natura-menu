@@ -1,4 +1,4 @@
 import type {DatabaseSync} from 'node:sqlite';
-export function initAudit(d:DatabaseSync){d.exec("CREATE TABLE IF NOT EXISTS operation_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,at TEXT NOT NULL,actor TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,result TEXT NOT NULL);CREATE INDEX IF NOT EXISTS operation_audit_at ON operation_audit(at)");}
-export function audit(d:DatabaseSync,actor:string,kind:string,target:string,result='ok'){initAudit(d);d.prepare('INSERT INTO operation_audit(at,actor,kind,target,result) VALUES(?,?,?,?,?)').run(new Date().toISOString(),actor.slice(0,120),kind.slice(0,80),target.slice(0,160),result.slice(0,40));}
+import {initAudit} from '../../online/portal/operation-audit.mjs';
+export {audit,initAudit} from '../../online/portal/operation-audit.mjs';
 export function auditRows(d:DatabaseSync,query=''){initAudit(d);const search='%'+query.slice(0,100).replace(/[\%_]/g,'')+'%';return d.prepare('SELECT * FROM operation_audit WHERE actor LIKE ? OR kind LIKE ? OR target LIKE ? ORDER BY id DESC LIMIT 50').all(search,search,search);}

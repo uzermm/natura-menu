@@ -1,11 +1,13 @@
 import {createUnifiedBackups} from './dokploy/unified-backup.mjs';
-import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {mkdir,readdir,stat,rename,writeFile,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {DB,sqlite,dataDir,dataKey} from './dokploy/database.mjs';
-import {handle,syncPushOrders} from './portal/worker.mjs';
+import {storage} from './portal/store.mjs';
+import {audit} from './portal/operation-audit.mjs';
+import {handle,syncPushOrders,telegramOrderAction} from './portal/worker.mjs';
 import {createPush} from './dokploy/push.mjs';
 import {createTelegram} from './dokploy/telegram.mjs';
 import {auth,normalize,credential} from './portal/auth.mjs';
@@ -19,7 +21,7 @@ try{readFileSync(keyPath);}catch(error){
 const DATA_KEY=dataKey();
 if(Buffer.from(DATA_KEY,'base64').length!==32)throw Error('Online veri anahtarı geçersiz.');
 const origin=new URL(process.env.PANEL_URL||process.env.APP_URL||'http://localhost:3000').origin;
-const PUSH=createPush(origin),TELEGRAM=createTelegram(origin);
+const PUSH=createPush(origin),TELEGRAM=createTelegram(origin,{getSnapshot:async()=>{const store=storage(env);return {orders:await store.get('orders',[]),pending:await store.get('pending',{})};},performOrderAction:async(id,action,actor)=>{let result;try{result=await telegramOrderAction(env,id,action,actor);return result;}finally{let cafe;try{const file=resolve(process.env.DATA_DIR||'data','natura.sqlite');if(existsSync(file)){cafe=new DatabaseSync(file);cafe.exec('PRAGMA busy_timeout=5000');audit(cafe,actor.username,'online.orders.'+action,id,result?.ok?'ok':'rejected');}}catch{console.warn('Telegram işlem geçmişi kafe kaydına yazılamadı.');}finally{cafe?.close();}}}});
 const backupDir=join(dataDir,'backups');mkdirSync(backupDir,{recursive:true});
 const BUCKET={
  async put(key,value){if(!/^backups\/[\w.:-]+\.json$/.test(key))throw Error('Geçersiz yedek yolu');const path=join(dataDir,key),temporary=path+'.'+randomUUID()+'.tmp';await writeFile(temporary,value,{mode:0o600});await rename(temporary,path);},
@@ -105,15 +107,16 @@ const listeners=new Set();
 export function subscribeOnline(callback){listeners.add(callback);return()=>listeners.delete(callback);}
 function publishOnline(){for(const callback of listeners)try{callback();}catch{}}
 export async function renewLegacy(request){return auth(env).renew(request);}
-let cursor=Date.now(),timer,sendTimer;
+let cursor=Date.now(),timer,sendTimer,callbackTimer,onlineStopped=false;
 export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);cursor=result.now;publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
- if(timer||process.env.ONLINE_BACKGROUND==='0')return;
- const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{timer=setTimeout(poll,15000);timer.unref();}};
- const send=async()=>{try{await TELEGRAM.drain();}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{sendTimer=setTimeout(send,5000);sendTimer.unref();}};
- timer=setTimeout(poll,1000);timer.unref();if(TELEGRAM.enabled){sendTimer=setTimeout(send,5000);sendTimer.unref();}
+ if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
+ const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};
+ const send=async()=>{try{await TELEGRAM.drain();}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
+ const callbacks=async()=>{let delay=1000;try{delay=await TELEGRAM.pollCallbacks()||1000;}catch{delay=10000;console.warn('Telegram düğme alıcısı yeniden denenecek.');}finally{if(!onlineStopped){callbackTimer=setTimeout(callbacks,delay);callbackTimer.unref();}}};
+ timer=setTimeout(poll,1000);timer.unref();if(TELEGRAM.enabled){sendTimer=setTimeout(send,5000);sendTimer.unref();callbackTimer=setTimeout(callbacks,1000);callbackTimer.unref();}
 }
-export function stopOnline(){clearTimeout(timer);clearTimeout(sendTimer);timer=undefined;}
+export function stopOnline(){onlineStopped=true;clearTimeout(timer);clearTimeout(sendTimer);clearTimeout(callbackTimer);TELEGRAM.stopCallbacks();timer=undefined;}
 startOnline();
 
 const unifiedBackups=createUnifiedBackups();

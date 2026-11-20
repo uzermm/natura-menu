@@ -1,0 +1,2 @@
+export function initAudit(d){d.exec("CREATE TABLE IF NOT EXISTS operation_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,at TEXT NOT NULL,actor TEXT NOT NULL,kind TEXT NOT NULL,target TEXT NOT NULL,result TEXT NOT NULL);CREATE INDEX IF NOT EXISTS operation_audit_at ON operation_audit(at)");}
+export function audit(d,actor,kind,target,result='ok'){initAudit(d);d.prepare('INSERT INTO operation_audit(at,actor,kind,target,result) VALUES(?,?,?,?,?)').run(new Date().toISOString(),String(actor).slice(0,120),kind.slice(0,80),target.slice(0,160),result.slice(0,40));}

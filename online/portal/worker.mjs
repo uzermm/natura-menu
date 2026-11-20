@@ -135,4 +135,12 @@ export async function handle(request,env,ctx){
   }finally{await store.unlock(token);}
  }catch(error){return json({error:error.status?error.message:'İşlem tamamlanamadı. Lütfen yeniden deneyin.'},error.status||400);}
 }
+export async function telegramOrderAction(env,id,action,actor){
+ if(!['accept','ready'].includes(action))throw fail('Geçersiz sipariş işlemi.',400);
+ const store=storage(env),token=await store.lock();if(!token)throw fail('Sipariş bilgileri güncelleniyor. Biraz sonra tekrar basın.',409);
+ try{const c=await context(env,store);try{const result=await c.actions.run(id,action,actor);const state=await c.state(actor);return {...result,status:state.orders.find(order=>order.id===id)?.status};}catch(error){const state=await c.state(actor),order=state.orders.find(order=>order.id===id),pending=!!state.orderActions[id];
+  if(order&&!pending&&(action==='accept'&&['Picking','Invoiced','Shipped','Delivered'].includes(order.status)||action==='ready'&&['Invoiced','Shipped','Delivered'].includes(order.status)))return {ok:true,pending:false,status:order.status,message:action==='accept'?'Sipariş zaten kabul edilmiş.':'Sipariş zaten hazırlanmış.'};
+  if(action==='ready'&&order?.status==='Created'&&!pending)throw fail('Önce Kabul Et düğmesine basın.',409);throw error;
+ }}finally{await store.unlock(token);env.ONLINE_CHANGED?.();}
+}
 export default {fetch(request,env,ctx){const task=handle(request,env,ctx);ctx?.waitUntil?.(task.then(()=>{},()=>{}));return task;}};

@@ -110,3 +110,11 @@ Doğrulama: üretim derlemesi, 85 birim/entegrasyon testi, dokunmatik kaydırma 
 - Ayrı konuma ikinci kopya isteğe bağlıdır: mevcut natura servisine ayrı bir yedek depolaması /app/backup-copy olarak bağlanıp BACKUP_COPY_DIR=/app/backup-copy eklenebilir. Bu yol veri dizinlerinin dışında olmalıdır. İkinci konumun gerçekten başka bir sunucuda/depoda olması işletim ayarıdır; yalnız aynı sunucuda ikinci klasör kullanmak sunucu arızasına karşı koruma sağlamaz. Konum ayarlı değilse panel bunu açıkça gösterir. Yeni Dokploy projesi veya GitHub deposu gerekmez.
 - Baskı geçmişi cihazda tutulur. “Tarayıcıya gönderildi” fiziksel çıktı doğrulaması değildir. Otomatik baskı tek bilgisayarda açık tutulmalı; yeniden baskı geçmişteki kayıt üzerinden kontrollü yapılmalıdır.
 - Menü içerik kontrolü eksik açıklama/fotoğraf ve aynı fotoğraf bağlantısının tekrar kullanımını listeler. Gerçek ürün içerikleri ve fotoğraflar işletme tarafından doğrulanarak düzenlenir; sistem içerik uydurmaz.
+
+## Telegram üzerinden sipariş işlemleri
+
+Yeni sipariş mesajlarının altında yan yana **Kabul Et** ve **Hazırlandı** düğmeleri bulunur; sipariş ekranı bağlantısı gösterilmez. Tanımlı Telegram grubundaki bütün üyeler bu düğmeleri kullanabilir. Portalın açık olması gerekmez. Sunucu mevcut `TELEGRAM_BOT_TOKEN` ve `TELEGRAM_CHAT_ID` ayarlarıyla düğme yanıtlarını arka planda dinler; yeni bir ayar gerekmez.
+
+Her işlemden önce Trendyol üzerindeki güncel durum alınır. Hazırlandı için sipariş önce kabul edilmiş olmalıdır. Tekrar basma, eşzamanlı panel işlemleri ve sonucu belirsiz istekler mevcut sipariş kilidi ve kalıcı işlem kaydıyla korunur. Düğmeler aynı mesajda güncellenir; işlem geçmişine Telegram üyesinin adı ve kimliği yazılır. Önceki sürümlerin gönderdiği eski mesajlara düğme eklenmez. Düğmeler 48 saat geçerlidir.
+
+Ayarlar → Sistem bölümünde Telegram düğme bağlantısının durumu görülebilir. Bot için başka bir webhook veya ikinci `getUpdates` alıcısı çalışıyorsa bağlantı çakışması gösterilir; uygulama diğer bağlantıyı kendiliğinden silmez.

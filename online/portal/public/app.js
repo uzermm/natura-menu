@@ -446,4 +446,5 @@ document.addEventListener('online:visibility',event=>{workspaceVisible=!!event.d
 document.addEventListener('online:navigate',event=>{embeddedView=event.detail;if(state.user)showView(embeddedView);});
 document.addEventListener('online:state',()=>{if(view!==embeddedView)showView(embeddedView);});
 window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent||event.data?.type!=='online:sound')return;if(event.data.enabled)void sound.enable();else sound.disable();});
+document.addEventListener('online:sound',event=>{if(event.detail)void sound.enable();else sound.disable();});
 window.onlineAppReady=true;window.dispatchEvent(new Event('online:app-ready'));

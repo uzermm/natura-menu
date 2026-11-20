@@ -15,7 +15,13 @@ async function request(url,body,method=body?'POST':'GET'){
 }
 try {
  docker('volume','create',volume);
- docker('run','-d','--name',name,'-p','127.0.0.1:3000:3000','--mount',`type=volume,source=${volume},target=/app/data`,'-e',`APP_URL=${origin}`,'-e',`ADMIN_PASSWORD=${password}`,'-e',`SESSION_SECRET=${secret}`,'natura-menu:ci');
+ const common=['-p','127.0.0.1:3000:3000','--mount',`type=volume,source=${volume},target=/app/data`,'-e','ONLINE_DATA_DIR=/app/data/online','-e','ONLINE_BACKGROUND=0','-e',`APP_URL=${origin}`,'-e',`ADMIN_PASSWORD=${password}`,'-e',`SESSION_SECRET=${secret}`];
+ // Production must reject an empty volume. Bootstrap only this disposable fixture,
+ // then run all checks and the restart with the normal existing-data guard enabled.
+ assert.throws(()=>docker('run','--rm',...common,'natura-menu:ci'),/Mevcut veri dosyası bulunamadı/);
+ docker('run','-d','--name',name,...common,'-e','REQUIRE_EXISTING_DATA=0','natura-menu:ci');
+ await ready();docker('rm','-f',name);
+ docker('run','-d','--name',name,...common,'natura-menu:ci');
  await ready();
  const menu=await request('/');assert.equal(menu.status,200);assert.doesNotMatch(menu.data,/WhatsApp|Sepetim|Siparişini oluştur|sepete ekle/);
  assert.equal((await request('/api/order',{lines:[]})).status,404);

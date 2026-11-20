@@ -1,7 +1,7 @@
 @media screen{
  body.unified-online>aside,.unified-online .personal-settings,.unified-online #logoutButton,.unified-online #currentRole,.unified-online .portal-title{display:none!important}
  body.unified-online>main{margin:0!important;padding:0 12px!important;max-width:none!important}
- .unified-online .portal-topbar{height:auto;min-height:54px;padding:8px 0;justify-content:flex-end}
+ .unified-online .portal-topbar{display:none!important}
  .unified-online .portal-settings-layout{display:block}
  .unified-online .connection-settings{width:100%}
  .unified-online .connection-card{position:static!important;border:1px solid #d6e3d4!important;border-radius:8px!important}
@@ -22,3 +22,5 @@
 @media screen{html:has(body.unified-online),body.unified-online{height:auto!important;min-height:0!important;overflow:hidden!important;scroll-padding:0!important}body.unified-online{padding:0!important}.unified-online>main{display:flow-root}}
 
 @media screen{.unified-online #detail{position:fixed;bottom:auto;margin:0 auto;overscroll-behavior:contain}}
+
+@media screen{.unified-online .toolbar-print-option{display:block;width:100%;margin:8px 0;text-align:left;white-space:normal}.unified-online #detailBody>h3{margin-top:16px}}

@@ -16,7 +16,9 @@ export function OnlineWorkspace({view,active,onStatus,soundEnabled}:{view:View;a
    if(event.data?.type==='online:status')current.current.onStatus({printing:String(event.data.printing||'Kapalı'),accounts:String(event.data.accounts||'0/0'),branches:Array.isArray(event.data.branches)?event.data.branches.filter((b:BranchConnection)=>typeof b.id==='string'&&typeof b.name==='string').map((b:BranchConnection)=>({id:b.id,name:b.name,state:String(b.state||'waiting'),lastSuccess:typeof b.lastSuccess==='number'?b.lastSuccess:null})):[]});
    if(event.data?.type==='online:login')location.assign('/login');
   }
-  window.addEventListener('message',message);return()=>{window.removeEventListener('message',message);clearInterval(retry.current);};
+  const command=(event:Event)=>{const action=(event as CustomEvent).detail;if(['refresh','print'].includes(action))frame.current?.contentWindow?.postMessage({type:'online:command',action},location.origin);};
+  window.addEventListener('natura:online-command',command);
+  window.addEventListener('message',message);return()=>{window.removeEventListener('natura:online-command',command);window.removeEventListener('message',message);clearInterval(retry.current);};
  },[]);
  useEffect(()=>{synchronize();},[view,active,soundEnabled]);
  return <section aria-label={view==='settings'?'Online sipariş bağlantıları':view==='reviews'?'Restoran yorumları':'Online siparişler'} aria-hidden={!active} style={active?undefined:{position:'fixed',left:'-200vw',top:0,width:'calc(100vw - 32px)',pointerEvents:'none'}}>

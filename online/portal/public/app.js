@@ -219,7 +219,7 @@ async function printOrder(order, beforePrint = null) {
   $('#receiptBrand').innerHTML +
   '<h1 aria-label="Sipariş kodu"><strong>' + escape(code || '—') + '</strong></h1>' +
   '<p>' + escape(printDate) + '</p>' +
-  '<div class="receipt-meta"><div>Müşteri<br>Bilgisi<br>' + escape(order.customer || '—') +
+  '<div class="receipt-meta"><div>Müşteri<br>Bilgisi<br><strong>' + escape(order.customer || '—') + '</strong>' +
   '</div><div>Ödeme<br>Yöntemi<br>' + escape(order.payment || '—') +
   '</div><div class="receipt-order-number">Sipariş<br>Numarası<br><span>' + escape(order.number) + '</span></div></div>' +
   (order.note ? '<p class="receipt-note">Sipariş Notu: ' + escape(order.note) + '</p>' : '') +

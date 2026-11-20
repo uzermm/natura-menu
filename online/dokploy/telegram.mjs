@@ -76,6 +76,8 @@ export function createTelegram(origin, {fetchImpl=fetch} = {}) {
 
   return {
     enabled,
+    localStatus(){return {enabled,counts:sqlite.prepare('SELECT status,COUNT(*) AS count FROM telegram_orders WHERE chat_id=? GROUP BY status').all(chat||''),recent:sqlite.prepare("SELECT order_id AS id,kind,status,attempts,created_at AS createdAt,payload FROM telegram_orders WHERE chat_id=? AND status IN ('failed','uncertain') ORDER BY created_at DESC LIMIT 12").all(chat||'').map(({payload,...row})=>{let order;try{order=JSON.parse(payload);}catch{}return {...row,code:String(order?.orderCode||order?.number||'—'),restaurant:String(order?.restaurant||'Restoran')};})};},
+    retry(id){if(!enabled)throw Error('Telegram bağlantısı ayarlı değil.');const row=sqlite.prepare('SELECT status FROM telegram_orders WHERE order_id=? AND chat_id=?').get(id,chat);if(!row||!['failed','uncertain'].includes(row.status))throw Error('Bu mesaj yeniden gönderilmeye uygun değil.');sqlite.prepare("UPDATE telegram_orders SET status='queued',next_at=?,attempts=0 WHERE order_id=? AND chat_id=?").run(Date.now(),id,chat);return {ok:true};},
     async check() {
       if (!enabled) return {enabled:false, tokenConfigured:!!token, groupConfigured:!!chat};
       const bot = await request('getMe', new URLSearchParams());

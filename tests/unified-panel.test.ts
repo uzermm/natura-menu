@@ -88,4 +88,4 @@ test('cashier can accept and mark an online order ready without configuration ac
  assert.equal((await onlineRequest(new Request('https://mutfak.example/online/api/users'),cashier)).status,403);
 });
 
-test('background refresh notifies open panels immediately and unsubscribed panels stop receiving events',async()=>{let notified=0;const unsubscribe=subscribeOnline(()=>notified++);try{await tick();assert.equal(notified,1);}finally{unsubscribe();}await tick();assert.equal(notified,1);});
+test('background refresh notifies open panels immediately and unsubscribed panels stop receiving events',async()=>{let notified=0,first=0;const unsubscribe=subscribeOnline(()=>notified++);try{await tick();first=notified;assert.ok(first>=1);}finally{unsubscribe();}await tick();assert.equal(notified,first);});

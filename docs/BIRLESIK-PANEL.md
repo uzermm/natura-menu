@@ -100,3 +100,13 @@ Bağlantılar sayfasında iç çerçevenin belge yüksekliği 2039 px, görünü
 - Uzun online sayfalardaki sipariş detay penceresi telefonun görünür alanında açılır; kendi sınırlı detay kaydırmasını korur.
 
 Doğrulama: üretim derlemesi, 85 birim/entegrasyon testi, dokunmatik kaydırma ve uzun sipariş detayı dahil 18 tarayıcı senaryosu; beş ekran genişliğinde tüm panel bölümlerinin taşma kontrolü. Gerçek sipariş, ödeme veya yorum gönderilmedi.
+
+
+## Yedek, bildirim ve işlem takibi
+
+- Birleşik yedek sunucu içinde otomatik çalışır; panelin açık olması gerekmez. Başlangıçtan yaklaşık bir dakika sonra kontrol edilir, son başarılı yedek 24 saatten eskiyse yeni bir yedek alınır. Başarısız deneme saatte bir yeniden kontrol edilir. Son yedi başarılı yedek korunur.
+- Kafe ve online SQLite dosyaları, online şifreleme/bildirim anahtarları ve menü görselleri birlikte alınır. SQLite kopyaları tamamlandıktan sonra doğrulanır. ADMIN_PASSWORD ve SESSION_SECRET mevcut Dokploy ortamında korunmalıdır; bu değerler yedek veya panel yanıtına yazılmaz.
+- Ayarlar → Sistem bölümünde son başarılı yedek, hata, Telegram kuyruğu ve ortak işlem geçmişi görünür. Yedek ve Telegram yeniden gönderimi yalnız yöneticiye açıktır. Sonucu belirsiz mesajlar otomatik yeniden gönderilmez.
+- Ayrı konuma ikinci kopya isteğe bağlıdır: mevcut natura servisine ayrı bir yedek depolaması /app/backup-copy olarak bağlanıp BACKUP_COPY_DIR=/app/backup-copy eklenebilir. Bu yol veri dizinlerinin dışında olmalıdır. İkinci konumun gerçekten başka bir sunucuda/depoda olması işletim ayarıdır; yalnız aynı sunucuda ikinci klasör kullanmak sunucu arızasına karşı koruma sağlamaz. Konum ayarlı değilse panel bunu açıkça gösterir. Yeni Dokploy projesi veya GitHub deposu gerekmez.
+- Baskı geçmişi cihazda tutulur. “Tarayıcıya gönderildi” fiziksel çıktı doğrulaması değildir. Otomatik baskı tek bilgisayarda açık tutulmalı; yeniden baskı geçmişteki kayıt üzerinden kontrollü yapılmalıdır.
+- Menü içerik kontrolü eksik açıklama/fotoğraf ve aynı fotoğraf bağlantısının tekrar kullanımını listeler. Gerçek ürün içerikleri ve fotoğraflar işletme tarafından doğrulanarak düzenlenir; sistem içerik uydurmaz.

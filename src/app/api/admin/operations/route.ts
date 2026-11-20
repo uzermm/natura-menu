@@ -1,0 +1,6 @@
+import {requireAdmin,jsonBody,errorResponse,noStore,HttpError} from '@/lib/api';
+import {db} from '@/lib/db';
+import {audit,auditRows} from '@/lib/audit-log';
+import {onlineRuntime} from '@/lib/online-runtime';
+export async function GET(req:Request){try{await requireAdmin();const health=await(await onlineRuntime()).operationsHealth();return Response.json({...health,nativePushSubscriptions:Number(db().prepare('SELECT COUNT(*) AS n FROM push_subscriptions').get()!.n),audit:auditRows(db(),new URL(req.url).searchParams.get('q')||'')},{headers:noStore});}catch(e){return errorResponse(e);}}
+export async function POST(req:Request){try{const actor=await requireAdmin(req),body=await jsonBody(req);if(body.confirm!==true)throw new HttpError(400,'İşlemi onaylayın.');const runtime=await onlineRuntime();if(body.action==='backup'){await runtime.runUnifiedBackup();audit(db(),actor.username,'backup.manual','Birleşik yedek');}else if(body.action==='telegram.retry'&&typeof body.id==='string'&&body.id.length<=200){try{runtime.retryTelegram(body.id);}catch{throw new HttpError(409,'Mesaj yeniden gönderilemedi. Telegram ayarını ve mesajın güncel durumunu kontrol edin.');}audit(db(),actor.username,'telegram.retry',body.id);}else throw new HttpError(400,'Geçersiz işlem.');return Response.json({ok:true});}catch(e){return errorResponse(e);}}

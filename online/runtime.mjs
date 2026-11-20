@@ -1,3 +1,4 @@
+import {createUnifiedBackups} from './dokploy/unified-backup.mjs';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {mkdir,readdir,stat,rename,writeFile,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
@@ -25,7 +26,7 @@ const BUCKET={
  async list(){const names=(await readdir(backupDir)).filter(n=>n.endsWith('.json'));return {objects:await Promise.all(names.map(async name=>({key:'backups/'+name,uploaded:(await stat(join(backupDir,name))).mtime}))) };},
  async delete(key){if(!/^backups\/[\w.:-]+\.json$/.test(key))throw Error('Geçersiz yedek yolu');await rm(join(dataDir,key),{force:true});}
 };
-const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM};
+const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM,ONLINE_CHANGED:()=>publishOnline()};
 const legacySecurity=auth(env);
 export async function legacyLogin(request,input){
  const row=sqlite.prepare('SELECT id FROM auth_users WHERE username=?').get(normalize(input.username));
@@ -114,3 +115,9 @@ export function startOnline(){
 }
 export function stopOnline(){clearTimeout(timer);clearTimeout(sendTimer);timer=undefined;}
 startOnline();
+
+const unifiedBackups=createUnifiedBackups();
+export async function operationsHealth(){return {backup:await unifiedBackups.status(),telegram:TELEGRAM.localStatus(),onlinePushSubscriptions:Number(sqlite.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').get().n)};}
+export async function runUnifiedBackup(){return unifiedBackups.run();}
+export function retryTelegram(id){return TELEGRAM.retry(id);}
+if(process.env.ONLINE_BACKGROUND!=='0')unifiedBackups.start();

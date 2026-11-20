@@ -1,3 +1,4 @@
+import {audit} from '@/lib/audit-log';
 import {recordDiagnostic} from '@/lib/diagnostics';
 import {assertOrderPermission,assertWaiterTicket} from '@/lib/operator-policy';
 import { db } from '@/lib/db';
@@ -21,5 +22,8 @@ export async function GET(req:Request){try{
 export async function POST(req:Request){try{
  const operator=await requireOperator(req),{request_id,command,day_id}=posRequestSchema.parse(await jsonBody(req));
  const current='ticket_id' in command?ticket(db(),command.ticket_id):undefined;assertOrderPermission(operator.role,command,current);
- return Response.json(executePos(db(),request_id,command,operator.actor,operator.role==='waiter'?'waiter':'cashier',day_id),{headers:noStore});
+ const reused=!!db().prepare('SELECT 1 FROM pos_requests WHERE id=?').get(request_id);
+ const result=executePos(db(),request_id,command,operator.actor,operator.role==='waiter'?'waiter':'cashier',day_id);
+ if(!reused)audit(db(),operator.username,'pos.'+command.action,String(result.number||result.id));
+ return Response.json(result,{headers:noStore});
 }catch(error){return posErrorResponse(error);}}

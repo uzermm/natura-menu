@@ -1,4 +1,5 @@
 'use client';
+import {MenuQuality} from './menu-quality';
 import { useState } from 'react';
 import { ArrowDown,ArrowUp,ChefHat,ChevronDown,Eye,EyeOff,Layers,Pencil,Plus,Search,Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -22,7 +23,7 @@ export default function AdminMenuManager({categories,busy,onEditCategory,onDelet
  const matchesCategory=(category:Category,text=search)=>normalize(category.name).includes(text)||category.items.some(i=>matchesItem(i,text));
  const visible=categories.filter(c=>!search||matchesCategory(c));
  function toggle(id:string){setExpanded(ids=>ids.includes(id)?ids.filter(x=>x!==id):[...ids,id]);}
- return <div className="space-y-4">
+ return <div className="space-y-4"><MenuQuality categories={categories} onEdit={onEditItem}/>
   <div className="flex flex-wrap gap-3"><div className="relative min-w-48 flex-1"><Search size={17} className="absolute left-3 top-3.5 text-muted-foreground"/><Input aria-label="Kategori veya ürün ara" className="h-11 bg-white pl-10" placeholder="Kategori veya ürün ara…" value={query} onChange={e=>{const value=e.target.value;setQuery(value);const text=normalize(value.trim());setExpanded(text?categories.filter(c=>matchesCategory(c,text)).map(c=>c.id):[]);}}/></div><Button variant="outline" className="h-11 bg-white" disabled={busy||!categories.length} onClick={()=>onBulkPrices('')}>Toplu fiyat güncelle</Button></div>
   {visible.map(c=>{
    const index=categories.findIndex(category=>category.id===c.id),open=expanded.includes(c.id);

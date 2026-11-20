@@ -1,0 +1,11 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+const root=mkdtempSync(path.join(tmpdir(),'natura-telegram-health-'));process.env.DATA_DIR=root;process.env.ONLINE_DATA_DIR=path.join(root,'online');process.env.TELEGRAM_BOT_TOKEN='123:test';process.env.TELEGRAM_CHAT_ID='-1001';
+const {createTelegram}=await import('../online/dokploy/telegram.mjs');const {sqlite}=await import('../online/dokploy/database.mjs');
+after(()=>{sqlite.close();rmSync(root,{recursive:true,force:true});});
+test('Telegram health exposes safe branch/code metadata, isolates the current group and retries only unresolved jobs without sending immediately',()=>{
+ const insert=sqlite.prepare('INSERT INTO telegram_orders(order_id,chat_id,payload,status,attempts,next_at,created_at) VALUES(?,?,?,?,?,?,?)');insert.run('one','-1001',JSON.stringify({orderCode:'007',restaurant:'Branch',secret:'must-not-leak'}),'uncertain',8,0,Date.now());insert.run('old-group','-1002','{}','failed',1,0,Date.now());insert.run('done','-1001','{}','sent',1,0,Date.now());let sends=0;const telegram=createTelegram('https://panel.example',{fetchImpl:async()=>{sends++;return Response.json({ok:true,result:{}});}});const status=telegram.localStatus();assert.equal(status.recent.length,1);assert.equal(status.recent[0].code,'007');assert.equal(status.recent[0].restaurant,'Branch');assert.equal(JSON.stringify(status).includes('must-not-leak'),false);assert.throws(()=>telegram.retry('done'));assert.throws(()=>telegram.retry('old-group'));assert.deepEqual(telegram.retry('one'),{ok:true});assert.equal(sqlite.prepare('SELECT status,attempts FROM telegram_orders WHERE order_id=?').get('one')!.status,'queued');assert.equal(sqlite.prepare('SELECT attempts FROM telegram_orders WHERE order_id=?').get('one')!.attempts,0);assert.equal(sends,0);
+});

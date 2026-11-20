@@ -1,3 +1,4 @@
+import {audit} from './audit-log';
 import {randomUUID} from 'node:crypto';
 import {db,transaction} from './db';
 import {adminUsername} from './usernames';
@@ -32,6 +33,7 @@ export async function saveUser(input:{id?:string;username:string;name:string;rol
    setUserAccess(d,'employee:'+id,input.role,input.name);
   });
  }
+ audit(d,users.find(user=>user.id===actor)?.username||actor,old?'user.update':'user.create',input.username+' · '+input.role);
  runtime.syncIdentities();
 }
 export async function removeUser(id:string,actor:string){
@@ -40,5 +42,6 @@ export async function removeUser(id:string,actor:string){
  const d=db(),runtime=await onlineRuntime();
  if(id.startsWith('portal:')){runtime.removeLegacyUser(id.slice(7));d.prepare('DELETE FROM push_subscriptions WHERE owner_id=?').run(id);d.prepare('DELETE FROM user_access WHERE id=?').run(id);}
  else transaction(()=>{d.prepare('DELETE FROM push_subscriptions WHERE owner_id=?').run(id);d.prepare('DELETE FROM employees WHERE id=?').run(id);d.prepare('DELETE FROM user_access WHERE id=?').run('employee:'+id);});
+ audit(d,(await listUsers()).find(row=>row.id===actor)?.username||actor,'user.delete',user.username);
  runtime.syncIdentities();
 }

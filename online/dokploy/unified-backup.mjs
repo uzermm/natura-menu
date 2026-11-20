@@ -1,0 +1,31 @@
+import {DatabaseSync,backup} from 'node:sqlite';
+import {mkdir,cp,writeFile,rename,readFile,readdir,rm,stat,statfs} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import path from 'node:path';
+export function createUnifiedBackups({cafeDir=path.resolve(process.env.DATA_DIR||'data'),onlineDir=path.resolve(process.env.ONLINE_DATA_DIR||path.join(cafeDir,'online')),copyDir=process.env.BACKUP_COPY_DIR||'',keep=7,minimumFreeBytes=128*1024*1024,now=()=>Date.now()}={}){
+ async function bytes(dir){if(!existsSync(dir))return 0;let total=0;for(const entry of await readdir(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())total+=await bytes(file);else if(entry.isFile())total+=(await stat(file)).size;}return total;}
+ async function enoughSpace(dir,required){const disk=await statfs(dir);if(Number(disk.bavail)*Number(disk.bsize)<required+minimumFreeBytes)throw Error('Yedek için yeterli boş alan yok.');}
+ const root=path.join(cafeDir,'backups'),statusFile=path.join(root,'unified-status.json');let running=null,started=false;
+ const initial={lastSuccess:null,lastAttempt:null,error:null,copyError:null,count:0};
+ async function status(){let saved=initial;try{saved={...initial,...JSON.parse(await readFile(statusFile,'utf8'))};}catch{}return {...saved,running:!!running,copyConfigured:!!copyDir,intervalHours:24};}
+ async function store(value){await mkdir(root,{recursive:true,mode:0o700});const temp=statusFile+'.tmp';await writeFile(temp,JSON.stringify(value),{mode:0o600});await rename(temp,statusFile);}
+ async function run(){if(running){await running;return status();}running=(async()=>{const previous=await status(),at=now();let target;
+  try{
+   for(const file of [path.join(cafeDir,'natura.sqlite'),path.join(onlineDir,'sites.sqlite'),path.join(onlineDir,'sites-data.key')])if(!existsSync(file))throw Error('Veritabanları veya şifreleme anahtarı henüz hazır değil.');
+   await mkdir(root,{recursive:true,mode:0o700});const databaseBytes=await Promise.all([path.join(cafeDir,'natura.sqlite'),path.join(cafeDir,'natura.sqlite-wal'),path.join(onlineDir,'sites.sqlite'),path.join(onlineDir,'sites.sqlite-wal')].map(async file=>existsSync(file)?(await stat(file)).size:0));const required=Math.ceil(((await bytes(path.join(cafeDir,'uploads')))+databaseBytes.reduce((a,b)=>a+b,0)+1048576)*1.2);await enoughSpace(root,required);const name='unified-v2-'+new Date(at).toISOString().replace(/[:.]/g,'-');target=path.join(root,name+'.partial');await mkdir(path.join(target,'online'),{recursive:true,mode:0o700});
+   const cafe=new DatabaseSync(path.join(cafeDir,'natura.sqlite'),{readOnly:true}),online=new DatabaseSync(path.join(onlineDir,'sites.sqlite'),{readOnly:true});
+   try{await backup(cafe,path.join(target,'natura.sqlite'));await backup(online,path.join(target,'online','sites.sqlite'));}finally{cafe.close();online.close();}
+   for(const file of ['sites-data.key','web-push.key'])if(existsSync(path.join(onlineDir,file)))await cp(path.join(onlineDir,file),path.join(target,'online',file));
+   if(existsSync(path.join(cafeDir,'uploads')))await cp(path.join(cafeDir,'uploads'),path.join(target,'uploads'),{recursive:true});
+   await writeFile(path.join(target,'backup-info.json'),JSON.stringify({formatVersion:2,createdAt:at,databases:['natura.sqlite','online/sites.sqlite'],includes:['uploads','online/sites-data.key','online/web-push.key'],credentials:'Runtime environment secrets remain in Dokploy.'}),{mode:0o600});
+   for(const relative of ['natura.sqlite','online/sites.sqlite']){const checked=new DatabaseSync(path.join(target,relative),{readOnly:true});try{if(checked.prepare('PRAGMA quick_check').get().quick_check!=='ok')throw Error('Yedek doğrulanamadı.');}finally{checked.close();}}
+   const complete=path.join(root,name);await rename(target,complete);target=null;let copyError=null;
+   if(copyDir){let partialCopy;try{const dest=path.resolve(copyDir);for(const dir of [cafeDir,onlineDir]){const rel=path.relative(path.resolve(dir),dest);if(!rel||!rel.startsWith('..')&&!path.isAbsolute(rel))throw Error('İkinci kopya veri alanlarının dışında ayrı bir konuma bağlanmalı.');}await mkdir(dest,{recursive:true,mode:0o700});await enoughSpace(dest,required);partialCopy=path.join(dest,name+'.partial');if(existsSync(partialCopy)){partialCopy=null;throw Error('Yedek hedefi zaten mevcut.');}await cp(complete,partialCopy,{recursive:true,errorOnExist:true,force:false});await rename(partialCopy,path.join(dest,name));partialCopy=null;const copied=(await readdir(dest)).filter(n=>/^unified-v2-[0-9TZ-]+$/.test(n)).sort().reverse();for(const old of copied.slice(keep))await rm(path.join(dest,old),{recursive:true,force:true});}catch{if(partialCopy)await rm(partialCopy,{recursive:true,force:true}).catch(()=>{});copyError='İkinci kopya tamamlanamadı; ayrı yedek konumunu kontrol edin.';}}
+   const names=(await readdir(root)).filter(n=>/^unified-v2-[0-9TZ-]+$/.test(n)).sort().reverse();for(const name of names.slice(keep))await rm(path.join(root,name),{recursive:true,force:true});
+   await store({lastSuccess:at,lastAttempt:at,error:null,copyError,count:Math.min(names.length,keep)});
+  }catch(error){if(target)await rm(target,{recursive:true,force:true}).catch(()=>{});await store({...previous,running:undefined,lastAttempt:at,error:'Birleşik yedek tamamlanamadı. Disk alanını, dosya izinlerini ve veri alanlarını kontrol edin.'});throw error;}
+  return status();
+ })().finally(()=>{running=null;});await running;return status();}
+ function start(){if(started)return;started=true;const check=async()=>{try{const value=await status();if(!value.lastSuccess||now()-value.lastSuccess>=86400000)await run();}catch{console.warn('Birleşik yedekleme tamamlanamadı; sistem durumundan kontrol edin.');}};setTimeout(check,60000).unref();setInterval(check,3600000).unref();}
+ return {status,run,start};
+}

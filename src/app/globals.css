@@ -132,3 +132,7 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;top:65px;bottom:calc(64
 .online-workspace-frame{height:auto;min-height:1px}
 .kitchen-shell[data-role=kitchen] .online-workspace-frame{height:auto}
 @media(max-width:700px){.settings-sections{top:59px}.kitchen-menu-backdrop{backdrop-filter:none}.kitchen-main{overflow-anchor:none}}
+
+/* Shared compact controls and dock details: visual size stays small, targets stay usable. */
+.connection-dock-branch{border:0;background:transparent;text-align:left;padding:0;cursor:pointer;border-radius:7px;min-height:34px}.connection-dock-branch:focus-visible{outline:2px solid #477649;outline-offset:3px}
+@media(max-width:700px){.kitchen-header button{width:40px;height:40px;min-width:40px}.kitchen-header{padding:6px 8px;min-height:59px}.kitchen-header>div>div:last-child{gap:3px}.kitchen-header .kitchen-menu-toggle{width:40px;height:40px}.kitchen-header p:last-child{font-size:13px}.connection-dock-branch{min-height:32px}}

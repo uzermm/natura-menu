@@ -1,3 +1,4 @@
+import {createPrintJournal,printStatus} from './print-journal.js';
 import {setupPhoneNotifications} from './phone-notifications.js';
 import {patchHTML} from './dom-update.js';
 import {productPricing,orderTotals} from './product-pricing.js';
@@ -85,6 +86,7 @@ try { appPrint = printPreferences.getItem(appPrintKey) === '1'; } catch {}
 const autoPrintEnabled = () => !mobileQuery.matches && Boolean(navigator.locks) &&
  (location.hash === autoPrintHash || appPrint);
 let receiptQueue = Promise.resolve();
+const printJournal=createPrintJournal(localStorage);
 const printToggle = $('#printToggle');
 
 function showPrintMode() {
@@ -127,29 +129,17 @@ mobileQuery.addEventListener('change', showPrintMode);
 showPrintMode();
 
 function queueReceipt(order, automatic = false, test = false) {
- const job = async () => {
-  if ((automatic || test) && !autoPrintEnabled()) return;
-  const key = JSON.stringify([order.accountId, order.number || order.id]);
-  const ledgerKey = 'om-auto-receipts';
-  let submitted;
-  if (automatic) {
-   submitted = JSON.parse(localStorage.getItem(ledgerKey) || '{}');
-   if (Object.hasOwn(submitted, key)) return;
-  }
-  await printOrder(order, automatic ? () => {
-   if (!autoPrintEnabled()) return false;
-   const cutoff = Date.now() - 2 * 86400000;
-   const recent = Object.entries(submitted).filter(([, at]) => at > cutoff);
-   localStorage.setItem(ledgerKey, JSON.stringify(Object.fromEntries([...recent, [key, Date.now()]])));
-   return true;
-  } : null);
+ let record;const key=JSON.stringify([order.accountId,order.number||order.id]);
+ try{if(automatic&&(Object.hasOwn(JSON.parse(localStorage.getItem('om-auto-receipts')||'{}'),key)||printJournal.hasAutomatic(key)))return Promise.resolve();record=printJournal.begin(order,{automatic,test});}catch(error){toast(error.message);return Promise.resolve();}
+ const job=async()=>{let started=false;
+  try{if((automatic||test)&&!autoPrintEnabled()){printJournal.update(record.id,'failed');return;}
+   if(automatic&&Object.hasOwn(JSON.parse(localStorage.getItem('om-auto-receipts')||'{}'),key)){printJournal.update(record.id,'submitted');return;}
+   await printOrder(order,()=>{if((automatic||test)&&!autoPrintEnabled())return false;printJournal.update(record.id,'sending');started=true;
+    if(automatic){const submitted=JSON.parse(localStorage.getItem('om-auto-receipts')||'{}'),cutoff=Date.now()-2*86400000,recent=Object.entries(submitted).filter(([,at])=>at>cutoff);localStorage.setItem('om-auto-receipts',JSON.stringify(Object.fromEntries([...recent,[key,Date.now()]])));}return true;});
+   printJournal.update(record.id,started?'submitted':'failed');
+  }catch(error){printJournal.update(record.id,started?'uncertain':'failed');throw error;}
  };
- receiptQueue = receiptQueue.then(() => navigator.locks
-  ? navigator.locks.request('om-receipt-printing', job)
-  : job()).catch(error => {
-   toast(error.message || 'Fiş yazdırılamadı.');
-  });
- return receiptQueue;
+ receiptQueue=receiptQueue.then(()=>navigator.locks?navigator.locks.request('om-receipt-printing',job):job()).catch(error=>toast(error.message||'Fiş gönderilemedi. Yazdırma geçmişinden kontrol edin.'));return receiptQueue;
 }
 
 function printReceiptPage() {
@@ -305,6 +295,7 @@ new ResizeObserver(()=>{
 let reviewsLoading=false;
 function updateRefreshButton(){
  const busy=view==='reviews'?reviewsLoading:state.busy;
+ $('#refreshButton').dataset.busy=String(busy);
  $('#refreshButton').disabled=busy||!state.accounts.length||!connected;
  $('#refreshButton').textContent=view==='reviews'
   ? (busy?'↻ Yorumlar yenileniyor…':'↻ Yorumları yenile')
@@ -313,7 +304,7 @@ function updateRefreshButton(){
 const reviewsView=createReviewsView({api,escape,branchHeader,identity,date,toast,getState:()=>state,onLoadingChange:value=>{reviewsLoading=value;updateRefreshButton();}});
 function showView(v){if(v==='settings'&&state.user?.role!=='admin')v='orders';const changed=view!==v;view=v;for(const name of ['orders','reviews','settings']){$('#'+name+'View').hidden=v!==name;$('#'+name+'Nav')?.classList.toggle('active',v===name);}$('.portal-title').textContent=v==='reviews'?'Değerlendirmeler':'Sipariş Merkezi';updateRefreshButton();if(v==='settings'){loadSettings();}if(v==='reviews')void reviewsView.load();if(changed)render();}
 function render(){
- document.dispatchEvent(new CustomEvent('online:accounts',{detail:state.accounts.map(account=>({id:account.id,name:account.label,state:account.status?.state||'waiting',lastSuccess:account.status?.lastSuccess||null}))}));
+ document.dispatchEvent(new CustomEvent('online:accounts',{detail:state.accounts.map(account=>({id:account.id,name:account.label,state:account.status?.state||'waiting',lastSuccess:account.status?.lastSuccess||null,message:account.status?.message||''}))}));
 
 
  const isAdmin=state.user?.role==='admin';document.querySelectorAll('.admin-only').forEach(el=>el.hidden=!isAdmin);if(!isAdmin&&view==='settings')showView('orders');
@@ -371,7 +362,7 @@ function render(){
 $('#reviewsNav').onclick=()=>showView('reviews');
 $('#ordersNav').onclick=()=>showView('orders');
 $('#refreshButton').onclick=async()=>{if(view==='reviews'){await reviewsView.load(true);return;}try{await api('/api/sync','POST');await pollState();toast('Sipariş kontrolü başlatıldı.');}catch(e){toast(e.message);}};
-$('#search').oninput=render;$('#storeFilter').onchange=render;$('#dateFilter').onchange=render;
+$('#search').oninput=render;$('#storeFilter').onchange=render;$('#dateFilter').onchange=()=>{tab=$('#dateFilter').value==='today'?'active':'all';document.querySelectorAll('#tabs button').forEach(button=>button.classList.toggle('selected',button.dataset.status===tab));render();};
 $('#restaurantSummaries').onclick=e=>{const b=e.target.closest('[data-store]');if(!b)return;$('#storeFilter').value=$('#storeFilter').value===b.dataset.store?'':b.dataset.store;render();};
 $('#tabs').onclick=e=>{const b=e.target.closest('[data-status]');if(!b)return;tab=b.dataset.status;document.querySelectorAll('#tabs button').forEach(el=>el.classList.toggle('selected',el===b));render();};
 async function handleOrderAction(button){const card=button.closest('[data-order]'),id=card?.dataset.order,order=state.orders.find(o=>o.id===id),action=button.dataset.orderAction;if(!order||localOrderActions.has(id))return;if(action!=='check'&&!confirm(order.restaurant+' · #'+order.number+'\n'+(action==='accept'?'Sipariş kabul edilsin mi? Hazırlama süresi '+PREPARATION_WARNING_MINUTES+' dakika olarak gönderilecek.':'Siparişin hazırlandığı Trendyol Go’ya bildirilsin mi?')))return;localOrderActions.add(id);render();try{const result=await api('/api/orders/'+encodeURIComponent(id)+'/actions','POST',{action});toast(result.message);state=await api('/api/state');}catch(error){toast(error.message);}finally{localOrderActions.delete(id);render();}}
@@ -450,5 +441,9 @@ document.addEventListener('online:sound',event=>{if(event.detail)void sound.enab
 window.onlineAppReady=true;window.dispatchEvent(new Event('online:app-ready'));
 
 // Unified panel toolbar: select a receipt without repeating controls on every card.
-document.addEventListener('online:print-menu',()=>{const body=$('#detailBody');body.innerHTML='<h2>Yazdırma</h2>'+(!mobileQuery.matches?'<button type="button" class="button toolbar-print-option" data-toolbar-auto>Otomatik yazdırma · '+(autoPrintEnabled()?'Aktif':'Kapalı')+'</button>':'')+'<h3>Sipariş fişi seçin</h3>'+(state.orders.length?state.orders.map(o=>'<button type="button" class="button toolbar-print-option" data-toolbar-receipt="'+escape(o.id)+'">'+escape(o.restaurant)+' · #'+escape(o.orderCode||o.number)+(o.customer?' · '+escape(o.customer):'')+'</button>').join(''):'<p>Yazdırılacak sipariş yok.</p>');document.dispatchEvent(new Event('online:dialog-opening'));if(!$('#detail').open)$('#detail').showModal();});
-$('#detailBody').addEventListener('click',event=>{if(event.target.closest('[data-toolbar-auto]')){$('#detail').close();printToggle.click();return;}const button=event.target.closest('[data-toolbar-receipt]');if(!button)return;const order=state.orders.find(o=>o.id===button.dataset.toolbarReceipt);if(order){$('#detail').close();void queueReceipt(order);}});
+document.addEventListener('online:print-menu',()=>{
+ const body=$('#detailBody');let history='';try{history=printJournal.read().slice(-20).reverse().map(job=>'<li><div><strong>'+escape(job.restaurant)+' · #'+escape(job.code)+'</strong><small>'+escape(date(job.at))+' · '+escape(printStatus[job.status]||'Sonucu belirsiz')+'</small></div>'+(!job.test&&state.orders.some(o=>o.id===job.orderId)?'<button class="button" data-toolbar-retry="'+escape(job.orderId)+'">Yeniden yazdır</button>':'')+'</li>').join('');}catch(error){history='<li>'+escape(error.message)+'</li>';}
+ body.innerHTML='<h2>Yazdırma</h2>'+(!mobileQuery.matches?'<button type="button" class="button toolbar-print-option" data-toolbar-auto>Otomatik yazdırma · '+(autoPrintEnabled()?'Aktif':'Kapalı')+'</button>':'')+'<p class="print-explanation">Gönderildi bilgisi kâğıt çıktısını doğrulamaz. Yazıcıyı kontrol ederek yeniden yazdırabilirsiniz.</p><h3>Son baskılar</h3><ul class="print-history">'+(history||'<li>Bu cihazda henüz baskı kaydı yok.</li>')+'</ul><h3>Sipariş fişi seçin</h3><input class="print-search" aria-label="Yazdırılacak siparişi ara" placeholder="Şube, kod veya müşteri ara…"><div class="print-order-list">'+state.orders.map(o=>'<button type="button" class="button toolbar-print-option" data-toolbar-receipt="'+escape(o.id)+'">'+escape(o.restaurant)+' · #'+escape(o.orderCode||o.number)+(o.customer?' · '+escape(o.customer):'')+'</button>').join('')+(state.orders.length?'':'<p>Yazdırılacak sipariş yok.</p>')+'</div>';document.dispatchEvent(new Event('online:dialog-opening'));if(!$('#detail').open)$('#detail').showModal();
+});
+$('#detailBody').addEventListener('input',event=>{if(!event.target.matches('.print-search'))return;const query=event.target.value.toLocaleLowerCase('tr-TR');for(const button of document.querySelectorAll('[data-toolbar-receipt]'))button.hidden=!button.textContent.toLocaleLowerCase('tr-TR').includes(query);});
+$('#detailBody').addEventListener('click',event=>{if(event.target.closest('[data-toolbar-auto]')){$('#detail').close();printToggle.click();return;}const button=event.target.closest('[data-toolbar-receipt],[data-toolbar-retry]');if(!button)return;const order=state.orders.find(o=>o.id===(button.dataset.toolbarReceipt||button.dataset.toolbarRetry));if(!order)return;let previous=false;try{previous=printJournal.read().some(job=>job.orderId===order.id);}catch(error){toast(error.message);return;}if((previous||button.dataset.toolbarRetry)&&!confirm('Bu sipariş için baskı kaydı var. Aynı fiş tekrar yazdırılsın mı?'))return;$('#detail').close();void queueReceipt(order);});

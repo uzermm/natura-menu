@@ -18,6 +18,7 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
   sqlite.prepare("UPDATE telegram_orders SET status='uncertain' WHERE status='sending'").run();
   const update = sqlite.prepare('UPDATE telegram_orders SET status=?,next_at=? WHERE order_id=? AND chat_id=?');
   let running = false;
+  let drainAgain = false;
   let lastTestAt = 0;
 
   async function telegramRequest(method, body, options={}) {
@@ -77,7 +78,8 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
     } catch (error) {
       const retry = error.status === 429 && job.attempts < 10;
       const status = retry ? 'queued' : error.status >= 400 && error.status < 500 ? 'failed' : 'uncertain';
-      update.run(status, Date.now() + Math.max(60000, (error.retryAfter || 60) * 1000), job.order_id, chat);
+      update.run(status, Date.now() + Math.max(1000, (error.retryAfter || 60) * 1000), job.order_id, chat);
+      if(error.status===429)sqlite.prepare("UPDATE telegram_orders SET next_at=MAX(next_at,?) WHERE chat_id=? AND status='queued'").run(Date.now()+Math.max(1000,(error.retryAfter||60)*1000),chat);
       console.warn('Telegram sipariş gönderimi:', status);
     }
   }
@@ -126,14 +128,18 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
       });
     },
     async drain() {
-      if (!enabled || running) return;
+      if (!enabled) return;
+      if (running) { drainAgain = true; return; }
       running = true;
       try {
+        // Drain a burst sequentially; every delivery retains its durable claim and retry state.
+        for (let count=0;count<25;count++) {
         const job = transaction(() => {
           const row = sqlite.prepare("SELECT * FROM telegram_orders WHERE chat_id=? AND status='queued' AND next_at<=? ORDER BY created_at LIMIT 1").get(chat, Date.now());
           if (row) sqlite.prepare('UPDATE telegram_orders SET attempts=attempts+1 WHERE order_id=? AND chat_id=?').run(row.order_id, chat);
           return row;
         });
+        if (!job) break;
         if (job) {
           try {
             await deliver(job);
@@ -143,10 +149,13 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
             console.warn('Telegram sipariş metni oluşturulamadı.');
           }
         }
+        }
         sqlite.prepare("DELETE FROM telegram_orders WHERE status IN ('sent','failed','uncertain') AND created_at<?").run(Date.now() - 30 * 86400000);
         await buttons.synchronize();
       } finally {
         running = false;
+        const remaining=sqlite.prepare("SELECT 1 FROM telegram_orders WHERE chat_id=? AND status='queued' AND next_at<=? LIMIT 1").get(chat,Date.now());
+        if(drainAgain||remaining){drainAgain=false;queueMicrotask(()=>void this.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.')));}
       }
     }
   };

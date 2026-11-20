@@ -28,7 +28,7 @@ const BUCKET={
  async list(){const names=(await readdir(backupDir)).filter(n=>n.endsWith('.json'));return {objects:await Promise.all(names.map(async name=>({key:'backups/'+name,uploaded:(await stat(join(backupDir,name))).mtime}))) };},
  async delete(key){if(!/^backups\/[\w.:-]+\.json$/.test(key))throw Error('Geçersiz yedek yolu');await rm(join(dataDir,key),{force:true});}
 };
-const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM,ONLINE_CHANGED:()=>publishOnline()};
+const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM,ORDERS_OBSERVED:orders=>{const now=Date.now();TELEGRAM.enqueue(orders.filter(o=>!o.test&&['Created','Picking'].includes(o.status)&&o.createdAt>now-300000),orders.filter(o=>!o.test&&o.courierNearby&&['Created','Picking','Invoiced'].includes(o.status)&&o.createdAt>now-86400000));void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));},ONLINE_CHANGED:()=>publishOnline()};
 const legacySecurity=auth(env);
 export async function legacyLogin(request,input){
  const row=sqlite.prepare('SELECT id FROM auth_users WHERE username=?').get(normalize(input.username));
@@ -108,7 +108,7 @@ export function subscribeOnline(callback){listeners.add(callback);return()=>list
 function publishOnline(){for(const callback of listeners)try{callback();}catch{}}
 export async function renewLegacy(request){return auth(env).renew(request);}
 let cursor=Date.now(),timer,sendTimer,callbackTimer,onlineStopped=false;
-export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);cursor=result.now;publishOnline();for(const order of result.orders)await PUSH.send(order);}
+export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));cursor=result.now;publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
  const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};

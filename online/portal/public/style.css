@@ -266,3 +266,8 @@ aside .brand.online-kitchen-brand{display:flex;flex-direction:column;align-items
 .ui-arrow{display:inline-block;width:16px;height:16px;flex-shrink:0;vertical-align:-3px;margin-inline-start:4px}
 .restaurant-summary .restaurant-focus{gap:5px}.restaurant-focus .ui-arrow{margin-inline-start:0}.restaurant-summary .restaurant-focus::after{content:none!important}
 .tabs-next .ui-arrow{width:19px;height:19px;margin:0;vertical-align:middle}
+/* Shared readable control rhythm without shrinking touch targets. */
+.review-reply select,.review-reply textarea{font-size:13px;line-height:1.5;border-radius:8px}
+.review-reply summary{min-height:40px;display:flex;align-items:center;font-weight:600}
+@media(max-width:700px){.review-muted,.review-date{font-size:11px}.review-reply select{min-height:40px}.dashboard-toolbar h2,.section-head h2{font-size:17px}.dashboard-toolbar,.section-head{margin-bottom:8px}}
+@media(max-width:700px){.restaurant-summary{padding:10px 12px}.restaurant-summary-head{gap:6px}.summary-footnote{margin:5px 0}.dashboard-toolbar{gap:8px}.restaurant-summary h2{font-size:13px}.summary-carousel-nav{margin:5px 0}.payment-breakdown small{font-size:11px}.payment-breakdown>div{padding:4px 0}}

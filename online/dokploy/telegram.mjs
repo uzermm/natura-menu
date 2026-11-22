@@ -74,7 +74,7 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
         if(controls)buttons.bind(controls.token,sent.message_id);
         sqlite.prepare('UPDATE telegram_orders SET text_index=? WHERE order_id=? AND chat_id=?').run(index + 1, job.order_id, chat);
       }
-      update.run('sent', Date.now(), job.order_id, chat);
+      update.run('sent', Date.now(), job.order_id, chat);if(job.kind==='order')sqlite.prepare('UPDATE notification_timing SET telegram_sent_at=COALESCE(telegram_sent_at,?) WHERE order_id=?').run(Date.now(),order.id);
     } catch (error) {
       const retry = error.status === 429 && job.attempts < 10;
       const status = retry ? 'queued' : error.status >= 400 && error.status < 500 ? 'failed' : 'uncertain';
@@ -119,7 +119,7 @@ export function createTelegram(origin, {fetchImpl=fetch,performOrderAction,getSn
       transaction(() => {
         const insert = sqlite.prepare('INSERT OR IGNORE INTO telegram_orders(order_id,chat_id,payload,next_at,created_at) VALUES(?,?,?,?,?)');
         for (const order of orders) {
-          if (!order.test) insert.run(order.id, chat, JSON.stringify(order), Date.now(), Date.now());
+          if (!order.test){sqlite.prepare('INSERT OR IGNORE INTO notification_timing(order_id,detected_at) VALUES(?,?)').run(order.id,Date.now());insert.run(order.id, chat, JSON.stringify(order), Date.now(), Date.now());}
         }
         const insertCourier = sqlite.prepare("INSERT OR IGNORE INTO telegram_orders(order_id,chat_id,payload,next_at,created_at,kind) VALUES(?,?,?,?,?,'courier')");
         for (const order of courierOrders) {

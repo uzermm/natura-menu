@@ -118,3 +118,11 @@ Yeni sipariş mesajlarının altında yan yana **Kabul Et** ve **Hazırlandı** 
 Her işlemden önce Trendyol üzerindeki güncel durum alınır. Hazırlandı için sipariş önce kabul edilmiş olmalıdır. Tekrar basma, eşzamanlı panel işlemleri ve sonucu belirsiz istekler mevcut sipariş kilidi ve kalıcı işlem kaydıyla korunur. Düğmeler aynı mesajda güncellenir; işlem geçmişine Telegram üyesinin adı ve kimliği yazılır. Önceki sürümlerin gönderdiği eski mesajlara düğme eklenmez. Düğmeler 48 saat geçerlidir.
 
 Ayarlar → Sistem bölümünde Telegram düğme bağlantısının durumu görülebilir. Bot için başka bir webhook veya ikinci `getUpdates` alıcısı çalışıyorsa bağlantı çakışması gösterilir; uygulama diğer bağlantıyı kendiliğinden silmez.
+
+## Bildirim ve sistem ölçümleri
+
+Online mobil bildirimler alıcı bazında kalıcı kuyrukta tutulur. Geçici hatalar iki dakikalık geçerlilik içinde yeniden denenir; devre dışı kullanıcılar, sürümü değişmiş kimlikler ve silinmiş abonelikler tekrar gönderilmez. Gönderim sırasında kesilen ve sonucu bilinmeyen kayıtlar belirsiz olarak işaretlenir. Sistem ekranındaki süreler, siparişin algılanmasından sağlayıcının kabulüne kadardır; telefonun gerçekten gösterdiğini kanıtlamaz.
+
+Sistem ekranı süreç belleği, süreç CPU kullanımı, boş disk ve son senkronizasyon süresini gösterir. Bunlar bütün sunucunun kaynak kullanımını temsil etmez.
+
+Yedek, ayrı geçici klasöre kopyalanarak integrity_check ve kayıtlı bağlantı varsa şifre çözme kontrolünden geçer. İkinci kopya dosyalarının SHA-256 değerleri doğrulanır. Ayrı konum için Dokploy'da bağımsız depolama bağlanmalı ve BACKUP_COPY_DIR bu konuma ayarlanmalıdır; aynı sunucudaki başka klasör tek başına sunucu kaybına karşı koruma değildir.

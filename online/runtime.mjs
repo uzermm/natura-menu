@@ -1,6 +1,6 @@
 import {createUnifiedBackups} from './dokploy/unified-backup.mjs';
 import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
-import {mkdir,readdir,stat,rename,writeFile,rm} from 'node:fs/promises';
+import {statfs,mkdir,readdir,stat,rename,writeFile,rm} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
 import {randomBytes,randomUUID,createHash} from 'node:crypto';
@@ -28,7 +28,7 @@ const BUCKET={
  async list(){const names=(await readdir(backupDir)).filter(n=>n.endsWith('.json'));return {objects:await Promise.all(names.map(async name=>({key:'backups/'+name,uploaded:(await stat(join(backupDir,name))).mtime}))) };},
  async delete(key){if(!/^backups\/[\w.:-]+\.json$/.test(key))throw Error('Geçersiz yedek yolu');await rm(join(dataDir,key),{force:true});}
 };
-const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM,ORDERS_OBSERVED:orders=>{const now=Date.now();TELEGRAM.enqueue(orders.filter(o=>!o.test&&['Created','Picking'].includes(o.status)&&o.createdAt>now-300000),orders.filter(o=>!o.test&&o.courierNearby&&['Created','Picking','Invoiced'].includes(o.status)&&o.createdAt>now-86400000));void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));},ONLINE_CHANGED:()=>publishOnline()};
+const env={DB,BUCKET,DATA_KEY,PUSH,TELEGRAM,ORDERS_OBSERVED:orders=>{const now=Date.now();for(const o of orders)if(!o.test&&['Created','Picking'].includes(o.status)&&o.createdAt>now-120000)PUSH.enqueue(o);void PUSH.drain().catch(()=>{});TELEGRAM.enqueue(orders.filter(o=>!o.test&&['Created','Picking'].includes(o.status)&&o.createdAt>now-300000),orders.filter(o=>!o.test&&o.courierNearby&&['Created','Picking','Invoiced'].includes(o.status)&&o.createdAt>now-86400000));void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));},ONLINE_CHANGED:()=>publishOnline()};
 const legacySecurity=auth(env);
 export async function legacyLogin(request,input){
  const row=sqlite.prepare('SELECT id FROM auth_users WHERE username=?').get(normalize(input.username));
@@ -107,20 +107,21 @@ const listeners=new Set();
 export function subscribeOnline(callback){listeners.add(callback);return()=>listeners.delete(callback);}
 function publishOnline(){for(const callback of listeners)try{callback();}catch{}}
 export async function renewLegacy(request){return auth(env).renew(request);}
+let lastTickMs=0,cpuSample=process.cpuUsage(),cpuSampleAt=performance.now();
 let cursor=Date.now(),timer,sendTimer,callbackTimer,onlineStopped=false;
-export async function tick(){syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));cursor=result.now;publishOnline();for(const order of result.orders)await PUSH.send(order);}
+export async function tick(){const started=performance.now();syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));cursor=result.now;lastTickMs=Math.round(performance.now()-started);publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
  const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};
- const send=async()=>{try{await TELEGRAM.drain();}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
+ const send=async()=>{try{await Promise.allSettled([TELEGRAM.drain(),PUSH.drain()]);}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
  const callbacks=async()=>{let delay=1000;try{delay=await TELEGRAM.pollCallbacks()||1000;}catch{delay=10000;console.warn('Telegram düğme alıcısı yeniden denenecek.');}finally{if(!onlineStopped){callbackTimer=setTimeout(callbacks,delay);callbackTimer.unref();}}};
- timer=setTimeout(poll,1000);timer.unref();if(TELEGRAM.enabled){sendTimer=setTimeout(send,5000);sendTimer.unref();callbackTimer=setTimeout(callbacks,1000);callbackTimer.unref();}
+ timer=setTimeout(poll,1000);timer.unref();{sendTimer=setTimeout(send,5000);sendTimer.unref();if(TELEGRAM.enabled){callbackTimer=setTimeout(callbacks,1000);callbackTimer.unref();}}
 }
 export function stopOnline(){onlineStopped=true;clearTimeout(timer);clearTimeout(sendTimer);clearTimeout(callbackTimer);TELEGRAM.stopCallbacks();timer=undefined;}
 startOnline();
 
 const unifiedBackups=createUnifiedBackups();
-export async function operationsHealth(){return {backup:await unifiedBackups.status(),telegram:TELEGRAM.localStatus(),onlinePushSubscriptions:Number(sqlite.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').get().n)};}
+export async function operationsHealth(){const sample=process.cpuUsage(),elapsed=Math.max(1,performance.now()-cpuSampleAt),cpuPercent=Math.round(((sample.user-cpuSample.user)+(sample.system-cpuSample.system))/elapsed/10);cpuSample=sample;cpuSampleAt=performance.now();const disk=await statfs(dataDir);return {backup:await unifiedBackups.status(),telegram:TELEGRAM.localStatus(),performance:{cpuPercent,lastTickMs,diskFreeMB:Math.round(Number(disk.bavail)*Number(disk.bsize)/1048576),rssMB:Math.round(process.memoryUsage().rss/1048576),heapMB:Math.round(process.memoryUsage().heapUsed/1048576),uptimeSeconds:Math.round(process.uptime()),cpuMicros:process.cpuUsage(),pushQueue:sqlite.prepare("SELECT status,COUNT(*) AS count FROM online_push_queue GROUP BY status").all(),timing:sqlite.prepare("SELECT order_id AS id,detected_at AS detectedAt,telegram_sent_at-detected_at AS telegramMs,push_sent_at-detected_at AS pushMs FROM notification_timing ORDER BY detected_at DESC LIMIT 20").all()},onlinePushSubscriptions:Number(sqlite.prepare('SELECT COUNT(*) AS n FROM push_subscriptions').get().n)};}
 export async function runUnifiedBackup(){return unifiedBackups.run();}
 export function retryTelegram(id){return TELEGRAM.retry(id);}
 if(process.env.ONLINE_BACKGROUND!=='0')unifiedBackups.start();

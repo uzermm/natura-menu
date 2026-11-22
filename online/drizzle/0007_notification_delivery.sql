@@ -1,0 +1,2 @@
+CREATE TABLE online_push_queue(order_id TEXT NOT NULL,endpoint TEXT NOT NULL,user_id TEXT NOT NULL,identity_version INTEGER NOT NULL,payload TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'queued',attempts INTEGER NOT NULL DEFAULT 0,next_at INTEGER NOT NULL,created_at INTEGER NOT NULL,sent_at INTEGER,last_error TEXT,PRIMARY KEY(order_id,endpoint));
+CREATE TABLE notification_timing(order_id TEXT PRIMARY KEY,detected_at INTEGER NOT NULL,telegram_sent_at INTEGER,push_sent_at INTEGER);

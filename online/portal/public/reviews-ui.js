@@ -4,7 +4,27 @@ export const REPLY_TEMPLATES=[
  {id:'liked',label:'Beğeniye yanıt',text:'Yemeğimizi beğenmenize çok sevindik. Afiyet olsun, tekrar bekleriz.'},
  {id:'feedback',label:'Öneri ve geri bildirim',text:'Geri bildiriminiz için teşekkür ederiz. Görüşleriniz hizmetimizi geliştirmemize yardımcı oluyor.'},
  {id:'unhappy',label:'Memnuniyetsizlik',text:'Deneyiminizin beklentilerinizi karşılamamasına üzüldük. Geri bildiriminiz için teşekkür ederiz.'},
- {id:'delay',label:'Gecikme',text:'Yaşadığınız gecikme için üzgünüz. Geri bildiriminiz için teşekkür ederiz.'}
+ {id:'delay',label:'Gecikme',text:'Yaşadığınız gecikme için üzgünüz. Geri bildiriminiz için teşekkür ederiz.'} ,
+ {"id":"treat","label":"İkram beğenisi","text":"Yemeğimizi ve ikramlarımızı beğenmenize çok sevindik. Güzel yorumunuz için teşekkür ederiz, afiyet olsun!"},
+ {"id":"taste","label":"Lezzet beğenisi","text":"Lezzetimizi beğenmeniz bizi çok mutlu etti. Afiyet olsun, bir sonraki siparişinizde de görüşmek dileğiyle."},
+ {"id":"regular","label":"Düzenli müşterimiz","text":"Bizi tekrar tercih ettiğiniz için çok teşekkür ederiz. Memnuniyetiniz bizim için çok değerli, afiyet olsun."},
+ {"id":"fast","label":"Hızlı teslimat beğenisi","text":"Siparişinizin hızlı ulaşmasına ve memnun kalmanıza sevindik. Güzel yorumunuz için teşekkür ederiz."},
+ {"id":"hot","label":"Sıcak yemek beğenisi","text":"Yemeğinizin sıcak ulaşmasına ve beğenmenize sevindik. Afiyet olsun, yeniden bekleriz."},
+ {"id":"packaging","label":"Paketleme beğenisi","text":"Paketlememizle ilgili güzel yorumunuz için teşekkür ederiz. Siparişinizden memnun kalmanıza çok sevindik."},
+ {"id":"portion","label":"Porsiyon beğenisi","text":"Porsiyonlarımızı ve yemeğimizi beğenmenize sevindik. Afiyet olsun, bizi tercih ettiğiniz için teşekkür ederiz."},
+ {"id":"value","label":"Fiyat ve performans","text":"Siparişinizden memnun kalmanız bizi mutlu etti. Değerli yorumunuz ve tercihiniz için teşekkür ederiz."},
+ {"id":"cold","label":"Soğuk gelen yemek","text":"Yemeğinizin beklediğiniz sıcaklıkta ulaşmamasına üzüldük. Sıcaklıkla ilgili geri bildiriminizi dikkate alacağız."},
+ {"id":"missing","label":"Eksik ürün","text":"Siparişinizde eksik ürün olması nedeniyle üzgünüz. Eksik ürünün kontrolü ve destek talebi için uygulamanın sipariş yardım bölümünden bize ulaşabilirsiniz."},
+ {"id":"wrong","label":"Yanlış ürün","text":"Siparişinizin istediğiniz şekilde ulaşmamasına üzüldük. Kontrol edilebilmesi için sipariş yardım bölümünden ürün detayını paylaşabilirsiniz."},
+ {"id":"spill","label":"Dökülme ve paket sorunu","text":"Paketinizin sorunsuz ulaşmamasına üzüldük. Paketlemeyle ilgili geri bildiriminizi dikkate alacağız."},
+ {"id":"small","label":"Porsiyon beklentisi","text":"Porsiyonun beklentinizi karşılamamasına üzüldük. Görüşünüzü paylaştığınız için teşekkür ederiz."},
+ {"id":"taste-issue","label":"Lezzet beklentisi","text":"Lezzetin beklentinizi karşılamamasına üzüldük. Ürünle ilgili görüşleriniz bizim için değerli; geri bildiriminiz için teşekkür ederiz."},
+ {"id":"cooking","label":"Pişirme beklentisi","text":"Ürünümüzün pişirme düzeyinin beklentinize uymamasına üzüldük. Geri bildiriminizi dikkate alacağız."},
+ {"id":"note","label":"Sipariş notu dikkate alınmamış","text":"Sipariş notunuzun istediğiniz şekilde uygulanmamasına üzüldük. Bu ayrıntıyı bizimle paylaştığınız için teşekkür ederiz."},
+ {"id":"mixed","label":"Beğeni ve eleştiri bir arada","text":"Beğendiğiniz noktaları ve geliştirmemizi istediğiniz ayrıntıları paylaştığınız için teşekkür ederiz. Geri bildiriminiz bizim için değerli."},
+ {"id":"service","label":"Servis memnuniyeti","text":"Servisimizden memnun kalmanıza sevindik. Güzel yorumunuz için teşekkür ederiz, afiyet olsun."},
+ {"id":"suggestion","label":"Ürün önerisi","text":"Önerinizi bizimle paylaştığınız için teşekkür ederiz. Menüyle ilgili görüşlerinizi değerlendirmekten mutluluk duyarız."},
+ {"id":"rating","label":"Yüksek puan için teşekkür","text":"Güzel değerlendirmeniz için çok teşekkür ederiz. Sizi yeniden ağırlamaktan mutluluk duyarız."}
 ];
 export function createReviewsView({api,escape,branchHeader,identity,date,toast,getState,onLoadingChange=()=>{}}){
  const $=selector=>document.querySelector(selector);let data={branches:[],pending:{}},loading=false,page=0;const drafts=new Map(),sending=new Set();

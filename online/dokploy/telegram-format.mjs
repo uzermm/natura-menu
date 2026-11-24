@@ -9,6 +9,7 @@ export function telegramOrderText(order) {
   for (const item of order.items || []) {
     lines.push((item.quantity ?? '?') + '× ' + item.name);
     for (const option of item.options || []) lines.push('  ↳ ' + option);
+    for (const extra of item.extras || []) lines.push('  ↳ Ekstra: ' + extra);
     if (item.removed?.length) lines.push('  Çıkarılacak: ' + item.removed.join(', '));
   }
   if (order.note) lines.push('', '━━━━━━━━━━━━━━━━', '✍ ' + order.note);
@@ -34,6 +35,7 @@ export function telegramCourierText(order) {
   for (const item of order.items || []) {
     lines.push((item.quantity ?? '?') + '× ' + item.name);
     for (const option of item.options || []) lines.push('  ↳ ' + option);
+    for (const extra of item.extras || []) lines.push('  ↳ Ekstra: ' + extra);
     if (item.removed?.length) lines.push('  Çıkarılacak: ' + item.removed.join(', '));
   }
   return lines.join('\n');

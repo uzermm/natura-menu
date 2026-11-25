@@ -136,3 +136,8 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;top:65px;bottom:calc(64
 /* Shared compact controls and dock details: visual size stays small, targets stay usable. */
 .connection-dock-branch{border:0;background:transparent;text-align:left;padding:0;cursor:pointer;border-radius:7px;min-height:34px}.connection-dock-branch:focus-visible{outline:2px solid #477649;outline-offset:3px}
 @media(max-width:700px){.kitchen-header button{width:40px;height:40px;min-width:40px}.kitchen-header{padding:6px 8px;min-height:59px}.kitchen-header>div>div:last-child{gap:3px}.kitchen-header .kitchen-menu-toggle{width:40px;height:40px}.kitchen-header p:last-child{font-size:13px}.connection-dock-branch{min-height:32px}}
+/* Consistent operation controls and readable helper text. */
+.kitchen-header button[data-slot="button"]{border-radius:10px}
+@media(min-width:701px){.connection-dock .dock-age-short{display:none!important}}
+@media(max-width:700px){.connection-dock .dock-age-full{display:none!important}}
+@media(max-width:639px){.menu-category-actions{justify-content:flex-start}.menu-category-actions button{font-size:11px;gap:4px;padding-left:7px;padding-right:7px;min-height:36px}.menu-category-actions button[data-size="icon"]{width:30px;padding:0}.menu-category-actions button.text-red-600{margin-left:auto;border-left:1px solid #e5e7df;border-radius:0;padding-left:8px;width:36px}}

@@ -29,12 +29,12 @@ export default function AdminMenuManager({categories,busy,onEditCategory,onDelet
    const index=categories.findIndex(category=>category.id===c.id),open=expanded.includes(c.id);
    const items=search&&!normalize(c.name).includes(search)?c.items.filter(i=>matchesItem(i)):c.items;
    return <section key={c.id} className="overflow-hidden rounded-2xl border bg-white">
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 p-3 md:p-4 ${open?'bg-[#f0f4e9]':'bg-white'}`}>
-     <h2 className="min-w-0 flex-1"><button type="button" aria-expanded={open} aria-controls={`admin-category-${c.id}`} onClick={()=>toggle(c.id)} className="flex min-h-14 w-full items-center gap-3 text-left">
-      {c.image_url?<img src={thumbnail(c.image_url)} alt="" width={48} height={48} loading="lazy" className="h-12 w-12 shrink-0 rounded-xl object-cover"/>:<span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-muted"><Layers size={20}/></span>}
+    <div className={`flex flex-wrap items-center gap-x-2 gap-y-1.5 p-2.5 md:p-3 ${open?'bg-[#f0f4e9]':'bg-white'}`}>
+     <h2 className="min-w-0 flex-1"><button type="button" aria-expanded={open} aria-controls={`admin-category-${c.id}`} onClick={()=>toggle(c.id)} className="flex min-h-11 w-full items-center gap-2 text-left">
+      {c.image_url?<img src={thumbnail(c.image_url)} alt="" width={48} height={48} loading="lazy" className="h-10 w-10 shrink-0 rounded-xl object-cover"/>:<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted"><Layers size={20}/></span>}
       <span className="min-w-0 flex-1"><span className="block break-words text-sm font-bold">{c.name}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{search?`${items.length} / `:''}{c.items.length} ürün · {c.is_active?'Aktif':'Pasif'} · {c.qr_visible===false?'QR menüde gizli':'QR menüde görünür'}</span></span><ChevronDown size={20} aria-hidden="true" className={`shrink-0 text-[#668456] transition-transform ${open?'rotate-180':''}`}/>
      </button></h2>
-     <div className="flex w-full flex-wrap items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:border-0 sm:pt-0">
+     <div className="menu-category-actions flex w-full flex-wrap items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:border-0 sm:pt-0">
       <Button variant="ghost" size="icon" disabled={busy||index===0} aria-label={`${c.name} yukarı taşı`} onClick={()=>onMoveCategory(c.id,-1)}><ArrowUp size={16}/></Button>
       <Button variant="ghost" size="icon" disabled={busy||index===categories.length-1} aria-label={`${c.name} aşağı taşı`} onClick={()=>onMoveCategory(c.id,1)}><ArrowDown size={16}/></Button>
       <Button variant="outline" disabled={busy} aria-label={`${c.name} QR menüde ${c.qr_visible===false?'göster':'gizle'}`} onClick={()=>onToggleCategory(c)}>{c.qr_visible===false?<EyeOff size={16}/>:<Eye size={16}/>}QR menüde {c.qr_visible===false?'göster':'gizle'}</Button>

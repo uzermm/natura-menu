@@ -25,8 +25,8 @@ export default function SettingsForm({settings,categories,onSave,onReload}:{sett
   try{await onSave({version:settings.version,table_count:Number(fd.get('table_count')),address:String(fd.get('address')),hours:String(fd.get('hours')),campaign:enabled?{item_id:itemId,variant,price,title:campaignTitle}:null});}
   catch(e){setError((e as Error).message);}finally{setBusy(false);}
  }}>
-  <section className="space-y-5 rounded-2xl border bg-white p-5 md:p-7" aria-labelledby="campaign-settings-title">
-   <div><h2 id="campaign-settings-title" className="serif text-2xl">Kampanya banner’ı</h2></div>
+  <section className="space-y-4 rounded-xl border bg-white p-4" aria-labelledby="campaign-settings-title">
+   <div><h2 id="campaign-settings-title" className="text-[17px] font-bold">Kampanya banner’ı</h2></div>
    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border p-3 text-sm"><span>Banner menüde görünsün</span><Switch checked={enabled} onCheckedChange={setEnabled} aria-label="Banner menüde görünsün"/></label>
    {enabled&&<>
     <div className="space-y-2"><Label htmlFor="campaign-title">Banner başlığı</Label><Input id="campaign-title" required maxLength={60} value={campaignTitle} onChange={e=>setCampaignTitle(e.target.value)} placeholder="Örn. Ayın fırsatı, Haftanın fırsatı"/></div>
@@ -37,7 +37,7 @@ export default function SettingsForm({settings,categories,onSave,onReload}:{sett
     {offer?<div><p className="mb-3 text-xs font-semibold text-muted-foreground">Menüdeki görünüm</p><CampaignBanner offer={offer}/></div>:itemId&&campaignPrice&&<p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Önizleme hazır değil.</p>}
    </>}
   </section>
-  <section className="space-y-6 rounded-2xl border bg-white p-5 md:p-7" aria-label="İşletme bilgileri">
+  <section className="space-y-4 rounded-xl border bg-white p-4" aria-label="İşletme bilgileri">
    <div className="space-y-2"><Label htmlFor="table-count">Masa sayısı</Label><Input id="table-count" name="table_count" type="number" min={1} max={200} defaultValue={settings.table_count} required/></div>
    <div className="space-y-2"><Label htmlFor="address">Adres</Label><Textarea id="address" name="address" defaultValue={settings.address} maxLength={300}/></div>
    <div className="space-y-2"><Label htmlFor="hours">Çalışma saatleri</Label><Input id="hours" name="hours" defaultValue={settings.hours} maxLength={160} placeholder="Örn. Her gün 09.00–23.00"/></div>

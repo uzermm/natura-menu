@@ -48,7 +48,10 @@ test('category page and service days remain editable independently of names',asy
 });
 
 test('safe edge proof keeps two A4 pages and readable explanatory type',async({page})=>{
+ await admin(page);const source=await(await page.request.get('/api/admin/state')).json();const added:string[]=[];
+ for(const category of source.categories.filter((c:any)=>/KAHVALTILIK|MAKARNALAR/.test(c.name))){const base=category.items.find((i:any)=>i.is_active&&i.qr_visible);const r=await page.request.post('/api/admin/items',{headers:{Origin:auditOrigin},data:{...base,id:undefined,version:undefined,name:'Prova ek ürün '+added.length,description:'',menu_note:'',service_note:'',price:10000,original_price:null,variants:[],image_url:'',display_order:1000}});expect(r.status()).toBe(200);added.push((await r.json()).id);}
  await page.goto('/printed-menu');await page.getByText('Baskı provası ve yazıcı ayarları',{exact:true}).click();await page.getByLabel('Baskı kenarı',{exact:true}).selectOption('safe');await expect(page.getByRole('button',{name:'Yazdır / PDF kaydet'})).toBeEnabled();
  const notes=await page.locator('.paper-note').evaluateAll(rows=>rows.map(e=>Number.parseFloat(getComputedStyle(e).fontSize)*.75));expect(notes.every(n=>n>=8.99)).toBe(true);
  await page.evaluate(()=>{window.print=()=>{};});await page.getByRole('button',{name:'Yazdır / PDF kaydet'}).click();await expect(page.locator('.print-menu-root')).toHaveClass(/print-authorized/);await page.emulateMedia({media:'print'});const pdf=await page.pdf({preferCSSPageSize:true,printBackground:true});expect(pdf.toString('latin1').match(/\/Type\s*\/Page\b/g)?.length).toBe(2);
+ const current=await(await page.request.get('/api/admin/state')).json();for(const id of added){const item=current.categories.flatMap((c:any)=>c.items).find((i:any)=>i.id===id);expect((await page.request.delete('/api/admin/items',{headers:{Origin:auditOrigin},data:{id,version:item.version}})).status()).toBe(200);}
 });

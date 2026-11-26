@@ -23,3 +23,7 @@
 .paper-breakfast-weekend{margin:2mm 0 1mm;font-size:.8em;font-weight:700;color:#80502d;letter-spacing:.5px}
 .paper-breakfast>.paper-note{margin-bottom:0;color:#59694f}
 
+.paper-header-gallery{position:absolute;right:0;top:0;width:100mm;height:100%;z-index:-2;display:grid;grid-template-columns:1.35fr 1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:.8mm;background:#163d30}
+.paper-header-gallery>img{width:100%;height:100%;min-height:0;object-fit:cover;object-position:center}
+.paper-header-gallery>.paper-header-main-dish{grid-row:1 / 3}
+.paper-food .paper-header:after{background:linear-gradient(90deg,#163d30 43%,#163d30ed 51%,#163d3055 62%,transparent 73%)}

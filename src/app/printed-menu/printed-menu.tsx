@@ -4,6 +4,14 @@ import type {Category,Item} from '@/lib/types';
 import './print.css';
 const price=(value:number)=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:value%100?2:0}).format(value/100)+' ₺';
 const breakfastId='4b50fd9c-dc08-4eb6-ae2c-1f6ea5f56829';
+// These are decorative header images; hidden menu items are not reactivated.
+const headerDishes=[
+ {id:'984cb2db-11de-486f-b2af-c43712871a3f',src:'/menu/ai-kremali-tavuklu-makarna-v1.webp'},
+ {id:'9d400b69-58cc-4a3c-afb9-7635e76ebe2b',src:'/menu/01be36fa4f502232c1d6.webp'},
+ {id:'1aede467-5485-4870-b55a-40ebe936760e',src:'/menu/c495d4db263addc6a413.webp'},
+ {id:'a75a74cd-1f4c-4c9c-939b-1d2b26e50a9c',src:'/menu/eeab836c8fa68a3ebea3.webp'},
+ {id:'41bdbc16-dc79-4204-88d6-36e89ed5a063',src:'/menu/f86c630c3763da529cce.webp'},
+];
 function photo(categories:Category[],match:RegExp):Item|undefined{return categories.flatMap(c=>c.items).find(i=>i.image_url&&match.test(i.name.toLocaleLowerCase('tr-TR')));}
 function CategoryBlock({category:c,food=false}:{category:Category;food?:boolean}){
  return <section className={`paper-category${food&&/tatlı/.test(c.name.toLocaleLowerCase('tr-TR'))?' paper-dessert':''}`}>
@@ -34,7 +42,7 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
   {overflow&&<p className="paper-warning" role="alert">İçerik iki A4 sayfasına okunaklı sığmıyor. Baskı durduruldu. Menüdeki görünürlüğü veya ürün adlarını düzenleyin.</p>}
   {pages.map(page=><article className={`menu-paper paper-${page.kind}`} key={page.title}>
    <header className="paper-header">
-    {page.kind==='food'&&page.photo&&<img className="paper-header-photo" src={page.photo.image_url} alt=""/>}
+    {page.kind==='food'&&<div className="paper-header-gallery" aria-hidden="true">{headerDishes.map((dish,index)=><img key={dish.id} className={index===0?'paper-header-main-dish':undefined} src={foodItems.find(i=>i.id===dish.id)?.image_url||dish.src} alt=""/>)}</div>}
     <img className="paper-logo paper-logo--light" src="/printed-menu/logo-transparent.webp" alt="Natura Bistro"/>
     <div className="paper-heading"><h1>{page.title}</h1><p>{page.subtitle}</p></div>
    </header>

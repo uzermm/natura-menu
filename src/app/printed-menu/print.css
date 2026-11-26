@@ -8,3 +8,5 @@
 .menu-paper:nth-of-type(2) .paper-item-line{line-height:1.18}
 .paper-three-columns .paper-columns{column-count:3;column-gap:6mm}
 .paper-note{margin:.7mm 0 1.3mm;white-space:pre-line;overflow-wrap:anywhere;font-size:.79em;line-height:1.3;color:#657259}
+.paper-logo{border-radius:0;background:transparent;object-fit:contain}
+.paper-footer{height:18mm}.paper-logo--light{filter:brightness(0) invert(1)}

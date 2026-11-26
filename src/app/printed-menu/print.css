@@ -14,3 +14,11 @@
 .paper-food .paper-dessert h2{color:#704627;border-left-color:#956c3d;background:#dfd0b7}
 .paper-food .paper-dessert .paper-item-line i{border-color:#b9c5b1}
 
+.paper-food-grid{height:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10mm;font-size:var(--menu-size)}
+.paper-food-column{min-width:0;min-height:0;display:flex;flex-direction:column}
+.paper-food-column>.paper-category{flex:none}
+.paper-breakfast{flex:none;margin-top:auto;padding-top:3mm;break-inside:avoid}
+.paper-breakfast h2{display:flex;justify-content:space-between;align-items:baseline;gap:2mm;margin:0;padding:2mm;background:#dce5d2;border-left:2px solid #a77a45;color:#244e38;font-size:1em;line-height:1.2;font-weight:700}
+.paper-breakfast h2>span{min-width:0;overflow-wrap:anywhere}.paper-breakfast h2 strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+.paper-breakfast-weekend{margin:2mm 0 1mm;font-size:.8em;font-weight:700;color:#80502d;letter-spacing:.5px}
+.paper-breakfast>.paper-note{margin-bottom:0;color:#59694f}

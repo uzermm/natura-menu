@@ -41,7 +41,7 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
    <div className="paper-content">{page.kind==='drinks'?<div className="paper-columns">{page.categories.filter(c=>c.items.length).map(c=><CategoryBlock key={c.id} category={c}/>)}</div>:<div className="paper-food-grid">
     <div className="paper-food-column">{foodSections.slice(0,split).map(c=><CategoryBlock key={c.id} category={c} food/>)}</div>
     <div className="paper-food-column">{foodSections.slice(split).map(c=><CategoryBlock key={c.id} category={c} food/>)}
-     {breakfast&&<section className="paper-breakfast" aria-label="Hafta sonu kahvaltısı"><h2><span>{breakfast.name}</span><strong>{price(breakfast.price)}</strong></h2><p className="paper-breakfast-weekend">Sadece hafta sonları</p>{(breakfast.menu_note||breakfast.description)&&<p className="paper-note">{breakfast.menu_note||breakfast.description}</p>}</section>}
+     {breakfast&&<section className="paper-breakfast" aria-label="Hafta sonu kahvaltısı"><h2><span>{breakfast.name.toLocaleUpperCase('tr-TR')}</span><strong>{price(breakfast.price)}</strong></h2><p className="paper-breakfast-weekend">Sadece hafta sonları</p>{(breakfast.menu_note||breakfast.description)&&<p className="paper-note">{breakfast.menu_note||breakfast.description}</p>}</section>}
     </div>
    </div>}</div>
    {page.kind==='drinks'&&<aside className="paper-feature"><div><span className="paper-eyebrow">KÜÇÜK BİR MOLA</span><p>Bir yudum.<br/><em>Güzel bir an.</em></p><span className="paper-feature-line"/></div>{page.photo&&<img src={page.photo.image_url} alt=""/>}</aside>}
@@ -49,3 +49,4 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
   </article>)}
  </main>;
 }
+

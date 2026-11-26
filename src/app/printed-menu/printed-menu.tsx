@@ -21,7 +21,7 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
     
    </header>
    <div className="paper-content"><div className="paper-columns">
-    {page.categories.filter(c=>c.items.length).map(c=><section className="paper-category" key={c.id}>
+    {page.categories.filter(c=>c.items.length).map(c=><section className={`paper-category${page.kind==='food'&&/tatlı/.test(c.name.toLocaleLowerCase('tr-TR'))?' paper-dessert':''}`} key={c.id}>
      <h2><span>{c.name}</span></h2>
      {c.items.map(item=><div className="paper-item" key={item.id}><div className="paper-item-line"><span>{item.name}</span><i/><strong>{price(item.price)}</strong></div>
       {item.menu_note&&<p className="paper-note">{item.menu_note}</p>}
@@ -34,6 +34,7 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
   </article>)}
  </main>;
 }
+
 
 
 

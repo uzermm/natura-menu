@@ -21,8 +21,8 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
     <span className="paper-number">0{index+1}</span>
    </header>
    <div className="paper-content"><div className="paper-columns">
-    {page.categories.filter(c=>c.items.length).map((c,categoryIndex)=><section className="paper-category" key={c.id}>
-     <h2><span className="paper-category-number">{String(categoryIndex+1).padStart(2,'0')}</span><span>{c.name}</span></h2>
+    {page.categories.filter(c=>c.items.length).map(c=><section className="paper-category" key={c.id}>
+     <h2><span>{c.name}</span></h2>
      {c.items.map(item=><div className="paper-item" key={item.id}><div className="paper-item-line"><span>{item.name}</span><i/><strong>{price(item.price)}</strong></div>
       {item.menu_note&&<p className="paper-note">{item.menu_note}</p>}
       {item.variants.length>0&&<div className="paper-variants">{item.variants.map(v=><div key={v.name}><span>{v.name}</span><strong>{price(v.price)}</strong></div>)}</div>}
@@ -34,3 +34,4 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
   </article>)}
  </main>;
 }
+

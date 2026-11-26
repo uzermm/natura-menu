@@ -9,6 +9,7 @@ import { applyGeneratedImageUpdates } from './image-updates';
 import {initPush} from './push-store';
 import {initAdminIdentity} from './usernames';
 import { initPos } from './pos-core';
+import {initPrintedMenu} from './printed-menu-migration';
 import {initMenuNotes} from './menu-notes';
 import {initUserAccess} from './user-access';
 
@@ -45,7 +46,7 @@ export function db() {
   }
   d.exec('COMMIT');
  }catch(e){d.exec('ROLLBACK');d.close();throw e;}
- initMenuNotes(d);singleton=d;return d;
+ initMenuNotes(d);initPrintedMenu(d);singleton=d;return d;
 }
 export function getSettings():Settings{const row=db().prepare('SELECT value,version FROM settings WHERE id=1').get()!;const value=JSON.parse(row.value as string);const campaign=campaignSchema.safeParse(value.campaign);return {version:Number(row.version),table_count:value.table_count,address:value.address,hours:value.hours,campaign:campaign.success?campaign.data:null};}
 function readItem(row:Record<string,unknown>):Item {return {...row,qr_visible:!!row.qr_visible,is_active:!!row.is_active,sold_out:!!row.sold_out,featured:!!row.featured,image_generated:!!row.image_generated,allergens_verified:!!row.allergens_verified,allergens:JSON.parse(row.allergens as string),tags:JSON.parse(row.tags as string),variants:JSON.parse(row.variants as string)} as Item;}

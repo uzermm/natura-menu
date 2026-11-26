@@ -7,7 +7,7 @@ function photo(categories:Category[],match:RegExp):Item|undefined{return categor
 export default function PrintedMenu({categories}:{categories:Category[]}){
  const root=useRef<HTMLDivElement>(null);const [ready,setReady]=useState(false),[overflow,setOverflow]=useState(false);
  const drinks=categories.filter(c=>/içecek/i.test(c.name.toLocaleLowerCase('tr-TR'))),food=categories.filter(c=>!/içecek/i.test(c.name.toLocaleLowerCase('tr-TR')));
- const pages=[{title:'İçecekler',subtitle:'Sohbetin en güzel eşlikçisi.',categories:drinks,kind:'drinks',photo:photo(drinks,/latte|kahve|cappuccino/)},{title:'Yiyecekler',subtitle:'Taze hazırlanır. Keyifle paylaşılır.',categories:food,kind:'food',photo:photo(food,/kremalı tavuk|burger|kahvaltı/)}];
+ const pages=[{title:'İçecekler',subtitle:'Sohbetin en güzel eşlikçisi.',categories:drinks,kind:'drinks',photo:photo(drinks,/latte|kahve|cappuccino/)},{title:'Yemek & Tatlı',subtitle:'Taze hazırlanır. Keyifle paylaşılır.',categories:food,kind:'food',photo:photo(food,/kremalı tavuk|burger|kahvaltı/)}];
  useEffect(()=>{let active=true;async function fit(){await document.fonts.ready;await Promise.all(Array.from(root.current?.querySelectorAll('img')||[]).map(img=>img.decode().catch(()=>{})));if(!active)return;let failed=false;
  root.current?.querySelectorAll<HTMLElement>('.paper-content').forEach(box=>{box.classList.remove('paper-three-columns');let size=box.closest('.paper-drinks')?12:11.5;const measure=()=>box.scrollHeight>box.clientHeight+1||box.scrollWidth>box.clientWidth+1;box.style.setProperty('--menu-size',size+'pt');while(measure()&&size>9){size-=.25;box.style.setProperty('--menu-size',size+'pt');}if(measure()){box.classList.add('paper-three-columns');size=11;box.style.setProperty('--menu-size',size+'pt');while(measure()&&size>9){size-=.25;box.style.setProperty('--menu-size',size+'pt');}}if(measure())failed=true;});setOverflow(failed);setReady(true);}void fit();return()=>{active=false;};},[categories]);
  return <main className={`print-menu-root ${overflow?'has-overflow':''}`} ref={root}>
@@ -17,7 +17,7 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
    <header className="paper-header">
     {page.kind==='food'&&page.photo&&<img className="paper-header-photo" src={page.photo.image_url} alt=""/>}
     <img className="paper-logo paper-logo--light" src="/printed-menu/logo-transparent.webp" alt="Natura Bistro"/>
-    <div className="paper-heading"><span className="paper-eyebrow">NATURA BISTRO</span><h1>{page.title}</h1><p>{page.subtitle}</p></div>
+    <div className="paper-heading"><h1>{page.title}</h1><p>{page.subtitle}</p></div>
     
    </header>
    <div className="paper-content"><div className="paper-columns">
@@ -34,5 +34,6 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
   </article>)}
  </main>;
 }
+
 
 

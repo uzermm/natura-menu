@@ -2,13 +2,14 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {Category,Item} from '@/lib/types';
 import {printedHeaderDishes,type PrintedSnapshot} from '@/lib/printed-menu-types';
+import {isPrintedDessert,orderPrintedFood} from '@/lib/printed-menu-layout';
 import './print.css';
 const price=(value:number)=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:value%100?2:0}).format(value/100)+' ₺';
 const breakfastId='4b50fd9c-dc08-4eb6-ae2c-1f6ea5f56829';
 function commonNotes(c:Category){const counts=new Map<string,number>();for(const i of c.items)if(i.menu_note?.trim())counts.set(i.menu_note.trim(),(counts.get(i.menu_note.trim())||0)+1);return [...counts].filter(([,count])=>count>=3).map(([note])=>note);}
 function CategoryBlock({category:c,food=false}:{category:Category;food?:boolean}){
  const notes=commonNotes(c),marker=(n:number)=>['¹','²','³','⁴'][n]||'*';
- return <section className={`paper-category${food&&/tatlı/.test(c.name.toLocaleLowerCase('tr-TR'))?' paper-dessert':''}`}>
+ return <section className={`paper-category${food&&isPrintedDessert(c)?' paper-dessert':''}`}>
   <h2><span>{c.name}</span></h2>
   {c.items.map(item=>{const noteIndex=notes.indexOf(item.menu_note?.trim()||'');return <div className="paper-item" key={item.id}><div className="paper-item-line"><span>{item.name}{noteIndex>=0&&<sup aria-label="Servis notu" aria-describedby={`print-note-${c.id}-${noteIndex}`}>{marker(noteIndex)}</sup>}</span><i/>{!item.variants.length&&<strong>{price(item.price)}</strong>}</div>
    {item.service_note&&<p className="paper-service-note">{item.service_note}</p>}
@@ -18,10 +19,10 @@ function CategoryBlock({category:c,food=false}:{category:Category;food?:boolean}
   {notes.map((note,n)=><p className="paper-common-note paper-note" id={`print-note-${c.id}-${n}`} key={note}><sup>{marker(n)}</sup> {note}</p>)}
  </section>;
 }
-function foodColumnSplit(categories:Category[],breakfast?:Item){
+function foodColumnSplit(categories:Category[],breakfast?:Item,pinnedTail=0){
  const weight=(c:Category)=>{const shared=commonNotes(c);return 3+c.items.reduce((sum,i)=>sum+Math.ceil(i.name.length/32)+(i.menu_note&&!shared.includes(i.menu_note.trim())?Math.ceil(i.menu_note.length/48)*.8:0)+(i.service_note?1:0)+i.variants.length,0)+shared.length*1.5;};
  const weights=categories.map(weight),total=weights.reduce((a,b)=>a+b,0),feature=breakfast?7:0;let left=0,best=0,score=Infinity;
- for(let split=0;split<=categories.length;split++){const next=Math.max(left,total-left+feature);if(next<score){score=next;best=split;}left+=weights[split]||0;}return best;
+ for(let split=0;split<=categories.length-pinnedTail;split++){const next=Math.max(left,total-left+feature);if(next<score){score=next;best=split;}left+=weights[split]||0;}return best;
 }
 export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
  const [snapshot,setSnapshot]=useState(initial),latest=useRef(initial),root=useRef<HTMLDivElement>(null),preview=useRef<HTMLDivElement>(null),mounted=useRef(true),fetching=useRef<Promise<PrintedSnapshot>|null>(null),controller=useRef<AbortController|null>(null);
@@ -30,7 +31,7 @@ export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
  const categories=snapshot.categories,drinks=categories.filter(c=>c.print_page==='drinks'),food=categories.filter(c=>c.print_page!=='drinks');
  const foodItems=food.flatMap(c=>c.items),breakfast=foodItems.find(i=>i.id===breakfastId)||foodItems.find(i=>/^serpme kahvaltı/.test(i.name.toLocaleLowerCase('tr-TR')));
  const breakfastService=breakfast?.service_note?.trim()||'',breakfastDays=/^(sadece )?hafta sonları$/.test(breakfastService.toLocaleLowerCase('tr-TR'))?'Cumartesi, Pazar':breakfastService;
- const foodSections=food.map(c=>({...c,items:c.items.filter(i=>i.id!==breakfast?.id)})).filter(c=>c.items.length),split=foodColumnSplit(foodSections,breakfast);
+ const orderedFood=orderPrintedFood(food.map(c=>({...c,items:c.items.filter(i=>i.id!==breakfast?.id)})).filter(c=>c.items.length)),foodSections=orderedFood.categories,split=foodColumnSplit(foodSections,breakfast,orderedFood.pinnedTail);
  const pages=[{title:'İçecekler',subtitle:'Sohbetin en güzel eşlikçisi.',categories:drinks,kind:'drinks'},{title:'Yemek & Tatlı',subtitle:'Taze hazırlanır. Keyifle paylaşılır.',categories:food,kind:'food'}];
  const refresh=useCallback(async()=>{
   if(fetching.current)return fetching.current;

@@ -9,9 +9,7 @@
 @media print{html,body{margin:0!important;padding:0!important;width:210mm!important;background:white!important}.print-menu-root{padding:0!important;background:white!important;min-height:0;print-color-adjust:exact;-webkit-print-color-adjust:exact}.paper-toolbar,.paper-warning{display:none!important}.menu-paper{margin:0!important;box-shadow:none!important;break-after:page;break-inside:avoid}.menu-paper:last-child{break-after:auto}.has-overflow .menu-paper{display:none!important}.has-overflow .paper-warning{display:block!important}}
 @media screen and (max-width:850px){.print-menu-root{overflow-x:auto;padding:12px}.paper-toolbar{min-width:740px}.menu-paper{margin-left:0}}
 .paper-footer{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.paper-footer>span:not(.paper-footer-dot){grid-column:2;text-align:center}.paper-footer .paper-footer-dot{justify-self:end}.paper-footer strong{min-width:0}
-/* A soft caramel wash separates desserts without a hard panel edge. */
-.paper-food .paper-dessert{position:relative;isolation:isolate;margin-top:2mm}
-.paper-food .paper-dessert:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,#d9b57c38 0%,#d9b57c24 48%,#d9b57c10 70%,transparent 92%)}
-.paper-food .paper-dessert h2{color:#80502d;border-left-color:transparent;background:linear-gradient(90deg,transparent,#d2a66a24 18%,#d2a66a24 75%,transparent)}
-.paper-food .paper-dessert .paper-item-line i{border-color:#b79a7680}
-
+/* Desserts use spacing and typography, keeping the paper background uniform. */
+.paper-food .paper-dessert{margin-top:3mm;padding-top:2.5mm;border-top:.25mm solid #c8b698}
+.paper-food .paper-dessert h2{color:#80502d;border-left-color:transparent;background:transparent;padding-top:0;padding-bottom:1.5mm;letter-spacing:1px}
+.paper-food .paper-dessert .paper-item-line i{border-color:#b9c5b1}

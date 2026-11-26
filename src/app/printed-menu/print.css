@@ -10,6 +10,7 @@
 @media screen and (max-width:850px){.print-menu-root{overflow-x:auto;padding:12px}.paper-toolbar{min-width:740px}.menu-paper{margin-left:0}}
 .paper-footer{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.paper-footer>span:not(.paper-footer-dot){grid-column:2;text-align:center}.paper-footer .paper-footer-dot{justify-self:end}.paper-footer strong{min-width:0}
 /* Desserts use spacing and typography, keeping the paper background uniform. */
-.paper-food .paper-dessert{margin-top:3mm;padding-top:2.5mm;border-top:.25mm solid #c8b698}
-.paper-food .paper-dessert h2{color:#80502d;border-left-color:transparent;background:transparent;padding-top:0;padding-bottom:1.5mm;letter-spacing:1px}
+.paper-food .paper-dessert{margin-top:2mm}
+.paper-food .paper-dessert h2{color:#704627;border-left-color:#956c3d;background:#dfd0b7}
 .paper-food .paper-dessert .paper-item-line i{border-color:#b9c5b1}
+

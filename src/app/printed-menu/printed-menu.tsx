@@ -30,10 +30,11 @@ export default function PrintedMenu({categories}:{categories:Category[]}){
     </section>)}
    </div></div>
    {page.kind==='drinks'&&<aside className="paper-feature"><div><span className="paper-eyebrow">KÜÇÜK BİR MOLA</span><p>Bir yudum.<br/><em>Güzel bir an.</em></p><span className="paper-feature-line"/></div>{page.photo&&<img src={page.photo.image_url} alt=""/>}<span className="paper-feature-word">NATURA</span></aside>}
-   <footer className="paper-footer"><strong>Afiyetle, Natura.</strong><span>Fiyatlar TL cinsindedir. KDV dâhildir.</span><span className="paper-footer-dot">✦</span></footer>
+   <footer className="paper-footer"><strong>Afiyetle, Natura.</strong><span>Fiyatlar TL cinsindedir. KDV dâhildir.</span></footer>
   </article>)}
  </main>;
 }
+
 
 
 

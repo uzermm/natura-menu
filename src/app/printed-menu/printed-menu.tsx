@@ -2,7 +2,7 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {Category,Item} from '@/lib/types';
 import {printedHeaderDishes,type PrintedSnapshot} from '@/lib/printed-menu-types';
-import {isPrintedDessert,orderPrintedFood} from '@/lib/printed-menu-layout';
+import {isPrintedDessert,orderPrintedFood,measuredPrintedSplit} from '@/lib/printed-menu-layout';
 import './print.css';
 const price=(value:number)=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:value%100?2:0}).format(value/100)+' ₺';
 const breakfastId='4b50fd9c-dc08-4eb6-ae2c-1f6ea5f56829';
@@ -27,11 +27,12 @@ function foodColumnSplit(categories:Category[],breakfast?:Item,pinnedTail=0){
 export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
  const [snapshot,setSnapshot]=useState(initial),latest=useRef(initial),root=useRef<HTMLDivElement>(null),preview=useRef<HTMLDivElement>(null),mounted=useRef(true),fetching=useRef<Promise<PrintedSnapshot>|null>(null),controller=useRef<AbortController|null>(null);
  const [ready,setReady]=useState(false),[overflow,setOverflow]=useState(false),[missing,setMissing]=useState<string[]>([]),[checking,setChecking]=useState(false),[error,setError]=useState(''),[lastChecked,setLastChecked]=useState(initial.checkedAt);
+ const [measuredLayout,setMeasuredLayout]=useState<{revision:number;edge:string;split:number}|null>(null);
  const [fitView,setFitView]=useState(true),[scale,setScale]=useState(1),[edge,setEdge]=useState<'borderless'|'safe'>('borderless'),[authorized,setAuthorized]=useState(false),[printRequest,setPrintRequest]=useState(0),pendingPrint=useRef(false);
  const categories=snapshot.categories,drinks=categories.filter(c=>c.print_page==='drinks'),food=categories.filter(c=>c.print_page!=='drinks');
  const foodItems=food.flatMap(c=>c.items),breakfast=foodItems.find(i=>i.id===breakfastId)||foodItems.find(i=>/^serpme kahvaltı/.test(i.name.toLocaleLowerCase('tr-TR')));
  const breakfastService=breakfast?.service_note?.trim()||'',breakfastDays=/^(sadece )?hafta sonları$/.test(breakfastService.toLocaleLowerCase('tr-TR'))?'Cumartesi, Pazar':breakfastService;
- const orderedFood=orderPrintedFood(food.map(c=>({...c,items:c.items.filter(i=>i.id!==breakfast?.id)})).filter(c=>c.items.length)),foodSections=orderedFood.categories,split=foodColumnSplit(foodSections,breakfast,orderedFood.pinnedTail);
+ const orderedFood=orderPrintedFood(food.map(c=>({...c,items:c.items.filter(i=>i.id!==breakfast?.id)})).filter(c=>c.items.length)),foodSections=orderedFood.categories,split=measuredLayout?.revision===snapshot.revision&&measuredLayout.edge===edge?measuredLayout.split:foodColumnSplit(foodSections,breakfast,orderedFood.pinnedTail);
  const pages=[{title:'İçecekler',subtitle:'Sohbetin en güzel eşlikçisi.',categories:drinks,kind:'drinks'},{title:'Yemek & Tatlı',subtitle:'Taze hazırlanır. Keyifle paylaşılır.',categories:food,kind:'food'}];
  const refresh=useCallback(async()=>{
   if(fetching.current)return fetching.current;
@@ -45,8 +46,22 @@ export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
  useEffect(()=>{const element=preview.current;if(!element)return;const measure=()=>setScale(fitView?Math.min(1,element.clientWidth/(210*96/25.4)):1);measure();const observer=new ResizeObserver(measure);observer.observe(element);return()=>observer.disconnect();},[fitView]);
  useEffect(()=>{let active=true;setReady(false);setAuthorized(false);async function fit(){await document.fonts.ready;const images=Array.from(root.current?.querySelectorAll('img')||[]);await Promise.all(images.map(img=>new Promise<void>(resolve=>{const timer=setTimeout(resolve,8000);img.decode().catch(()=>{}).finally(()=>{clearTimeout(timer);resolve();});})));if(!active)return;
   setMissing(images.filter(i=>!i.complete||!i.naturalWidth).map(i=>i.alt||'Menü görseli'));let failed=false;
-  root.current?.querySelectorAll<HTMLElement>('.paper-content').forEach(box=>{box.classList.remove('paper-three-columns');const isDrinks=!!box.closest('.paper-drinks');let size=isDrinks?12:11.5,min=isDrinks?11:10.5;const measure=()=>box.scrollHeight>box.clientHeight+1||box.scrollWidth>box.clientWidth+1;box.style.setProperty('--menu-size',size+'pt');while(measure()&&size>min){size-=.25;box.style.setProperty('--menu-size',size+'pt');}if(measure())failed=true;});setOverflow(failed);setReady(true);
- }void fit();return()=>{active=false;};},[snapshot,edge]);
+  const sheets=root.current?.querySelector<HTMLElement>('.paper-sheets'),transform=sheets?getComputedStyle(sheets).transform:'none',zoom=transform==='none'?1:new DOMMatrixReadOnly(transform).a;
+  for(const box of root.current?.querySelectorAll<HTMLElement>('.paper-content')||[]){
+   box.classList.remove('paper-three-columns','paper-tight');const isDrinks=!!box.closest('.paper-drinks');let size=isDrinks?12:11.5;const min=isDrinks?11:10.5;
+   const overflowed=()=>box.scrollHeight>box.clientHeight+1||box.scrollWidth>box.clientWidth+1;
+   if(isDrinks){box.style.setProperty('--menu-size',size+'pt');while(overflowed()&&size>min){size-=.25;box.style.setProperty('--menu-size',size+'pt');}if(overflowed())failed=true;continue;}
+   const categories=Array.from(box.querySelectorAll<HTMLElement>('.paper-category')),feature=box.querySelector<HTMLElement>('.paper-breakfast');
+   const measure=()=>measuredPrintedSplit(categories.map(e=>{const style=getComputedStyle(e);return e.getBoundingClientRect().height/zoom+Number.parseFloat(style.marginTop)+Number.parseFloat(style.marginBottom);}),feature?feature.getBoundingClientRect().height/zoom:0,orderedFood.pinnedTail);
+   box.style.setProperty('--menu-size',size+'pt');let plan=measure();
+   while(plan.height>box.clientHeight+.5&&size>min){size-=.25;box.style.setProperty('--menu-size',size+'pt');plan=measure();}
+   if(plan.height>box.clientHeight+.5){box.classList.add('paper-tight');size=11.5;box.style.setProperty('--menu-size',size+'pt');plan=measure();while(plan.height>box.clientHeight+.5&&size>min){size-=.25;box.style.setProperty('--menu-size',size+'pt');plan=measure();}}
+   if(plan.split!==split){setMeasuredLayout({revision:snapshot.revision,edge,split:plan.split});return;}
+   const bounds=box.getBoundingClientRect();const clipped=Array.from(box.querySelectorAll<HTMLElement>('.paper-item,.paper-breakfast')).some(e=>{const b=e.getBoundingClientRect();return b.bottom>bounds.bottom+zoom||b.right>bounds.right+zoom||b.left<bounds.left-zoom;});
+   if(plan.height>box.clientHeight+.5||overflowed()||clipped)failed=true;
+  }
+  setOverflow(failed);setReady(true);
+ }void fit();return()=>{active=false;};},[snapshot,edge,measuredLayout]);
  useEffect(()=>{if(!pendingPrint.current||!ready)return;pendingPrint.current=false;setChecking(false);if(overflow||missing.length){setAuthorized(false);return;}setAuthorized(true);const frame=requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));return()=>cancelAnimationFrame(frame);},[ready,overflow,missing,printRequest]);
  const canPrint=ready&&!overflow&&!missing.length&&!checking;
  return <main className={`print-menu-root ${authorized?'print-authorized':''}`} ref={root}>

@@ -41,3 +41,11 @@
 .paper-safe-edge .paper-food .paper-header{height:38mm}
 .paper-safe-edge .paper-category{margin-bottom:2.8mm}
 .paper-breakfast-title em{font-size:max(8pt,.85em);font-weight:400;font-style:italic;letter-spacing:0}
+
+/* Dense catalogs keep readable type; reduce whitespace before refusing an A4 proof. */
+.paper-food .paper-tight .paper-category{margin-bottom:2.2mm}
+.paper-food .paper-tight .paper-category h2{padding:1.2mm 2mm;margin-bottom:1.5mm}
+.paper-food .paper-tight .paper-item{margin-bottom:.45mm}
+.paper-food .paper-tight .paper-note{margin-top:.45mm;margin-bottom:.8mm}
+.paper-food .paper-tight .paper-common-note{margin-top:1mm;padding-top:.7mm}
+.paper-food .paper-tight .paper-breakfast{padding-top:2mm}

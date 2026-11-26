@@ -29,6 +29,7 @@ export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
  const [fitView,setFitView]=useState(true),[scale,setScale]=useState(1),[edge,setEdge]=useState<'borderless'|'safe'>('borderless'),[authorized,setAuthorized]=useState(false),[printRequest,setPrintRequest]=useState(0),pendingPrint=useRef(false);
  const categories=snapshot.categories,drinks=categories.filter(c=>c.print_page==='drinks'),food=categories.filter(c=>c.print_page!=='drinks');
  const foodItems=food.flatMap(c=>c.items),breakfast=foodItems.find(i=>i.id===breakfastId)||foodItems.find(i=>/^serpme kahvaltı/.test(i.name.toLocaleLowerCase('tr-TR')));
+ const breakfastService=breakfast?.service_note?.trim()||'',breakfastDays=/^(sadece )?hafta sonları$/.test(breakfastService.toLocaleLowerCase('tr-TR'))?'Cumartesi, Pazar':breakfastService;
  const foodSections=food.map(c=>({...c,items:c.items.filter(i=>i.id!==breakfast?.id)})).filter(c=>c.items.length),split=foodColumnSplit(foodSections,breakfast);
  const pages=[{title:'İçecekler',subtitle:'Sohbetin en güzel eşlikçisi.',categories:drinks,kind:'drinks'},{title:'Yemek & Tatlı',subtitle:'Taze hazırlanır. Keyifle paylaşılır.',categories:food,kind:'food'}];
  const refresh=useCallback(async()=>{
@@ -64,7 +65,7 @@ export default function PrintedMenu({initial}:{initial:PrintedSnapshot}){
    <div className="paper-content">{page.kind==='drinks'?<div className="paper-columns">{page.categories.filter(c=>c.items.length).map(c=><CategoryBlock key={c.id} category={c}/>)}</div>:<div className="paper-food-grid">
     <div className="paper-food-column">{foodSections.slice(0,split).map(c=><CategoryBlock key={c.id} category={c} food/>)}</div>
     <div className="paper-food-column">{foodSections.slice(split).map(c=><CategoryBlock key={c.id} category={c} food/>)}
-     {breakfast&&<section className="paper-breakfast" aria-label="Hafta sonu kahvaltısı"><h2><span>{breakfast.name.toLocaleUpperCase('tr-TR')}</span><strong>{price(breakfast.price)}</strong></h2>{breakfast.service_note&&<p className="paper-breakfast-weekend">{breakfast.service_note}</p>}{(breakfast.menu_note||breakfast.description)&&<p className="paper-note">{breakfast.menu_note||breakfast.description}</p>}</section>}
+     {breakfast&&<section className="paper-breakfast" aria-label="Hafta sonu kahvaltısı"><h2><span className="paper-breakfast-title"><span>{breakfast.name.toLocaleUpperCase('tr-TR')}</span>{breakfastDays&&<em> ({breakfastDays})</em>}</span><strong>{price(breakfast.price)}</strong></h2>{(breakfast.menu_note||breakfast.description)&&<p className="paper-note">{breakfast.menu_note||breakfast.description}</p>}</section>}
     </div>
    </div>}</div>
    {page.kind==='drinks'&&<aside className="paper-feature"><div><span className="paper-eyebrow">KÜÇÜK BİR MOLA</span><p>Bir yudum.<br/><em>Güzel bir an.</em></p><span className="paper-feature-line"/></div><img src="/printed-menu/coffee-print.webp" alt="Türk kahvesi"/></aside>}

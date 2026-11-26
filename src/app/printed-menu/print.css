@@ -40,3 +40,4 @@
 .paper-edge-choice{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}.paper-proof-tools .paper-edge-choice label{margin:0}
 .paper-safe-edge .paper-food .paper-header{height:38mm}
 .paper-safe-edge .paper-category{margin-bottom:2.8mm}
+.paper-breakfast-title em{font-size:max(8pt,.85em);font-weight:400;font-style:italic;letter-spacing:0}

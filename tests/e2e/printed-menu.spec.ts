@@ -9,3 +9,13 @@ test('printed menu stays on two A4 pages with working assets and safe overflow g
 });
 
 
+
+test('menu notes are editable and the same saved note appears in digital and printed menus',async({page})=>{
+ const origin='http://127.0.0.1:'+(process.env.E2E_PORT||'3124');
+ const auth=await page.request.post('/api/auth/login',{headers:{Origin:origin},data:{username:'beyoglumutfagi@gmail.com',password:process.env.E2E_PASSWORD||'natura-e2e-local-12345'}});expect(auth.status()).toBe(200);
+ const state=await(await page.request.get('/api/admin/state')).json();const category=state.categories.find((c:any)=>c.items.some((i:any)=>i.name==='Milkshake'));const item=category.items.find((i:any)=>i.name==='Milkshake');
+ expect(item.menu_note).toContain('Çikolata');const note='Çikolata, Muz, Çilek • Güncel çeşitler';
+ const save=await page.request.post('/api/admin/items',{headers:{Origin:origin},data:{...item,menu_note:note}});expect(save.status(),await save.text()).toBe(200);
+ await page.goto('/printed-menu');await expect(page.getByText(note,{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Yazdır / PDF kaydet'})).toBeEnabled();
+ await page.goto('/menu');await page.getByRole('button',{name:/Soğuk İçecekler/}).click();await expect(page.getByText(note,{exact:true})).toBeVisible();
+});

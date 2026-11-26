@@ -1,7 +1,7 @@
 export interface Variant { name:string; price:number }
 export interface Item {
  version?:number;
- id:string; category_id:string; name:string; description:string; price:number;
+ id:string; category_id:string; name:string; description:string; menu_note?:string; price:number;
  image_url:string; image_generated:boolean; display_order:number; is_active:boolean; qr_visible?:boolean;
  sold_out:boolean; featured:boolean; allergens:string[]; allergens_verified:boolean;
  tags:string[]; variants:Variant[]; original_price:number|null;

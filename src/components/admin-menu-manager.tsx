@@ -24,7 +24,7 @@ export default function AdminMenuManager({categories,busy,onEditCategory,onDelet
  const visible=categories.filter(c=>!search||matchesCategory(c));
  function toggle(id:string){setExpanded(ids=>ids.includes(id)?ids.filter(x=>x!==id):[...ids,id]);}
  return <div className="space-y-4"><MenuQuality categories={categories} onEdit={onEditItem}/>
-  <div className="flex flex-wrap gap-3"><div className="relative min-w-48 flex-1"><Search size={17} className="absolute left-3 top-3.5 text-muted-foreground"/><Input aria-label="Kategori veya ürün ara" className="h-11 bg-white pl-10" placeholder="Kategori veya ürün ara…" value={query} onChange={e=>{const value=e.target.value;setQuery(value);const text=normalize(value.trim());setExpanded(text?categories.filter(c=>matchesCategory(c,text)).map(c=>c.id):[]);}}/></div><Button variant="outline" className="h-11 bg-white" disabled={busy||!categories.length} onClick={()=>onBulkPrices('')}>Toplu fiyat güncelle</Button></div>
+  <div className="flex flex-wrap gap-3"><a href="/printed-menu" target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center rounded-xl border bg-white px-4 text-sm font-semibold">Basılı Menü · A4</a><div className="relative min-w-48 flex-1"><Search size={17} className="absolute left-3 top-3.5 text-muted-foreground"/><Input aria-label="Kategori veya ürün ara" className="h-11 bg-white pl-10" placeholder="Kategori veya ürün ara…" value={query} onChange={e=>{const value=e.target.value;setQuery(value);const text=normalize(value.trim());setExpanded(text?categories.filter(c=>matchesCategory(c,text)).map(c=>c.id):[]);}}/></div><Button variant="outline" className="h-11 bg-white" disabled={busy||!categories.length} onClick={()=>onBulkPrices('')}>Toplu fiyat güncelle</Button></div>
   {visible.map(c=>{
    const index=categories.findIndex(category=>category.id===c.id),open=expanded.includes(c.id);
    const items=search&&!normalize(c.name).includes(search)?c.items.filter(i=>matchesItem(i)):c.items;
@@ -65,3 +65,4 @@ export default function AdminMenuManager({categories,busy,onEditCategory,onDelet
   {!visible.length&&<div className="rounded-2xl border border-dashed p-10 text-center"><p className="font-semibold">{categories.length?'Eşleşen kategori veya ürün bulunamadı.':'Henüz kategori yok.'}</p></div>}
  </div>;
 }
+

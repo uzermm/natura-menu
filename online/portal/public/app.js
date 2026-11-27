@@ -1,3 +1,4 @@
+import {branchConnectionStatuses} from './restaurant-status.js';
 import {createPrintJournal,printStatus} from './print-journal.js';
 import {setupPhoneNotifications} from './phone-notifications.js';
 import {patchHTML} from './dom-update.js';
@@ -304,7 +305,7 @@ function updateRefreshButton(){
 const reviewsView=createReviewsView({api,escape,branchHeader,identity,date,toast,getState:()=>state,onLoadingChange:value=>{reviewsLoading=value;updateRefreshButton();}});
 function showView(v){if(v==='settings'&&state.user?.role!=='admin')v='orders';const changed=view!==v;view=v;for(const name of ['orders','reviews','settings']){$('#'+name+'View').hidden=v!==name;$('#'+name+'Nav')?.classList.toggle('active',v===name);}$('.portal-title').textContent=v==='reviews'?'Değerlendirmeler':'Sipariş Merkezi';updateRefreshButton();if(v==='settings'){loadSettings();}if(v==='reviews')void reviewsView.load();if(changed)render();}
 function render(){
- document.dispatchEvent(new CustomEvent('online:accounts',{detail:state.accounts.map(account=>({id:account.id,name:account.label,state:account.status?.state||'waiting',lastSuccess:account.status?.lastSuccess||null,message:account.status?.message||''}))}));
+ document.dispatchEvent(new CustomEvent('online:accounts',{detail:branchConnectionStatuses(state.accounts,state.orders)}));
 
 
  const isAdmin=state.user?.role==='admin';document.querySelectorAll('.admin-only').forEach(el=>el.hidden=!isAdmin);if(!isAdmin&&view==='settings')showView('orders');

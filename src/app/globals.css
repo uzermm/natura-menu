@@ -144,3 +144,18 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;top:65px;bottom:calc(64
 /* Balanced settings columns and readable secondary information. */
 .unified-settings-layout{gap:20px}.unified-settings-title{font-size:17px;line-height:1.4;margin-bottom:12px}.unified-cafe-settings form>section{padding:16px;border-radius:12px}.unified-cafe-settings form>section>h2{font-size:17px;line-height:1.4}.unified-cafe-settings form label{font-size:13px;color:#43523d}.unified-cafe-settings form input:not([type=checkbox]),.unified-cafe-settings form select{min-height:40px}.unified-cafe-settings form textarea{min-height:76px}.connection-dock-branch .dock-age-full,.connection-dock-branch .dock-age-short{color:#51634a;font-size:11px}.kitchen-shell .text-muted-foreground{color:#606d58}
 @media(max-width:700px){.unified-settings-title{font-size:16px}.unified-cafe-settings form>section{padding:14px}.connection-dock-branch .dock-age-short{font-size:10px}}
+
+/* Store availability stays distinct from the order API connection. */
+.connection-dock-branch[data-availability] .connection-dock-dot{background:#9aa395}
+.connection-dock-branch[data-availability=OPEN] .connection-dock-dot{background:#2e9255}
+.connection-dock-branch[data-availability=CLOSED] .connection-dock-dot{background:#ce5246}
+.connection-dock-branch strong{display:flex;align-items:center;gap:5px}
+.connection-dock-branch strong>.dock-order-state{display:inline!important;border-radius:4px;padding:1px 4px;background:#eef0e9;color:#626c5d;font-size:9px;white-space:nowrap;font-weight:600}
+.connection-dock-branch[data-availability=OPEN] .dock-order-state{color:#23683d;background:#e4f1e7}
+.connection-dock-branch[data-availability=CLOSED] .dock-order-state{color:#a13b32;background:#fbe8e3}
+.connection-dock-branch .dock-today-hours{font-size:10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.restaurant-hours-dialog{max-height:85dvh;overflow-y:auto;overscroll-behavior:contain}
+.restaurant-availability{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#626c5d}.restaurant-availability>span{width:8px;height:8px;border-radius:50%;background:currentColor}.restaurant-availability[data-state=OPEN]{color:#287944}.restaurant-availability[data-state=CLOSED]{color:#b54439}
+.restaurant-weekly-hours h3{font-size:13px;font-weight:700;margin-bottom:8px}.restaurant-weekly-hours dl>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 9px;font-size:12px;border-bottom:1px solid #edf0e9}.restaurant-weekly-hours dl>div[data-today=true]{background:#ecf3e8;border-radius:6px;font-weight:700;color:#295c3b}.restaurant-weekly-hours dt{display:flex;align-items:center;gap:6px}.restaurant-weekly-hours dt small{font-size:9px;font-weight:500;color:#6d8163}.restaurant-weekly-hours dd{text-align:right;font-variant-numeric:tabular-nums}
+.restaurant-connection-details{border-top:1px solid #e6eadf;padding-top:10px;display:grid;gap:7px}.restaurant-connection-details>div{display:flex;justify-content:space-between;gap:12px;font-size:11px}.restaurant-connection-details dt{color:#7a8572}.restaurant-connection-details dd{text-align:right}
+@media(max-width:700px){.connection-dock-branch>div{display:block}.connection-dock-branch strong>.dock-order-state{font-size:8px;padding:1px 3px}.connection-dock-branch .dock-branch-short{display:none}.connection-dock-branch .dock-today-hours{font-size:7px;line-height:1.1}.connection-dock-branch{gap:3px}.connection-dock-branch strong{line-height:1.1}}

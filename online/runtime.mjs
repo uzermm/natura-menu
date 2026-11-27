@@ -7,7 +7,7 @@ import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import {DB,sqlite,dataDir,dataKey} from './dokploy/database.mjs';
 import {storage} from './portal/store.mjs';
 import {audit} from './portal/operation-audit.mjs';
-import {handle,syncPushOrders,telegramOrderAction} from './portal/worker.mjs';
+import {handle,syncPushOrders,syncRestaurantInformation,telegramOrderAction} from './portal/worker.mjs';
 import {createPush} from './dokploy/push.mjs';
 import {createTelegram} from './dokploy/telegram.mjs';
 import {auth,normalize,credential} from './portal/auth.mjs';
@@ -108,16 +108,18 @@ export function subscribeOnline(callback){listeners.add(callback);return()=>list
 function publishOnline(){for(const callback of listeners)try{callback();}catch{}}
 export async function renewLegacy(request){return auth(env).renew(request);}
 let lastTickMs=0,cpuSample=process.cpuUsage(),cpuSampleAt=performance.now();
-let cursor=Date.now(),timer,sendTimer,callbackTimer,onlineStopped=false;
+let cursor=Date.now(),timer,sendTimer,callbackTimer,restaurantTimer,onlineStopped=false;
 export async function tick(){const started=performance.now();syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));cursor=result.now;lastTickMs=Math.round(performance.now()-started);publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
  const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};
+ const restaurants=async()=>{try{await syncRestaurantInformation(env);}catch{console.warn('Restoran durum kontrolü tekrar denenecek.');}finally{if(!onlineStopped){restaurantTimer=setTimeout(restaurants,15000);restaurantTimer.unref();}}};
  const send=async()=>{try{await Promise.allSettled([TELEGRAM.drain(),PUSH.drain()]);}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
  const callbacks=async()=>{let delay=1000;try{delay=await TELEGRAM.pollCallbacks()||1000;}catch{delay=10000;console.warn('Telegram düğme alıcısı yeniden denenecek.');}finally{if(!onlineStopped){callbackTimer=setTimeout(callbacks,delay);callbackTimer.unref();}}};
+ restaurantTimer=setTimeout(restaurants,1500);restaurantTimer.unref();
  timer=setTimeout(poll,1000);timer.unref();{sendTimer=setTimeout(send,5000);sendTimer.unref();if(TELEGRAM.enabled){callbackTimer=setTimeout(callbacks,1000);callbackTimer.unref();}}
 }
-export function stopOnline(){onlineStopped=true;clearTimeout(timer);clearTimeout(sendTimer);clearTimeout(callbackTimer);TELEGRAM.stopCallbacks();timer=undefined;}
+export function stopOnline(){onlineStopped=true;clearTimeout(timer);clearTimeout(sendTimer);clearTimeout(callbackTimer);clearTimeout(restaurantTimer);TELEGRAM.stopCallbacks();timer=undefined;}
 startOnline();
 
 const unifiedBackups=createUnifiedBackups();

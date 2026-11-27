@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from './ui/dialog';
+import {RestaurantStatusControl} from './restaurant-status-control';
 import {RestaurantHoursEditor} from './restaurant-hours-editor';
 import {Printer,Clock3,Link2} from 'lucide-react';
 import {restaurantAvailability,restaurantDays,restaurantToday,hoursForDay} from '../../online/portal/public/restaurant-status.js';
@@ -27,6 +28,7 @@ export function ConnectionDock({status,canEditHours=false}:{status:OnlineStatus;
  <Dialog open={!!branch} onOpenChange={value=>!value&&!hoursBusy&&setSelected(null)}><DialogContent className="restaurant-hours-dialog"><DialogHeader><DialogTitle>{branch?.name}</DialogTitle><DialogDescription>Sipariş durumu ve çalışma saatleri</DialogDescription></DialogHeader>{branch&&<>
   <div className="restaurant-availability" data-state={restaurantAvailability(branch.restaurant,now).state}><span/>{restaurantAvailability(branch.restaurant,now).label}</div>
   {branch.restaurant?.error&&<p className="text-xs text-amber-800" role="status">{branch.restaurant.error}{branch.restaurant.checkedAt?' Saatler son başarılı kontrolden gösteriliyor.':''}</p>}
+  <RestaurantStatusControl key={branch.id+':status'} branchId={branch.id} info={branch.restaurant} canEdit={canEditHours} onBusy={setHoursBusy}/>
   <RestaurantHoursEditor key={branch.id} branchId={branch.id} hours={branch.restaurant?.workingHours||[]} canEdit={canEditHours} now={now} onBusy={setHoursBusy}/>
   <dl className="restaurant-connection-details"><div><dt>Mağaza bilgisi kontrolü</dt><dd>{branch.restaurant?.checkedAt?new Date(branch.restaurant.checkedAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Henüz alınamadı'}</dd></div><div><dt>Sipariş bağlantısı</dt><dd>{branch.state==='error'?'Bağlantı hatası':!branch.lastSuccess||now-branch.lastSuccess>90000?'Veri güncel değil':'Güncel'}</dd></div><div><dt>Son sipariş kontrolü</dt><dd>{branch.lastSuccess?new Date(branch.lastSuccess).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Henüz yok'}</dd></div>{branch.state==='error'&&branch.message&&<div><dt>Açıklama</dt><dd>{branch.message}</dd></div>}</dl>
  </>}</DialogContent></Dialog>

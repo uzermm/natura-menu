@@ -1,3 +1,4 @@
+import {restaurantStatusOperation,processRestaurantClosures} from './portal/restaurant-status-control.mjs';
 import {restaurantHoursOperation} from './portal/restaurant-hours.mjs';
 import {unseal} from './portal/store.mjs';
 import {createUnifiedBackups} from './dokploy/unified-backup.mjs';
@@ -115,7 +116,7 @@ export async function tick(){const started=performance.now();syncIdentities();co
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
  const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};
- const restaurants=async()=>{try{await syncRestaurantInformation(env);}catch{console.warn('Restoran durum kontrolü tekrar denenecek.');}finally{if(!onlineStopped){restaurantTimer=setTimeout(restaurants,15000);restaurantTimer.unref();}}};
+ const restaurants=async()=>{try{await syncRestaurantInformation(env);const store=storage(env),lease=await store.lock('restaurant-info');if(lease){try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};await processRestaurantClosures({store,accounts:config.accounts});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}}}catch{console.warn('Restoran durum kontrolü tekrar denenecek.');}finally{if(!onlineStopped){restaurantTimer=setTimeout(restaurants,15000);restaurantTimer.unref();}}};
  const send=async()=>{try{await Promise.allSettled([TELEGRAM.drain(),PUSH.drain()]);}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
  const callbacks=async()=>{let delay=1000;try{delay=await TELEGRAM.pollCallbacks()||1000;}catch{delay=10000;console.warn('Telegram düğme alıcısı yeniden denenecek.');}finally{if(!onlineStopped){callbackTimer=setTimeout(callbacks,delay);callbackTimer.unref();}}};
  restaurantTimer=setTimeout(restaurants,1500);restaurantTimer.unref();
@@ -134,3 +135,5 @@ export async function restaurantHours(branchId,input){
  const store=storage(env),lease=await store.lock('restaurant-info');if(!lease)throw Object.assign(Error('Mağaza bilgileri yenileniyor. Biraz sonra tekrar deneyin.'),{status:409});
  try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};return await restaurantHoursOperation({store,config,branchId,input});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}
 }
+
+export async function restaurantStatus(branchId,input){const store=storage(env),lease=await store.lock('restaurant-info');if(!lease)throw Object.assign(Error('Mağaza bilgileri yenileniyor. Biraz sonra tekrar deneyin.'),{status:409});try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};return await restaurantStatusOperation({store,config,branchId,input});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}}

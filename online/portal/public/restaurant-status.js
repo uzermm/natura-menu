@@ -2,7 +2,7 @@ import {restaurantGroups} from './summary.js';
 // Availability comes from the restaurant API, never from the working-hours clock.
 export const restaurantDays=[['MONDAY','Pazartesi'],['TUESDAY','Salı'],['WEDNESDAY','Çarşamba'],['THURSDAY','Perşembe'],['FRIDAY','Cuma'],['SATURDAY','Cumartesi'],['SUNDAY','Pazar']];
 export function restaurantToday(now=Date.now()){return new Intl.DateTimeFormat('en-US',{timeZone:'Europe/Istanbul',weekday:'long'}).format(now).toUpperCase();}
-export function hoursForDay(hours,day){const rows=(hours||[]).filter(row=>row.dayOfWeek===day);return rows.length?rows.map(row=>row.openingTime+'–'+row.closingTime+(row.closingTime<row.openingTime?' (+1 gün)':'')).join(' / '):'Saat paylaşılmadı';}
+export function hoursForDay(hours,day){const rows=(hours||[]).filter(row=>row.dayOfWeek===day);return rows.length?rows.map(row=>row.openingTime.slice(0,5)+'–'+row.closingTime.slice(0,5)+(row.closingTime<row.openingTime?' (+1 gün)':'')).join(' / '):'Saat paylaşılmadı';}
 export function restaurantAvailability(info,now=Date.now()){
  const fresh=!!info?.checkedAt&&!info?.error&&now-info.checkedAt>=-30000&&now-info.checkedAt<=120000;
  const state=fresh&&['OPEN','CLOSED'].includes(info.workingStatus)?info.workingStatus:'UNKNOWN';

@@ -3,19 +3,20 @@ import {mapConcurrent} from './concurrency.mjs';
 import {restaurantDays} from './public/restaurant-status.js';
 const days=new Set(restaurantDays.map(([day])=>day));
 const time=value=>typeof value==='string'&&/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(value)?value.slice(0,5):null;
-export function normalizeRestaurant(raw,account){
+export function normalizeRestaurant(raw,account,{seconds=false}={}){
  if(!raw||!/^\d+$/.test(String(raw.id))||String(raw.supplierId??account.supplierId)!==String(account.supplierId))throw Error('Restoran kimliği doğrulanamadı.');
+ if(seconds&&(!Array.isArray(raw.workingHours)||raw.workingHours.some(row=>!days.has(row?.dayOfWeek)||!time(row?.openingTime)||!time(row?.closingTime))))throw Error('Mevcut çalışma saatleri doğrulanamadı. Güncelleme gönderilmedi.');
  const hours=Array.isArray(raw.workingHours)?raw.workingHours:[];
- return {id:String(raw.id),name:String(raw.name||'').slice(0,150),workingStatus:['OPEN','CLOSED'].includes(raw.workingStatus)?raw.workingStatus:'UNKNOWN',workingHours:hours.flatMap(row=>{const openingTime=time(row?.openingTime),closingTime=time(row?.closingTime);return days.has(row?.dayOfWeek)&&openingTime&&closingTime?[{dayOfWeek:row.dayOfWeek,openingTime,closingTime}]:[];})};
+ return {id:String(raw.id),name:String(raw.name||'').slice(0,150),workingStatus:['OPEN','CLOSED'].includes(raw.workingStatus)?raw.workingStatus:'UNKNOWN',workingHours:hours.flatMap(row=>{const openingTime=time(row?.openingTime),closingTime=time(row?.closingTime);return days.has(row?.dayOfWeek)&&openingTime&&closingTime?[{dayOfWeek:row.dayOfWeek,openingTime:seconds?(row.openingTime.length===5?row.openingTime+':00':row.openingTime):openingTime,closingTime:seconds?(row.closingTime.length===5?row.closingTime+':00':row.closingTime):closingTime}]:[];})};
 }
-export async function fetchRestaurants(account,{fetcher=fetch}={}){
+export async function fetchRestaurants(account,{fetcher=fetch,seconds=false}={}){
  const base=account.environment==='stage'?'https://stageapi.tgoapis.com':'https://api.tgoapis.com',rows=[];
  for(let page=0;page<1000;page++){
   const url=new URL(base+'/integrator/store/meal/suppliers/'+encodeURIComponent(account.supplierId)+'/stores');url.searchParams.set('page',String(page));url.searchParams.set('size','50');
   let response;try{response=await fetcher(url,{headers:{Authorization:'Basic '+Buffer.from(account.apiKey+':'+account.apiSecret).toString('base64'),'x-agentname':account.agentName,'x-executor-user':account.executorEmail,Accept:'application/json'},signal:AbortSignal.timeout(8000),redirect:'manual'});}catch{throw Error('Restoran durum servisine ulaşılamadı.');}
   if(!response.ok){const error=Error(response.status===401?'Restoran API bilgileri doğrulanamadı.':response.status===403?'Restoran bilgilerini okuma yetkisi bulunmuyor.':response.status===429?'Restoran API istek sınırına ulaşıldı.':'Restoran API yanıtı: HTTP '+response.status);error.retryAfter=response.status===429?Math.max(60000,Math.min(3600000,(Number(response.headers.get('retry-after'))||60)*1000)):[401,403,404].includes(response.status)?300000:60000;throw error;}
   const body=await response.json();if(!Array.isArray(body?.restaurants)||!Number.isInteger(body.totalPages)||body.totalPages<0)throw Error('Restoran servis yanıtı doğrulanamadı.');
-  rows.push(...body.restaurants.map(row=>normalizeRestaurant(row,account)));if(page+1>=body.totalPages)return rows;
+  rows.push(...body.restaurants.map(row=>normalizeRestaurant(row,account,{seconds})));if(page+1>=body.totalPages)return rows;
  }
  throw Error('Restoran sayfa sınırı aşıldı.');
 }

@@ -1,11 +1,13 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from './ui/dialog';
+import {RestaurantHoursEditor} from './restaurant-hours-editor';
 import {Printer,Clock3,Link2} from 'lucide-react';
 import {restaurantAvailability,restaurantDays,restaurantToday,hoursForDay} from '../../online/portal/public/restaurant-status.js';
 import type {OnlineStatus} from '@/lib/online-status';
 function shortName(name:string){if(/beyo[gğ]lu/i.test(name))return 'Beyoğlu';if(/fast/i.test(name))return 'Fast Food';if(/d[uü]r[uü]m/i.test(name))return 'Dürüm';return name.split(' ')[0];}
-export function ConnectionDock({status}:{status:OnlineStatus}){
+export function ConnectionDock({status,canEditHours=false}:{status:OnlineStatus;canEditHours?:boolean}){
+ const [hoursBusy,setHoursBusy]=useState(false);
  const {branches}=status;const [selected,setSelected]=useState<string|null>(null);const branch=branches.find(item=>item.id===selected);
  const [now,setNow]=useState(()=>Date.now());
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),5000);return()=>clearInterval(timer);},[]);
@@ -22,10 +24,10 @@ export function ConnectionDock({status}:{status:OnlineStatus}){
    <div className="dock-metric dock-accounts" aria-label={status.accounts+' hesap bağlı'}><Link2 size={16} aria-hidden="true"/><div><small>Bağlı hesap</small><strong>{status.accounts}</strong></div></div>
    <div className="dock-metric dock-print" data-active={status.printing==='Aktif'}><Printer size={16} aria-hidden="true"/><div><small>Otomatik yazdırma</small><strong>{status.printing}</strong></div></div>
   </div>
- <Dialog open={!!branch} onOpenChange={value=>!value&&setSelected(null)}><DialogContent className="restaurant-hours-dialog"><DialogHeader><DialogTitle>{branch?.name}</DialogTitle><DialogDescription>Sipariş durumu ve çalışma saatleri</DialogDescription></DialogHeader>{branch&&<>
+ <Dialog open={!!branch} onOpenChange={value=>!value&&!hoursBusy&&setSelected(null)}><DialogContent className="restaurant-hours-dialog"><DialogHeader><DialogTitle>{branch?.name}</DialogTitle><DialogDescription>Sipariş durumu ve çalışma saatleri</DialogDescription></DialogHeader>{branch&&<>
   <div className="restaurant-availability" data-state={restaurantAvailability(branch.restaurant,now).state}><span/>{restaurantAvailability(branch.restaurant,now).label}</div>
   {branch.restaurant?.error&&<p className="text-xs text-amber-800" role="status">{branch.restaurant.error}{branch.restaurant.checkedAt?' Saatler son başarılı kontrolden gösteriliyor.':''}</p>}
-  <div className="restaurant-weekly-hours"><h3>Çalışma Saatleri</h3><dl>{restaurantDays.map(([day,label])=><div key={day} data-today={day===restaurantToday(now)}><dt>{label}{day===restaurantToday(now)&&<small>Bugün</small>}</dt><dd>{hoursForDay(branch.restaurant?.workingHours,day)}</dd></div>)}</dl></div>
+  <RestaurantHoursEditor key={branch.id} branchId={branch.id} hours={branch.restaurant?.workingHours||[]} canEdit={canEditHours} now={now} onBusy={setHoursBusy}/>
   <dl className="restaurant-connection-details"><div><dt>Mağaza bilgisi kontrolü</dt><dd>{branch.restaurant?.checkedAt?new Date(branch.restaurant.checkedAt).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Henüz alınamadı'}</dd></div><div><dt>Sipariş bağlantısı</dt><dd>{branch.state==='error'?'Bağlantı hatası':!branch.lastSuccess||now-branch.lastSuccess>90000?'Veri güncel değil':'Güncel'}</dd></div><div><dt>Son sipariş kontrolü</dt><dd>{branch.lastSuccess?new Date(branch.lastSuccess).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}):'Henüz yok'}</dd></div>{branch.state==='error'&&branch.message&&<div><dt>Açıklama</dt><dd>{branch.message}</dd></div>}</dl>
  </>}</DialogContent></Dialog>
  </footer>;

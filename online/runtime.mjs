@@ -1,3 +1,5 @@
+import {restaurantHoursOperation} from './portal/restaurant-hours.mjs';
+import {unseal} from './portal/store.mjs';
 import {createUnifiedBackups} from './dokploy/unified-backup.mjs';
 import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
 import {statfs,mkdir,readdir,stat,rename,writeFile,rm} from 'node:fs/promises';
@@ -127,3 +129,8 @@ export async function operationsHealth(){const sample=process.cpuUsage(),elapsed
 export async function runUnifiedBackup(){return unifiedBackups.run();}
 export function retryTelegram(id){return TELEGRAM.retry(id);}
 if(process.env.ONLINE_BACKGROUND!=='0')unifiedBackups.start();
+
+export async function restaurantHours(branchId,input){
+ const store=storage(env),lease=await store.lock('restaurant-info');if(!lease)throw Object.assign(Error('Mağaza bilgileri yenileniyor. Biraz sonra tekrar deneyin.'),{status:409});
+ try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};return await restaurantHoursOperation({store,config,branchId,input});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}
+}

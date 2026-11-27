@@ -38,7 +38,7 @@ async function context(env,store){
 const restaurantSyncs=new WeakMap();
 export async function syncRestaurantInformation(env){
  if(restaurantSyncs.has(env))return restaurantSyncs.get(env);
- const work=(async()=>{const store=storage(env),config=await loadConfig(env,store),service=createRestaurantService({initial:await store.get('restaurant-info',{}),persist:value=>store.set('restaurant-info',value)});await service.sync(config.accounts);env.ONLINE_CHANGED?.();})();
+ const work=(async()=>{const store=storage(env),lease=await store.lock('restaurant-info');if(!lease)return;try{const config=await loadConfig(env,store),service=createRestaurantService({initial:await store.get('restaurant-info',{}),persist:value=>store.set('restaurant-info',value)});await service.sync(config.accounts);env.ONLINE_CHANGED?.();}finally{await store.unlock(lease,'restaurant-info');}})();
  restaurantSyncs.set(env,work);try{await work;}finally{restaurantSyncs.delete(env);}
 }
 export async function syncPushOrders(env, since) {

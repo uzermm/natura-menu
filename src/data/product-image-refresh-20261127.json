@@ -1,0 +1,37 @@
+[
+  {
+    "id": "95ce34a8-f3e1-4059-951c-235c6882a16e",
+    "previous_image_url": "",
+    "image_url": "/menu/ai-cocuk-kahvalti-v1.webp"
+  },
+  {
+    "id": "e792ed93-de32-4063-ae62-abcbdc8b1267",
+    "previous_image_url": "/menu/d1055e0120c088a42a6b.webp",
+    "image_url": "/menu/ai-pisi-sade-v2.webp"
+  },
+  {
+    "id": "84e93dae-c6f4-491f-a00b-d68ba0fe9cb0",
+    "previous_image_url": "/menu/8162adf29788f26888e5.webp",
+    "image_url": "/menu/ai-pisi-kasarli-v2.webp"
+  },
+  {
+    "id": "0b03d884-1eba-487f-8b58-a099c6e3af1a",
+    "previous_image_url": "/menu/7f6683d29c07584b2d67.webp",
+    "image_url": "/menu/ai-pisi-karisik-peynirli-v2.webp"
+  },
+  {
+    "id": "50f770aa-a52d-4118-8e91-686f9ebb1a86",
+    "previous_image_url": "/menu/880e4b7710f0ad516fce.webp",
+    "image_url": "/menu/ai-pisi-sucuklu-peynirli-v2.webp"
+  },
+  {
+    "id": "909c33e2-86e8-4be5-bc0d-90e73a194811",
+    "previous_image_url": "/menu/d3f37fcef3d73bdb8fe0.webp",
+    "image_url": "/menu/ai-sogan-halkasi-v2.webp"
+  },
+  {
+    "id": "f8289543-208c-4fa9-9768-1fbe62989d08",
+    "previous_image_url": "/menu/2f4f97dda797b158acaa.webp",
+    "image_url": "/menu/ai-su-05l-v2.webp"
+  }
+]

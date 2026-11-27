@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import seed from '@/data/menu.json';
 import generatedImageUpdates from '@/data/generated-image-updates.json';
+import refreshedProductImages from '@/data/product-image-refresh-20261127.json';
 import type { Category, Item, Settings, WaiterCall } from './types';
 import { campaignSchema } from './validation';
 import { applyGeneratedImageUpdates } from './image-updates';
@@ -43,6 +44,10 @@ export function db() {
   if(!d.prepare('SELECT 1 FROM migrations WHERE version=2').get()) {
    applyGeneratedImageUpdates(d,generatedImageUpdates);
    d.prepare('INSERT INTO migrations VALUES(2,?)').run(new Date().toISOString());
+  }
+  if(!d.prepare('SELECT 1 FROM migrations WHERE version=5').get()){
+   applyGeneratedImageUpdates(d,refreshedProductImages);
+   d.prepare('INSERT INTO migrations VALUES(5,?)').run(new Date().toISOString());
   }
   d.exec('COMMIT');
  }catch(e){d.exec('ROLLBACK');d.close();throw e;}

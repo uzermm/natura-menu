@@ -1,0 +1,49 @@
+{
+  "mode": "built-in image_gen",
+  "purpose": "Representative cafe menu images",
+  "sharedPrompt": "Photorealistic commercial bistro food/product photography. Square frame, pale warm beige stone tabletop, soft bright daylight from left, natural colors, crisp realistic texture, complete serving with crop-safe margins, no people, no lettering or watermark. Pişi references preserve the original flat round pastry shape and rectangular white plate, tomato/cucumber/olive accompaniments; each serving contains two pişi.",
+  "assets": [
+    {
+      "name": "Sade Pişi",
+      "prompt": "Two plain unfilled flat round Turkish pişi with tomatoes, cucumbers and olives.",
+      "image": "public/menu/ai-pisi-sade-v2.webp",
+      "thumbnail": "public/menu/ai-pisi-sade-v2-sm.webp"
+    },
+    {
+      "name": "Kaşarlı Pişi",
+      "prompt": "Two pişi with kashar cheese, one small wedge reveals yellow melted cheese.",
+      "image": "public/menu/ai-pisi-kasarli-v2.webp",
+      "thumbnail": "public/menu/ai-pisi-kasarli-v2-sm.webp"
+    },
+    {
+      "name": "Karışık Peynirli Pişi",
+      "prompt": "Two pişi with white feta and yellow kashar, one small wedge reveals both cheeses.",
+      "image": "public/menu/ai-pisi-karisik-peynirli-v2.webp",
+      "thumbnail": "public/menu/ai-pisi-karisik-peynirli-v2-sm.webp"
+    },
+    {
+      "name": "Sucuklu Peynirli Pişi",
+      "prompt": "Two pişi with Turkish sucuk and mixed cheeses, one small wedge reveals the filling.",
+      "image": "public/menu/ai-pisi-sucuklu-peynirli-v2.webp",
+      "thumbnail": "public/menu/ai-pisi-sucuklu-peynirli-v2-sm.webp"
+    },
+    {
+      "name": "Çocuk Kahvaltı Tabağı",
+      "prompt": "Child-sized white plate: boiled egg cut in two, fries, white feta and kashar cheese, sliced simit, tomato, cucumber; a generic small juice carton behind the plate. No other food.",
+      "image": "public/menu/ai-cocuk-kahvalti-v1.webp",
+      "thumbnail": "public/menu/ai-cocuk-kahvalti-v1-sm.webp"
+    },
+    {
+      "name": "Soğan Halkası",
+      "prompt": "Ten realistic crunchy breaded golden onion rings on a white round plate, no sauces or garnish.",
+      "image": "public/menu/ai-sogan-halkasi-v2.webp",
+      "thumbnail": "public/menu/ai-sogan-halkasi-v2-sm.webp"
+    },
+    {
+      "name": "Su · 0,5 L",
+      "prompt": "Single sealed clear 500 ml PET water bottle, pink-red cap, neutral blue-white label without text, full bottle visible, warm neutral backdrop.",
+      "image": "public/menu/ai-su-05l-v2.webp",
+      "thumbnail": "public/menu/ai-su-05l-v2-sm.webp"
+    }
+  ]
+}

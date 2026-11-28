@@ -55,6 +55,7 @@ export default function AdminPanel({initial,operator}:{initial:State;operator:Op
  const [onlineStatus,setOnlineStatus]=useState<OnlineStatus>({printing:'Kapalı',accounts:'0/0',branches:[]});
  useEffect(()=>{const section=new URLSearchParams(location.search).get('section');if(allowedLinks.some(link=>link.id===section))setPage(section as Page);},[]);
  const [state,setState]=useState(initial),[page,setPage]=useState<Page>(onlineOnly?'onlineOrders':'pos'),[categoryFilter,setCategoryFilter]=useState('');
+ useEffect(()=>{window.scrollTo({top:0,behavior:'instant'});const frame=requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));return()=>cancelAnimationFrame(frame);},[page]);
  const [editingItem,setEditingItem]=useState<Item|null>(null),[editingCategory,setEditingCategory]=useState<Category|null>(null),[confirm,setConfirm]=useState<{message:string;action:()=>Promise<void>}|null>(null);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[sound,setSound]=useState(true),[bulkOpen,setBulkOpen]=useState(false);
  const audio=useRef<AudioContext|null>(null),seen=useRef(new Set(initial.calls.filter(c=>!c.resolved_at).map(c=>c.id))),toastTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);

@@ -1,3 +1,5 @@
+import {notifyClosureFailures} from './portal/closure-alerts.mjs';
+import {nextPollDelay} from './portal/poll-schedule.mjs';
 import {restaurantStatusOperation,processRestaurantClosures} from './portal/restaurant-status-control.mjs';
 import {restaurantHoursOperation} from './portal/restaurant-hours.mjs';
 import {unseal} from './portal/store.mjs';
@@ -86,7 +88,7 @@ export async function onlineRequest(request,operator){
  original.protocol=external.protocol;original.hostname=external.hostname;original.port=external.port;
  const publicAsset=['/push-worker.js','/scooter-192.png','/scooter-512.png'].includes(path);
  if(!operator&&!publicAsset)return Response.json({error:'Lütfen giriş yapın.'},{status:401});
- if(operator?.role==='kitchen'&&(path.startsWith('/api/')&&!['/api/state','/api/sync','/api/push','/api/auth/renew-print-session'].includes(path)&&!/^\/api\/orders\/[^/]+\/(actions|receipt-code)$/.test(path)))return Response.json({error:'Mutfak kullanıcısı yalnız siparişleri yönetebilir.'},{status:403});
+ if(operator?.role==='kitchen'&&(path.startsWith('/api/')&&!['/api/state','/api/orders/history','/api/sync','/api/push','/api/auth/renew-print-session'].includes(path)&&!/^\/api\/orders\/[^/]+\/(actions|receipt-code)$/.test(path)))return Response.json({error:'Mutfak kullanıcısı yalnız siparişleri yönetebilir.'},{status:403});
  if(path==='/api/users'||path.startsWith('/api/users/'))return Response.json({error:'Kullanıcılar ortak Ayarlar bölümünden yönetilir.'},{status:403});
  if(operator?.role==='waiter'&&(path==='/'||path.startsWith('/api/')))return Response.json({error:'Garson yalnız masa siparişlerini yönetebilir.'},{status:403});
  if(path.startsWith('/api/auth/')&&path!=='/api/auth/renew-print-session'&&!(path==='/api/auth/password'&&(operator?.role==='online_admin'||operator?.onlineAdmin&&operator?.onlineUserId)))return Response.json({error:'Hesap işlemleri ortak Ayarlar bölümündedir.'},{status:403});
@@ -115,8 +117,8 @@ let cursor=Date.now(),timer,sendTimer,callbackTimer,restaurantTimer,onlineStoppe
 export async function tick(){const started=performance.now();syncIdentities();const result=await syncPushOrders(env,cursor);if(!result)return;TELEGRAM.enqueue(result.orders,result.courierOrders);void TELEGRAM.drain().catch(()=>console.warn('Telegram kuyruğu tekrar denenecek.'));cursor=result.now;lastTickMs=Math.round(performance.now()-started);publishOnline();for(const order of result.orders)await PUSH.send(order);}
 export function startOnline(){
  if(timer||process.env.ONLINE_BACKGROUND==='0')return;onlineStopped=false;TELEGRAM.startCallbacks();
- const poll=async()=>{try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,15000);timer.unref();}}};
- const restaurants=async()=>{try{await syncRestaurantInformation(env);const store=storage(env),lease=await store.lock('restaurant-info');if(lease){try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};await processRestaurantClosures({store,accounts:config.accounts});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}}}catch{console.warn('Restoran durum kontrolü tekrar denenecek.');}finally{if(!onlineStopped){restaurantTimer=setTimeout(restaurants,15000);restaurantTimer.unref();}}};
+ const poll=async()=>{const started=Date.now();try{await tick();}catch{console.warn('Online sipariş kontrolü tekrar denenecek.');}finally{if(!onlineStopped){timer=setTimeout(poll,nextPollDelay(started,Date.now()));timer.unref();}}};
+ const restaurants=async()=>{try{await syncRestaurantInformation(env);const store=storage(env),lease=await store.lock('restaurant-info');if(lease){try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};await processRestaurantClosures({store,accounts:config.accounts});if(TELEGRAM.enabled)await notifyClosureFailures({store,accounts:config.accounts,send:text=>TELEGRAM.alert(text)});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}}}catch{console.warn('Restoran durum kontrolü tekrar denenecek.');}finally{if(!onlineStopped){restaurantTimer=setTimeout(restaurants,15000);restaurantTimer.unref();}}};
  const send=async()=>{try{await Promise.allSettled([TELEGRAM.drain(),PUSH.drain()]);}catch{console.warn('Telegram kuyruğu tekrar denenecek.');}finally{if(!onlineStopped){sendTimer=setTimeout(send,5000);sendTimer.unref();}}};
  const callbacks=async()=>{let delay=1000;try{delay=await TELEGRAM.pollCallbacks()||1000;}catch{delay=10000;console.warn('Telegram düğme alıcısı yeniden denenecek.');}finally{if(!onlineStopped){callbackTimer=setTimeout(callbacks,delay);callbackTimer.unref();}}};
  restaurantTimer=setTimeout(restaurants,1500);restaurantTimer.unref();
@@ -137,3 +139,5 @@ export async function restaurantHours(branchId,input){
 }
 
 export async function restaurantStatus(branchId,input){const store=storage(env),lease=await store.lock('restaurant-info');if(!lease)throw Object.assign(Error('Mağaza bilgileri yenileniyor. Biraz sonra tekrar deneyin.'),{status:409});try{const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};return await restaurantStatusOperation({store,config,branchId,input});}finally{await store.unlock(lease,'restaurant-info');publishOnline();}}
+
+export async function auditTargetLabels(ids){const store=storage(env),wanted=new Set(ids),orders=await store.get('orders',[]),labels={};for(const order of orders)if(wanted.has(order.id))labels[order.id]=(order.restaurant||'Online sipariş')+' · #'+(order.orderCode||'—');const encrypted=await store.get('config',null),config=encrypted?await unseal(encrypted,DATA_KEY):{accounts:[]};for(const account of config.accounts)for(const branch of account.stores||[])if(wanted.has(account.id+':'+branch.id))labels[account.id+':'+branch.id]=branch.name||account.label;return labels;}

@@ -89,3 +89,16 @@ test('cashier can accept and mark an online order ready without configuration ac
 });
 
 test('background refresh notifies open panels immediately and unsubscribed panels stop receiving events',async()=>{let notified=0,first=0;const unsubscribe=subscribeOnline(()=>notified++);try{await tick();first=notified;assert.ok(first>=1);}finally{unsubscribe();}await tick();assert.equal(notified,first);});
+
+test('shared online state carries only recent orders; history is paged and retains role boundaries',async()=>{
+ const {DB}=await import('../online/dokploy/database.mjs'),{storage}=await import('../online/portal/store.mjs'),store=storage({DB}),original=await store.get('orders',[]),revision=await store.get('orders-revision','legacy'),now=Date.now();
+ const rows=Array.from({length:90},(_,i)=>({id:'history-'+i,accountId:'qa',storeId:'1',restaurant:'Natura',number:String(i),orderCode:'007',status:'Delivered',createdAt:now-86400000,total:100,payment:'Kart',items:[]}));
+ const request=(url:string)=>new Request('https://mutfak.example/online'+url),cashier={id:'paging-cashier',username:'staff',role:'cashier'},kitchen={...cashier,id:'paging-kitchen',role:'kitchen'};
+ try{
+  await store.set('orders',[...rows,{...rows[0],id:'active-yesterday',status:'Picking'}]);await store.set('orders-revision','paging-1');
+  const state=await(await onlineRequest(request('/api/state'),cashier)).json();assert.deepEqual(state.orders.map((o:{id:string})=>o.id),['active-yesterday']);assert.equal(state.orderWindow.mode,'recent');assert.equal(state.overview.all[''].sales.count,91);
+  const first=await(await onlineRequest(request('/api/orders/history?period=all'),cashier)).json();assert.equal(first.orders.length,60);assert.equal(first.total,91);
+  assert.equal((await onlineRequest(request('/api/orders/history?period=all'),kitchen)).status,200);assert.equal((await onlineRequest(request('/api/orders/history'),{...cashier,role:'waiter'})).status,403);assert.equal((await onlineRequest(request('/api/orders/history'),null)).status,401);
+  await store.set('orders',[]);await store.set('orders-revision','paging-2');const next=await(await onlineRequest(request('/api/state'),cashier)).json();assert.equal(next.overview.all[''].sales.count,0);
+ }finally{await store.set('orders',original);await store.set('orders-revision',revision);}
+});

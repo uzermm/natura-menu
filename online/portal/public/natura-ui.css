@@ -1,0 +1,10 @@
+/* Shared by the cafe panel and the online workspace. */
+:root {
+ --na-green:#305c3e;--na-ink:#263c2e;--na-muted:#596650;
+ --na-border:#dce4d6;--na-surface:#fff;--na-soft:#f2f5ed;
+ --na-control-radius:8px;--na-panel-radius:12px;--na-control-height:38px;
+ --na-heading-size:18px;--na-label-size:12px;
+}
+.na-panel{border:1px solid var(--na-border);border-radius:var(--na-panel-radius);background:var(--na-surface)}
+.na-section-title{font-size:var(--na-heading-size);line-height:1.35;font-weight:700;color:var(--na-ink)}
+@media(max-width:700px){:root{--na-heading-size:17px;--na-control-height:40px}}

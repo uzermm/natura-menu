@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../../online/portal/public/natura-ui.css";
 @layer base { * { @apply border-border; } }
 @theme inline {
  --color-background: var(--background); --color-foreground: var(--foreground);
@@ -166,3 +167,18 @@ body:has(.kitchen-shell) .pos-ticket-workspace{left:88px;top:65px;bottom:calc(64
 .hours-editor-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;margin-top:14px}.hours-editor-actions button{height:34px;font-size:11px;padding:4px 10px}.hours-editor-confirm>p{font-size:12px;margin:10px 0}.hours-editor-confirm dd del{font-size:10px;color:#8c927f;display:block}.hours-editor-confirm dd strong{display:block;font-size:12px}
 
 .restaurant-status-control:empty{display:none}.restaurant-status-actions{display:flex;justify-content:flex-end}.restaurant-status-actions button{height:32px;font-size:11px}.restaurant-close-button{color:#aa4034!important;border-color:#e9c9c0!important;background:#fff3ee!important}.restaurant-status-confirm{border:1px solid #e6ddd2;background:#faf8f1;border-radius:9px;padding:12px}.restaurant-status-confirm h3{font-size:14px;font-weight:700;margin-bottom:9px}.restaurant-status-confirm fieldset{display:grid;gap:6px;border:0}.restaurant-status-confirm label{display:flex;align-items:center;gap:8px;border:1px solid #e5e7db;background:#fff;padding:9px;border-radius:6px;font-size:12px}.restaurant-status-confirm label:has(input:checked){border-color:#b78866;background:#fcf0e4}.restaurant-status-confirm p,.restaurant-closure-note{font-size:11px;color:#87683c;line-height:1.5;margin-top:10px}.restaurant-closure-note{background:#fff2d9;padding:8px;border-radius:6px;margin:0}
+
+/* One control rhythm across operational sections; compact dock remains untouched. */
+.kitchen-main [data-slot=button][data-size=default], [data-slot=dialog-content] [data-slot=button][data-size=default]{min-height:var(--na-control-height);border-radius:var(--na-control-radius)}
+.kitchen-main input:not([type=checkbox]):not([type=radio]),.kitchen-main select,.kitchen-main textarea{border-radius:var(--na-control-radius)}
+.unified-settings-title{font-size:var(--na-heading-size);color:var(--na-ink)}
+.cari-stat{min-width:0;border:1px solid var(--na-border);border-radius:var(--na-panel-radius);padding:16px;background:#edf3e8;color:var(--na-green)}
+.cari-stat[data-kind=balance]{background:#fff;border-top:3px solid var(--na-green)}
+.cari-stat-head{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--na-muted)}
+.cari-stat-head>span{display:flex;border-radius:8px;background:#dfead8;padding:7px}
+.cari-stat-value{margin-top:10px;font-size:28px;font-weight:750;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(min-width:701px){.cari-stat{padding:18px}.cari-stat-value{font-size:32px}}
+.menu-description{line-height:1.55;color:#58634f;font-size:12px;overflow-wrap:anywhere}
+.menu-description-toggle{margin-top:4px;color:var(--na-green);font-size:11px;font-weight:650;min-height:28px;text-decoration:underline;text-underline-offset:3px}
+.menu-product-info{display:flex;flex:1;min-width:0;flex-direction:column;padding:12px}
+.menu-product-price{margin-top:auto;padding-top:12px}

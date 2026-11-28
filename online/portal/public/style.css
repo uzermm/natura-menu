@@ -288,3 +288,22 @@ aside .brand.online-kitchen-brand{display:flex;flex-direction:column;align-items
 
 /* Cards are informational; only explicit controls are interactive. */
 #orders .order{cursor:default}#orders .order-card-print{box-sizing:border-box;width:calc(100% - 24px);margin:10px 12px 12px;flex-shrink:0;min-height:36px;border-radius:8px;padding:7px 12px}
+
+/* Shared tokens and aligned summary rows, with independent mobile carousel sizing. */
+.button{border-radius:var(--na-control-radius);font-weight:650;min-height:var(--na-control-height)}
+.dashboard-toolbar h2,.section-head h2{font-size:var(--na-heading-size);color:var(--na-ink);line-height:1.35}
+#historyControls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:16px 0 20px;color:var(--na-muted);font-size:12px}
+#historyControls[hidden]{display:none}
+@media(min-width:1101px){
+ #restaurantSummaries,#discountSummaries{align-items:stretch}
+ #restaurantSummaries>.restaurant-summary,#discountSummaries>.discount-summary{height:auto;display:flex;flex-direction:column;border-radius:var(--na-panel-radius)}
+ #restaurantSummaries .restaurant-summary-head,#discountSummaries .discount-summary-head{min-height:42px;align-items:center}
+ #restaurantSummaries .restaurant-metrics{min-height:70px}
+ #restaurantSummaries .summary-drawer{flex:1}
+ #restaurantSummaries .payment-breakdown>p{padding:12px 0;color:var(--na-muted)}
+ #discountSummaries .discount-summary-metrics{min-height:68px;align-items:stretch}
+ #discountSummaries .discount-campaigns{max-height:168px;overflow-y:auto;scrollbar-width:thin;padding-right:3px}
+ #discountSummaries .discount-empty{padding:12px 4px;color:var(--na-muted)}
+}
+
+@media(min-width:1101px){#restaurantSummaries>.restaurant-summary{align-self:stretch}.all-restaurants>.restaurant-context{display:none}}
